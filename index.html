@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <Title>Stock Rater</Title>
-    <Body>
-      <h1>Stock Rater</h1>
-      <input type="text" id="stockInput" placeholder="Enter a Stock Symbol" />
-      <br><br>
-      <button onclick="goTo('general')">Get General Info</button>
-      <button onclick="goTo('rate')">Get Rating</button>
-      <script>
-        function goTo(type){
-          const stock = document.getElementByID(stockInput).value.trim().toUpperCase();
-          if(!stock){
-            alert("Please enter a stock symbol.");
-            return;
-          }
-          window.location.href = '${type}.html?stock=${stock};
-        }
-      </script>
-    </Body>
-  </head>
+<head>
+  <title>Stock Rater</title>
+</head>
+<body>
+  <h1>Stock Rater</h1>
+  <input type="text" id="stockInput" placeholder="Enter a stock symbol" />
+  <br><br>
+  <button onclick="goTo('general')">Get General Info</button>
+  <button onclick="goTo('rate')">Get Rating</button>
+
+  <script>
+    function goTo(type) {
+      const stock = document.getElementById("stockInput").value.trim().toUpperCase();
+      if (!stock) {
+        alert("Please enter a stock symbol.");
+        return;
+      }
+      // Redirect to the appropriate page with the stock symbol in the URL
+      window.location.href = `${type}.html?stock=${stock}`;
+    }
+  </script>
+</body>
 </html>
