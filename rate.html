@@ -6,6 +6,8 @@
 <body>
   <h2>Stock Rating</h2>
   <pre id="output">Loading...</pre>
+  <br><br>
+  <button oneclick="goback()">Back</button>
 
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -19,6 +21,9 @@
       .catch(err => {
         document.getElementById("output").innerText = "Error: " + err.message;
       });
+    function goback(){
+      window.location.href = '';
+    }
   </script>
 </body>
 </html>
