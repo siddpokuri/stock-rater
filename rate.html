@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Rating</title>
-  </head>
-  <body>
-    <h2>Rating</h2>
-    <pre id="Output">Loading...</pre>
+<head>
+  <title>Stock Rating</title>
+</head>
+<body>
+  <h2>Stock Rating</h2>
+  <pre id="output">Loading...</pre>
 
-    <script>
-      const params = new URLSearchParams(window.location.search);
-      const stock = params.get("stock");
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const stock = params.get("stock");
 
-      fetch('https://stock-backend-0128.onrender.com/general?stock=${stock}')
-        .then(res => res.json)
-        .then(data => {
-          document.getElementByID("output").innerText = JSON.stringify(data, null, 2);
-        })
-        .catch(err => {
-          document.getElementByID("output").innerText = "Error: " + err.message;
-        });
-    </script>
-  </body>
+    fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock}`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+      })
+      .catch(err => {
+        document.getElementById("output").innerText = "Error: " + err.message;
+      });
+  </script>
+</body>
 </html>
