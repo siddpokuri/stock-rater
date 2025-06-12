@@ -15,21 +15,26 @@
       text-align: center;
       font-size: 100px;
     }
-    .ratebutton {
-      background-color: #0d330f;
+    #ratebutton {
+      background-color: #2e3b2e;
       color: 4c634d;
       font-family: helvetica;
       border: none;
       border-radius: 5px;
-      font-size: 16px;
+      font-size: 20px;
     }
-    .genbutton {
-      background-color: #0d330f;
+    #genbutton {
+      background-color: #2e3b2e;
       color: 4c634d;
       font-family: helvetica;
       border: none;
       border-radius: 5px;
-      font-size: 16px;
+      font-size: 20px;
+    }
+    #stockInput {
+      background-color: 2e3b2e;
+      font-size: 30px;
+      color: 4c634d;
     }
   </style>
 </head>
@@ -37,8 +42,8 @@
   <h1>Stock Rater</h1>
   <input type="text" id="stockInput" placeholder="Enter a stock symbol" />
   <br><br>
-  <button class="genbutton" onclick="goTo('general')">Get General Info</button>
-  <button class="ratebutton" onclick="goTo('rate')">Get Rating</button>
+  <button id="genbutton" onclick="goTo('general')">Get General Info</button>
+  <button id="ratebutton" onclick="goTo('rate')">Get Rating</button>
 
   <script>
     function goTo(type) {
