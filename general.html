@@ -11,7 +11,7 @@
     const params = new URLSearchParams(window.location.search);
     const stock = params.get("stock");
 
-    fetch(`https://stock-backend-0128.onrender.com/general?stock=${stock}`)
+    fetch(`https://stock-backend-0128.onrender.com/generalinfo?stock=${stock}`)
       .then(res => res.json())
       .then(data => {
         document.getElementById("output").innerText = JSON.stringify(data, null, 2);
