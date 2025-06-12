@@ -60,26 +60,26 @@
     
     async function generalInfo() {
       const stock = document.getElementById("stockInput").value.trim().toUpperCase();
-      const resultsDiv = document.getElementById("results");
+      const generalDiv = document.getElementById("results");
 
       if (!stock) {
-        resultsDiv.innerText = "Please enter a stock symbol.";
+        generalDiv.innerText = "Please enter a stock symbol.";
         return;
       }
 
-      resultsDiv.innerText = "Loading...";
+      generalDiv.innerText = "Loading...";
 
       try {
         const response = await fetch(`https://stock-backend-0128.onrender.com/generalinfo?stock=${stock}`);
         const data = await response.json();
 
         if (data.error) {
-          resultsDiv.innerText = "Error: " + data.error;
+          generalDiv.innerText = "Error: " + data.error;
         } else {
-          resultsDiv.innerText = JSON.stringify(data, null, 2);
+          generalDiv.innerText = JSON.stringify(data, null, 2);
         }
       } catch (err) {
-        resultsDiv.innerText = "Error fetching data: " + err.message;
+        generalDiv.innerText = "Error fetching data: " + err.message;
       }
     }
   </script>
