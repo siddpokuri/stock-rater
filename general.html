@@ -12,13 +12,18 @@
     const stock = params.get("stock");
 
     fetch(`https://stock-backend-0128.onrender.com/generalinfo?stock=${stock}`)
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("output").innerText = JSON.stringify(data, null, 2);
-      })
-      .catch(err => {
-        document.getElementById("output").innerText = "Error: " + err.message;
-      });
+  .then(res => {
+    if (!res.ok) {
+      throw new Error("Server responded with status " + res.status);
+    }
+    return res.json();
+  })
+  .then(data => {
+    document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+  })
+  .catch(err => {
+    document.getElementById("output").innerText = "Error: " + err.message;
+  });
   </script>
 </body>
 </html>
