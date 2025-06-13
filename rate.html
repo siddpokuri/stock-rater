@@ -44,14 +44,14 @@
     fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock}`)
       .then(res => res.json())
       .then(data => {
-        const ratingbox = document.getElementById("ratingBox");
+        const ratingbox = document.getElementById("ratingbox");
         ratingbox.innerHTML = '';
 
         for(const key in data){
           const value = data[key];
           const item = document.createElement('div');
           item.className = 'rating-item';
-          item.innerHTMl = '<strong>${key}</strong><span><${value}</span>';
+          item.innerHTML = `<strong>${key}</strong><span>${value}</span>`;
           ratingbox.appendChild(item);
         }
       })
