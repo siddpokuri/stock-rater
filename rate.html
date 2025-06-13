@@ -51,7 +51,7 @@
           const value = data[key];
           const item = document.createElement('div');
           item.className = 'rating-item';
-          item.innerHTML = `<strong>${key}</strong> <span>${value}</span>`;
+          item.innerHTML = `<strong>${key}</strong>: <span>${value}</span>`;
           ratingbox.appendChild(item);
         }
       })
