@@ -33,7 +33,7 @@
 </head>
 <body>
   <h2>Stock Rating</h2>
-  <pre id="output">Loading...</pre>
+  <div class="rating" id="ratingbox">Loading...</div>
   <br><br>
   <button id="backbutton" onclick="goback()">Back</button>
 
@@ -44,13 +44,22 @@
     fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock}`)
       .then(res => res.json())
       .then(data => {
-        document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+        const ratingbox = document.getElementById("ratingBox");
+        ratingbox.innerHTML = '';
+
+        for(const key in data){
+          const value = data[key];
+          const item = document.createElement('div');
+          item.className = 'rating-item';
+          item.innerHTMl = '<strong>${key}</strong><span><${value}</span>';
+          ratingbox.appendChild(item);
+        }
       })
       .catch(err => {
-        document.getElementById("output").innerText = "Error: " + err.message;
+        document.getElementById("ratingbox").innerText = "Error: " + err.message;
       });
     function goback(){
-      window.location.href = '/stock-rater/index.html';
+      window.location.href = 'index.html';
     }
   </script>
 </body>
