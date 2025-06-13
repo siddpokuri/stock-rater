@@ -42,16 +42,21 @@
     const stock = params.get("stock");
 
     fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Server responded with status " + res.status);
+        }
+        return res.json();
+      })
       .then(data => {
         const ratingbox = document.getElementById("ratingbox");
         ratingbox.innerHTML = '';
 
-        for(const key in data){
+        for (const key in data) {
           const value = data[key];
           const item = document.createElement('div');
-          item.className = 'rating-item';
-          item.innerHTML = `<strong>${key}</strong>: <span>${value}</span>`;
+          item.className = 'rate-item';
+          item.innerHTML = `<strong>${key}:</strong> <span>${value}</span>`;
           ratingbox.appendChild(item);
         }
       })
