@@ -33,7 +33,7 @@
 </head>
 <body>
   <h2>General Info</h2>
-  <pre id="output">Loading...</pre>
+  <div class="info" id="infobox">Loading...</div>
   <br><br>
   <button id="backbutton" onclick="goback()">Back</button>
 
@@ -42,18 +42,27 @@
     const stock = params.get("stock");
 
     fetch(`https://stock-backend-0128.onrender.com/generalinfo?stock=${stock}`)
-  .then(res => {
-    if (!res.ok) {
-      throw new Error("Server responded with status " + res.status);
-    }
-    return res.json();
-  })
-  .then(data => {
-    document.getElementById("output").innerText = JSON.stringify(data, null, 2);
-  })
-  .catch(err => {
-    document.getElementById("output").innerText = "Error: " + err.message;
-  });
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Server responded with status " + res.status);
+        }
+        return res.json();
+      })
+      .then(data => {
+        const infobox = document.getElementById("infobox");
+        infobox.innerHTML = '';
+
+        for (const key in data) {
+          const value = data[key];
+          const item = document.createElement('div');
+          item.className = 'info-item';
+          item.innerHTML = `<strong>${key}:</strong>: <span>${value}</span>`;
+          infobox.appendChild(item);
+        }
+      })
+      .catch(err => {
+        document.getElementById("infobox").innerText = "Error: " + err.message;
+      });
     function goback(){
       window.location.href = 'index.html';
     }
