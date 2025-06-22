@@ -1,1 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Compare Two Stocks</title>
+    <style>
+      body {
+        
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Compare Two Stocks</h2>
+    <input type="text" id="stock1" placeholder="Enter stock symbol">
+    <input type="text" id="stock2" placeholder="Enter stock symbol">
+    <button onclick="compare()">Compare</button>
+    <div id="result"></div>
 
+    <script>
+    function compareStocks() {
+      const stock1 = document.getElementById("stock1").value.toUpperCase();
+      const stock2 = document.getElementById("stock2").value.toUpperCase();
+
+      Promise.all([
+        fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock1}`).then(res => res.json()),
+        fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock2}`).then(res => res.json())
+      ])
+      .then(([data1, data2]) => {
+        let html = `<table><tr><th>Category</th><th>${stock1}</th><th>${stock2}</th></tr>`;
+
+        const categories = ["valuation", "profitability", "growth", "stability", "overallrating"];
+        const labels = {
+          valuation: "Valuation",
+          profitability: "Profitability",
+          growth: "Growth",
+          stability: "Stability",
+          overallrating: "Overall Rating"
+        };
+
+        categories.forEach(cat => {
+          html += `<tr>
+            <td><strong>${labels[cat]}</strong></td>
+            <td>${data1[cat] || 'N/A'}</td>
+            <td>${data2[cat] || 'N/A'}</td>
+          </tr>`;
+        });
+
+        html += `</table>`;
+        document.getElementById("result").innerHTML = html;
+      })
+      .catch(err => {
+        document.getElementById("result").innerHTML = "Error fetching stock data.";
+      });
+    }
+    </script>
+  </body>
+</html>
