@@ -67,15 +67,15 @@
     <script>
     function compareStocks() {
       console.log("Comparing stocks...");
-      const stock1 = document.getElementById("stock1").value.toUpperCase();
-      const stock2 = document.getElementById("stock2").value.toUpperCase();
+      const stock_1 = document.getElementById("stock1").value.toUpperCase();
+      const stock_2 = document.getElementById("stock2").value.toUpperCase();
 
       Promise.all([
-        fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock1}`).then(res => res.json()),
-        fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock2}`).then(res => res.json())
+        fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock_1}`).then(res => res.json()),
+        fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock_2}`).then(res => res.json())
       ])
       .then(([data1, data2]) => {
-        let html = `<table><tr><th>Category</th><th>${stock1}</th><th>${stock2}</th></tr>`;
+        let html = `<table><tr><th>Category</th><th>${stock_1}</th><th>${stock_2}</th></tr>`;
 
         const categories = ["valuation", "profitability", "growth", "stability", "overallrating"];
         const labels = {
