@@ -4,7 +4,49 @@
     <title>Compare Two Stocks</title>
     <style>
       body {
-        
+        font-family: helvetica;
+        align-items: center;
+        justify-content: center;
+        background-color: #5c705c;
+        color: #293629;
+        justify-content: center;
+        margin: 20px;
+        padding: 10px;
+      }
+      h2 {
+        color: #293629;
+        text-align: center;
+        font-size: 100px;
+        padding: 10px;
+      }
+      #comparebutton {
+        background-color: #2e3b2e;
+        color: white;
+        font-family: helvetica;
+        border: none;
+        text-align: center;
+        border-radius: 5px;
+        font-size: 20px;
+        padding: 10px;
+      }
+      #backbutton {
+        background-color: #2e3b2e;
+        color: white;
+        font-family: helvetica;
+        border: none;
+        text-align: center;
+        border-radius: 5px;
+        font-size: 10px;
+        padding: 10px;
+      }
+      #stock1,
+      #stock2 {
+        background-color: 2e3b2e;
+        font-size: 30px;
+        color: 4c634d;
+        text-align: center;
+        padding: 20px;
+        border-radius: 6px;
       }
     </style>
   </head>
@@ -12,7 +54,8 @@
     <h2>Compare Two Stocks</h2>
     <input type="text" id="stock1" placeholder="Enter stock symbol">
     <input type="text" id="stock2" placeholder="Enter stock symbol">
-    <button onclick="compare()">Compare</button>
+    <button id="comparebutton" onclick="compare()">Compare</button>
+    <button id="backbutton" onclick="goback()">Go Back</button>
     <div id="result"></div>
 
     <script>
@@ -36,21 +79,24 @@
           overallrating: "Overall Rating"
         };
 
-        categories.forEach(cat => {
-          html += `<tr>
-            <td><strong>${labels[cat]}</strong></td>
-            <td>${data1[cat] || 'N/A'}</td>
-            <td>${data2[cat] || 'N/A'}</td>
-          </tr>`;
-        });
+          categories.forEach(cat => {
+            html += `<tr>
+              <td><strong>${labels[cat]}</strong></td>
+              <td>${data1[cat] || 'N/A'}</td>
+              <td>${data2[cat] || 'N/A'}</td>
+            </tr>`;
+          });
 
-        html += `</table>`;
-        document.getElementById("result").innerHTML = html;
-      })
-      .catch(err => {
-        document.getElementById("result").innerHTML = "Error fetching stock data.";
-      });
-    }
+          html += `</table>`;
+          document.getElementById("result").innerHTML = html;
+        })
+        .catch(err => {
+          document.getElementById("result").innerHTML = "Error fetching stock data.";
+        });
+      }
+      function goback() {
+        window.location.href = 'index.html';
+      }
     </script>
   </body>
 </html>
