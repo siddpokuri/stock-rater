@@ -1,1 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Recent Insider Trades</title>
+    <style>
+      body {
+        font-family: helvetica;
+        align-items: center;
+        justify-content: center;
+        background-color: #5c705c;
+        color: #293629;
+        justify-content: center;
+        margin: 20px;
+        padding: 10px;
+      }
+      h2 {
+        color: #293629;
+        text-align: center;
+        font-size: 100px;
+        padding: 10px;
+      }
+      #backbutton {
+        background-color: #2e3b2e;
+        color: white;
+        font-family: helvetica;
+        border: none;
+        text-align: center;
+        border-radius: 5px;
+        font-size: 10px;
+        padding: 10px;
+      }
+      .trade-item {
+        background-color: #ffffff;
+        color: #000000;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Recent Insider Trades</h2>
+    <div class="trades" id="tradebox">Loading...</div>
+    <br><br>
+    <button id="backbutton" onclick="goback()">Back</button>
 
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const stock = params.get("stock");
+
+      fetch(`https://stock-backend-0128.onrender.com/insider?stock=${stock}`)
+        .then(res => res.json())
+        .then(data => {
+          const tradebox = document.getElementById("tradebox");
+          tradebox.innerHTML = '';
+
+          if (!Array.isArray(data) || data.length === 0) {
+            tradebox.innerText = "No data available.";
+            return;
+          }
+
+          data.forEach(trade => {
+            const item = document.createElement('div');
+            item.className = 'trade-item';
+            item.innerHTML = `
+              <strong>Date:</strong> ${trade["Date"] || "N/A"}<br>
+              <strong>Reporter:</strong> ${trade["Reporter"] || "N/A"}<br>
+              <strong>Role:</strong> ${trade["Role"] || "N/A"}<br>
+              <strong>Transaction Type:</strong> ${trade["Transaction Type"] || "N/A"}<br>
+              <strong>Shares:</strong> ${trade["Shares"] || "N/A"}
+            `;
+            tradebox.appendChild(item);
+          });
+        })
+        .catch(err => {
+          document.getElementById("tradebox").innerText = "Error: " + err.message;
+        });
+
+      function goback() {
+        window.location.href = 'index.html';
+      }
+    </script>
+  </body>
+</html>
