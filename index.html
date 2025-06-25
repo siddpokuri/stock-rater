@@ -61,6 +61,7 @@
       <button id="ratebutton" onclick="goTo('rate')">Get Rating</button>
       <button id="comparebutton" onclick="gocompare()">Compare Two Stocks</button>
       <button id="insiderbutton" onclick="goinsider()">Get Latest Insider Trades</button>
+      <button id="insiderbutton" onclick="gopastearnings()">Get Past Earnings Results</button>
     </div>
   </div>
 
@@ -78,6 +79,9 @@
     }
     function goinsider() {
       window.location.href = `insidertrades.html?stock=${stock}`
+    }
+    function gopastearnings() {
+      window.location.href = `pastearnings.html?stock=${stock}`
     }
   </script>
 </body>
