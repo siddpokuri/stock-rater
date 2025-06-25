@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Recent Insider Trades</title>
+    <title>Past Earnings Results</title>
     <style>
       body {
         font-family: helvetica;
@@ -39,8 +39,8 @@
     </style>
   </head>
   <body>
-    <h2>Recent Insider Trades</h2>
-    <div class="trades" id="earnbox">Loading...</div>
+    <h2>Past Earnings Results</h2>
+    <div class="earnings" id="earnbox">Loading...</div>
     <br><br>
     <button id="backbutton" onclick="goback()">Back</button>
 
@@ -52,7 +52,7 @@
         .then(res => res.json())
         .then(data => {
           const earnbox = document.getElementById("earnbox");
-          tradebox.innerHTML = '';
+          earnbox.innerHTML = '';
 
           if (!Array.isArray(data) || data.length === 0) {
             earnbox.innerText = "No data available.";
@@ -71,7 +71,7 @@
               <strong>Revenue Result:</strong> ${earn["Revenue Result"] || "N/A"}<br>
               <strong>Revenue Surprise (%):</strong> ${earn["Revenue Surprise (%)"] || "N/A"}<br>
             `;
-            tradebox.appendChild(item);
+            earnbox.appendChild(item);
           });
         })
         .catch(err => {
