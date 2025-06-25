@@ -61,8 +61,8 @@
       <button id="genbutton" onclick="goTo('general')">Get General Info</button>
       <button id="ratebutton" onclick="goTo('rate')">Get Rating</button>
       <button id="comparebutton" onclick="gocompare()">Compare Two Stocks</button>
-      <button id="insiderbutton" onclick="goinsider()">Get Latest Insider Trades</button>
-      <button id="pastbutton" onclick="gopastearnings()">Get Past Earnings Results</button>
+      <button id="insiderbutton" onclick="goTo('pastearnings')">Get Latest Insider Trades</button>
+      <button id="pastbutton" onclick="goTo('insidertrades')">Get Past Earnings Results</button>
     </div>
   </div>
 
@@ -77,12 +77,6 @@
     }
     function gocompare() {
       window.location.href = `compare.html`
-    }
-    function goinsider() {
-      window.location.href = `insidertrades.html?stock=${stock}`
-    }
-    function gopastearnings() {
-      window.location.href = `pastearnings.html?stock=${stock}`
     }
   </script>
 </body>
