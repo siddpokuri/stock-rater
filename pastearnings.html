@@ -48,7 +48,7 @@
       const params = new URLSearchParams(window.location.search);
       const stock = params.get("stock");
 
-      fetch(`https://stock-backend-0128.onrender.com/insider?stock=${stock}`)
+      fetch(`https://stock-backend-0128.onrender.com/pastearnings?stock=${stock}`)
         .then(res => res.json())
         .then(data => {
           const earnbox = document.getElementById("earnbox");
