@@ -1,1 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Recent Insider Trades</title>
+    <style>
+      body {
+        font-family: helvetica;
+        align-items: center;
+        justify-content: center;
+        background-color: #5c705c;
+        color: #293629;
+        justify-content: center;
+        margin: 20px;
+        padding: 10px;
+      }
+      h2 {
+        color: #293629;
+        text-align: center;
+        font-size: 100px;
+        padding: 10px;
+      }
+      #backbutton {
+        background-color: #2e3b2e;
+        color: white;
+        font-family: helvetica;
+        border: none;
+        text-align: center;
+        border-radius: 5px;
+        font-size: 10px;
+        padding: 10px;
+      }
+      .trade-item {
+        background-color: #708a71;
+        color: #293629;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Recent Insider Trades</h2>
+    <div class="trades" id="earnbox">Loading...</div>
+    <br><br>
+    <button id="backbutton" onclick="goback()">Back</button>
 
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const stock = params.get("stock");
+
+      fetch(`https://stock-backend-0128.onrender.com/insider?stock=${stock}`)
+        .then(res => res.json())
+        .then(data => {
+          const earnbox = document.getElementById("earnbox");
+          tradebox.innerHTML = '';
+
+          if (!Array.isArray(data) || data.length === 0) {
+            earnbox.innerText = "No data available.";
+            return;
+          }
+
+          data.forEach(earn => {
+            const item = document.createElement('div');
+            item.className = 'earn-item';
+            item.innerHTML = `
+              <strong>Date:</strong> ${earn["Date"] || "N/A"}<br>
+              <strong>EPS Estimate:</strong> ${earn["EPS Estimate"] || "N/A"}<br>
+              <strong>EPS Result:</strong> ${earn["EPS Result"] || "N/A"}<br>
+              <strong>EPS Surprise:</strong> ${earn["EPS Surprise (%)"] || "N/A"}<br>
+              <strong>Revenue Estimate:</strong> ${earn["Revenue Estimate"] || "N/A"}<br>
+              <strong>Revenue Result:</strong> ${earn["Revenue Result"] || "N/A"}<br>
+              <strong>Revenue Surprise (%):</strong> ${earn["Revenue Surprise (%)"] || "N/A"}<br>
+            `;
+            tradebox.appendChild(item);
+          });
+        })
+        .catch(err => {
+          document.getElementById("earnbox").innerText = "Error: " + err.message;
+        });
+
+      function goback() {
+        window.location.href = 'index.html';
+      }
+    </script>
+  </body>
+</html>
