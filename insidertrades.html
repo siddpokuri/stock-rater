@@ -1,84 +1,106 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Recent Insider Trades</title>
-    <style>
-      body {
-        font-family: helvetica;
-        align-items: center;
-        justify-content: center;
-        background-color: #5c705c;
-        color: #293629;
-        justify-content: center;
-        margin: 20px;
-        padding: 10px;
-      }
-      h2 {
-        color: #293629;
-        text-align: center;
-        font-size: 100px;
-        padding: 10px;
-      }
-      #backbutton {
-        background-color: #2e3b2e;
-        color: white;
-        font-family: helvetica;
-        border: none;
-        text-align: center;
-        border-radius: 5px;
-        font-size: 10px;
-        padding: 10px;
-      }
-      .trade-item {
-        background-color: #708a71;
-        color: #293629;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Recent Insider Trades</h2>
-    <div class="trades" id="tradebox">Loading...</div>
-    <br><br>
-    <button id="backbutton" onclick="goback()">Back</button>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recent Insider Trades</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom font for a more professional look */
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+  <!-- Google Fonts - Inter (for a clean, modern look) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 font-inter text-gray-300">
 
-    <script>
-      const params = new URLSearchParams(window.location.search);
-      const stock = params.get("stock");
+  <!-- Page Title -->
+  <h2 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-100 mb-10 text-center leading-tight">
+    Recent Insider Trades
+  </h2>
 
-      fetch(`https://stock-backend-0128.onrender.com/insider?stock=${stock}`)
-        .then(res => res.json())
-        .then(data => {
-          const tradebox = document.getElementById("tradebox");
-          tradebox.innerHTML = '';
+  <!-- Main Content Card -->
+  <div class="w-full max-w-2xl bg-gray-800 rounded-xl shadow-2xl p-6 md:p-8 border border-gray-700 flex flex-col items-center space-y-6">
+    <div id="tradebox" class="w-full text-center text-lg text-gray-400">
+      <!-- Loading state initially -->
+      Loading recent insider trades...
+    </div>
 
-          if (!Array.isArray(data) || data.length === 0) {
-            tradebox.innerText = "No data available.";
-            return;
+    <!-- Back Button -->
+    <button id="backbutton" onclick="goback()"
+      class="bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+      Back to Home
+    </button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const stock = params.get("stock");
+    const tradebox = document.getElementById("tradebox");
+
+    // Display stock symbol in title if available
+    if (stock) {
+      document.querySelector('h2').textContent = `${stock} Insider Trades`;
+    }
+
+    // Fetch insider trades data
+    fetch(`https://stock-backend-0128.onrender.com/insider?stock=${stock}`)
+      .then(res => {
+        if (!res.ok) {
+          // Check for specific 404 or other error statuses
+          if (res.status === 404) {
+            throw new Error(`Stock symbol "${stock}" not found or no data available.`);
           }
+          throw new Error(`Server responded with status ${res.status}.`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        tradebox.innerHTML = ''; // Clear loading message
 
-          data.forEach(trade => {
-            const item = document.createElement('div');
-            item.className = 'trade-item';
-            item.innerHTML = `
-              <strong>Date:</strong> ${trade["Date"] || "N/A"}<br>
-              <strong>Reporter:</strong> ${trade["Reporter"] || "N/A"}<br>
-              <strong>Role:</strong> ${trade["Role"] || "N/A"}<br>
-              <strong>Transaction Type:</strong> ${trade["Transaction Type"] || "N/A"}<br>
-              <strong>Shares:</strong> ${trade["Shares"] || "N/A"}
-            `;
-            tradebox.appendChild(item);
-          });
-        })
-        .catch(err => {
-          document.getElementById("tradebox").innerText = "Error: " + err.message;
+        if (!Array.isArray(data) || data.length === 0) {
+          tradebox.className = 'w-full text-center text-gray-400 text-lg md:text-xl font-semibold p-4 bg-gray-700 rounded-lg';
+          tradebox.innerText = `No insider trade data available for ${stock}.`;
+          return;
+        }
+
+        // Create a container for the trade items
+        const tradesContainer = document.createElement('div');
+        tradesContainer.className = 'w-full space-y-4'; // Adds space between trade items
+
+        data.forEach(trade => {
+          const item = document.createElement('div');
+          // Style each trade item as a distinct card
+          item.className = 'bg-gray-700 rounded-lg shadow-md p-4 border border-gray-600';
+
+          // Use a grid for better alignment of key-value pairs within each trade item
+          item.innerHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-base md:text-lg">
+              <div><strong class="text-gray-200">Date:</strong> <span class="text-gray-300">${trade["Date"] || "N/A"}</span></div>
+              <div><strong class="text-gray-200">Reporter:</strong> <span class="text-gray-300">${trade["Reporter"] || "N/A"}</span></div>
+              <div><strong class="text-gray-200">Role:</strong> <span class="text-gray-300">${trade["Role"] || "N/A"}</span></div>
+              <div><strong class="text-gray-200">Transaction Type:</strong> <span class="text-gray-300">${trade["Transaction Type"] || "N/A"}</span></div>
+              <div><strong class="text-gray-200">Shares:</strong> <span class="text-gray-300">${trade["Shares"] || "N/A"}</span></div>
+            </div>
+          `;
+          tradesContainer.appendChild(item);
         });
+        tradebox.appendChild(tradesContainer);
+      })
+      .catch(err => {
+        // Display error message in the trade box
+        tradebox.className = 'w-full text-center text-red-400 text-lg md:text-xl font-semibold p-4 bg-gray-700 rounded-lg';
+        tradebox.innerText = `Error: ${err.message}. Please try again.`;
+        console.error("Fetch error:", err); // Log error to console for debugging
+      });
 
-      function goback() {
-        window.location.href = 'index.html';
-      }
-    </script>
-  </body>
+    // Function to navigate back to the index page
+    function goback() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
 </html>
