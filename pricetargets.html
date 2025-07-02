@@ -1,71 +1,107 @@
-<!DOCTYPE HTML>
-<html>
-  <head>
-    <title>Price Targets</title>
-    <style>
-      body {
-        font-family: helvetica;
-        align-items: center;
-        justify-content: center;
-        background-color: #5c705c;
-        color: #293629;
-        justify-content: center;
-        margin: 20px;
-        padding: 10px;
-      }
-      h2 {
-        color: #293629;
-        text-align: center;
-        font-size: 100px;
-        padding: 10px;
-      }
-      #backbutton {
-        background-color: #2e3b2e;
-        color: white;
-        font-family: helvetica;
-        border: none;
-        text-align: center;
-        border-radius: 5px;
-        font-size: 30px;
-        padding: 20px;
-      }
-    </style>
-    <body>
-      <h2>Price Targets</h2>
-      <div class="targets" id="targetbox">Loading...</div>
-      <br><br>
-      <button id="backbutton" onclick="goback()">Back</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Price Targets</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom font for a more professional look */
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+  <!-- Google Fonts - Inter (for a clean, modern look) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 font-inter text-gray-300">
 
-      <script>
-        const params = new URLSearchParams(window.location.search);
-        const stock = params.get("stock");
+  <!-- Page Title -->
+  <h2 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-100 mb-10 text-center leading-tight">
+    Stock Price Targets
+  </h2>
 
-        fetch(`https://stock-backend-0128.onrender.com/pricetargets?stock=${stock}`)
-          .then(res => {
-            if (!res.ok) {
-              throw new Error("Server responded with status " + res.status);
-            }
-            return res.json();
-          })
-          .then(data => {
-            const targetbox = document.getElementById("targetbox");
-            targetbox.innerHTML = '';
+  <!-- Main Content Card -->
+  <div class="w-full max-w-2xl bg-gray-800 rounded-xl shadow-2xl p-6 md:p-8 border border-gray-700 flex flex-col items-center space-y-6">
+    <div id="targetbox" class="w-full text-center text-lg text-gray-400">
+      <!-- Loading state initially -->
+      Loading stock price targets...
+    </div>
 
-            for (const key in data) {
-              const value = data[key];
-              const item = document.createElement('div');
-              item.className = 'target-item';
-              item.innerHTML = `<strong>${key}:</strong> <span>${value}</span>`;
-              targetbox.appendChild(item);
-            }
-          })
-          .catch(err => {
-            document.getElementById("targetbox").innerText = "Error: " + err.message;
-          });
-        function goback(){
-          window.location.href = 'index.html';
+    <!-- Back Button -->
+    <button id="backbutton" onclick="goback()"
+      class="bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+      Back to Home
+    </button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const stock = params.get("stock");
+    const targetbox = document.getElementById("targetbox");
+
+    // Display stock symbol in title if available
+    if (stock) {
+      document.querySelector('h2').textContent = `${stock} Price Targets`;
+    }
+
+    // Fetch price targets data
+    fetch(`https://stock-backend-0128.onrender.com/pricetargets?stock=${stock}`)
+      .then(res => {
+        if (!res.ok) {
+          // Check for specific 404 or other error statuses
+          if (res.status === 404) {
+            throw new Error(`Stock symbol "${stock}" not found or no data available.`);
+          }
+          throw new Error(`Server responded with status ${res.status}.`);
         }
-      </script>
-    </body>
-  </head>
+        return res.json();
+      })
+      .then(data => {
+        targetbox.innerHTML = ''; // Clear loading message
+
+        if (Object.keys(data).length === 0) { // Check if data object is empty
+          targetbox.className = 'w-full text-center text-gray-400 text-lg md:text-xl font-semibold p-4 bg-gray-700 rounded-lg';
+          targetbox.innerText = `No price target data available for ${stock}.`;
+          return;
+        }
+
+        // Create a table-like structure
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'w-full divide-y divide-gray-700'; // Adds dividers between rows
+
+        for (const key in data) {
+          const value = data[key];
+          const item = document.createElement('div');
+          // Use flexbox for key-value alignment in each row
+          item.className = 'flex justify-between items-center py-3 px-4';
+
+          const keyElement = document.createElement('strong');
+          keyElement.className = 'text-gray-200 text-xl md:text-2xl'; // Larger, more prominent key
+          keyElement.textContent = `${key}:`;
+
+          const valueElement = document.createElement('span');
+          valueElement.className = 'text-gray-300 text-xl md:text-2xl'; // Standard text color for values
+          valueElement.textContent = value;
+
+          item.appendChild(keyElement);
+          item.appendChild(valueElement);
+          tableContainer.appendChild(item);
+        }
+        targetbox.appendChild(tableContainer);
+      })
+      .catch(err => {
+        // Display error message in the target box
+        targetbox.className = 'w-full text-center text-red-400 text-lg md:text-xl font-semibold p-4 bg-gray-700 rounded-lg';
+        targetbox.innerText = `Error: ${err.message}. Please try again.`;
+        console.error("Fetch error:", err); // Log error to console for debugging
+      });
+
+    // Function to navigate back to the index page
+    function goback() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
 </html>
