@@ -48,19 +48,19 @@
             return res.json();
           })
           .then(data => {
-            const ratingbox = document.getElementById("targetbox");
-            ratingbox.innerHTML = '';
+            const targetbox = document.getElementById("targetbox");
+            targetbox.innerHTML = '';
 
             for (const key in data) {
               const value = data[key];
               const item = document.createElement('div');
               item.className = 'target-item';
               item.innerHTML = `<strong>${key}:</strong> <span>${value}</span>`;
-              ratingbox.appendChild(item);
+              targetbox.appendChild(item);
             }
           })
           .catch(err => {
-            document.getElementById("ratingbox").innerText = "Error: " + err.message;
+            document.getElementById("targetbox").innerText = "Error: " + err.message;
           });
         function goback(){
           window.location.href = 'index.html';
