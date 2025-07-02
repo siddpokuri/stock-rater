@@ -1,1 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Next Quarter Expectations</title>
+    <style>
+      body {
+        font-family: helvetica;
+        align-items: center;
+        justify-content: center;
+        background-color: #5c705c;
+        color: #293629;
+        justify-content: center;
+        margin: 20px;
+        padding: 10px;
+      }
+      h2 {
+        color: #293629;
+        text-align: center;
+        font-size: 100px;
+        padding: 10px;
+      }
+      #backbutton {
+        background-color: #2e3b2e;
+        color: white;
+        font-family: helvetica;
+        border: none;
+        text-align: center;
+        border-radius: 5px;
+        font-size: 30px;
+        padding: 20px;
+      }
+    </style>
+    <body>
+      <h2>Next Quarter Expectations</h2>
+      <div class="earn" id="earnbox">Loading...</div>
+      <br><br>
+      <button id="backbutton" onclick="goback()">Back</button>
 
+      <script>
+        const params = new URLSearchParams(window.location.search);
+        const stock = params.get("stock");
+
+        fetch(`https://stock-backend-0128.onrender.com/nextearnings?stock=${stock}`)
+          .then(res => {
+            if (!res.ok) {
+              throw new Error("Server responded with status " + res.status);
+            }
+            return res.json();
+          })
+          .then(data => {
+            const earnbox = document.getElementById("earnbox");
+            earnbox.innerHTML = '';
+
+            for (const key in data) {
+              const value = data[key];
+              const item = document.createElement('div');
+              item.className = 'earn-item';
+              item.innerHTML = `<strong>${key}:</strong> <span>${value}</span>`;
+              earnbox.appendChild(item);
+            }
+          })
+          .catch(err => {
+            document.getElementById("earnbox").innerText = "Error: " + err.message;
+          });
+        function goback(){
+          window.location.href = 'index.html';
+        }
+      </script>
+    </body>
+  </head>
+</html>
