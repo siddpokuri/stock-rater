@@ -1,86 +1,108 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Past Earnings Results</title>
-    <style>
-      body {
-        font-family: helvetica;
-        align-items: center;
-        justify-content: center;
-        background-color: #5c705c;
-        color: #293629;
-        justify-content: center;
-        margin: 20px;
-        padding: 10px;
-      }
-      h2 {
-        color: #293629;
-        text-align: center;
-        font-size: 100px;
-        padding: 10px;
-      }
-      #backbutton {
-        background-color: #2e3b2e;
-        color: white;
-        font-family: helvetica;
-        border: none;
-        text-align: center;
-        border-radius: 5px;
-        font-size: 10px;
-        padding: 10px;
-      }
-      .earn-item {
-        background-color: #708a71;
-        color: #293629;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Past Earnings Results</h2>
-    <div class="earnings" id="earnbox">Loading...</div>
-    <br><br>
-    <button id="backbutton" onclick="goback()">Back</button>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Past Earnings Results</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom font for a more professional look */
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+  <!-- Google Fonts - Inter (for a clean, modern look) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 font-inter text-gray-300">
 
-    <script>
-      const params = new URLSearchParams(window.location.search);
-      const stock = params.get("stock");
+  <!-- Page Title -->
+  <h2 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-100 mb-10 text-center leading-tight">
+    Past Earnings Results
+  </h2>
 
-      fetch(`https://stock-backend-0128.onrender.com/pastearnings?stock=${stock}`)
-        .then(res => res.json())
-        .then(data => {
-          const earnbox = document.getElementById("earnbox");
-          earnbox.innerHTML = '';
+  <!-- Main Content Card -->
+  <div class="w-full max-w-2xl bg-gray-800 rounded-xl shadow-2xl p-6 md:p-8 border border-gray-700 flex flex-col items-center space-y-6">
+    <div id="earnbox" class="w-full text-center text-lg text-gray-400">
+      <!-- Loading state initially -->
+      Loading past earnings results...
+    </div>
 
-          if (!Array.isArray(data) || data.length === 0) {
-            earnbox.innerText = "No data available.";
-            return;
+    <!-- Back Button -->
+    <button id="backbutton" onclick="goback()"
+      class="bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+      Back to Home
+    </button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const stock = params.get("stock");
+    const earnbox = document.getElementById("earnbox");
+
+    // Display stock symbol in title if available
+    if (stock) {
+      document.querySelector('h2').textContent = `${stock} Past Earnings`;
+    }
+
+    // Fetch past earnings data
+    fetch(`https://stock-backend-0128.onrender.com/pastearnings?stock=${stock}`)
+      .then(res => {
+        if (!res.ok) {
+          // Check for specific 404 or other error statuses
+          if (res.status === 404) {
+            throw new Error(`Stock symbol "${stock}" not found or no data available.`);
           }
+          throw new Error(`Server responded with status ${res.status}.`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        earnbox.innerHTML = ''; // Clear loading message
 
-          data.forEach(earn => {
-            const item = document.createElement('div');
-            item.className = 'earn-item';
-            item.innerHTML = `
-              <strong>Date:</strong> ${earn["Date"] || "N/A"}<br>
-              <strong>EPS Estimate:</strong> ${earn["EPS Estimate"] || "N/A"}<br>
-              <strong>EPS Result:</strong> ${earn["EPS Result"] || "N/A"}<br>
-              <strong>EPS Surprise:</strong> ${earn["EPS Surprise (%)"] || "N/A"}<br>
-              <strong>Revenue Estimate:</strong> ${earn["Revenue Estimate"] || "N/A"}<br>
-              <strong>Revenue Result:</strong> ${earn["Revenue Result"] || "N/A"}<br>
-              <strong>Revenue Surprise (%):</strong> ${earn["Revenue Surprise (%)"] || "N/A"}<br>
-            `;
-            earnbox.appendChild(item);
-          });
-        })
-        .catch(err => {
-          document.getElementById("earnbox").innerText = "Error: " + err.message;
+        if (!Array.isArray(data) || data.length === 0) {
+          earnbox.className = 'w-full text-center text-gray-400 text-lg md:text-xl font-semibold p-4 bg-gray-700 rounded-lg';
+          earnbox.innerText = `No past earnings data available for ${stock}.`;
+          return;
+        }
+
+        // Create a container for the earnings items
+        const earningsContainer = document.createElement('div');
+        earningsContainer.className = 'w-full space-y-4'; // Adds space between earnings items
+
+        data.forEach(earn => {
+          const item = document.createElement('div');
+          // Style each earnings item as a distinct card
+          item.className = 'bg-gray-700 rounded-lg shadow-md p-4 border border-gray-600';
+
+          // Use a grid for better alignment of key-value pairs within each earnings item
+          item.innerHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-base md:text-lg">
+              <div><strong class="text-gray-200">Date:</strong> <span class="text-gray-300">${earn["Date"] || "N/A"}</span></div>
+              <div><strong class="text-gray-200">EPS Estimate:</strong> <span class="text-gray-300">${earn["EPS Estimate"] || "N/A"}</span></div>
+              <div><strong class="text-gray-200">EPS Result:</strong> <span class="text-gray-300">${earn["EPS Result"] || "N/A"}</span></div>
+              <div><strong class="text-gray-200">EPS Surprise:</strong> <span class="text-gray-300">${earn["EPS Surprise (%)"] || "N/A"}</span></div>
+              <div><strong class="text-gray-200">Revenue Estimate:</strong> <span class="text-gray-300">${earn["Revenue Estimate"] || "N/A"}</span></div>
+              <div><strong class="text-gray-200">Revenue Result:</strong> <span class="text-gray-300">${earn["Revenue Result"] || "N/A"}</span></div>
+              <div><strong class="text-gray-200">Revenue Surprise:</strong> <span class="text-gray-300">${earn["Revenue Surprise (%)"] || "N/A"}</span></div>
+            </div>
+          `;
+          earningsContainer.appendChild(item);
         });
+        earnbox.appendChild(earningsContainer);
+      })
+      .catch(err => {
+        // Display error message in the earnings box
+        earnbox.className = 'w-full text-center text-red-400 text-lg md:text-xl font-semibold p-4 bg-gray-700 rounded-lg';
+        earnbox.innerText = `Error: ${err.message}. Please try again.`;
+        console.error("Fetch error:", err); // Log error to console for debugging
+      });
 
-      function goback() {
-        window.location.href = 'index.html';
-      }
-    </script>
-  </body>
+    // Function to navigate back to the index page
+    function goback() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
 </html>
