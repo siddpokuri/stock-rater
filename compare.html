@@ -1,81 +1,102 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Compare Two Stocks</title>
-    <style>
-      body {
-        font-family: helvetica;
-        align-items: center;
-        justify-content: center;
-        background-color: #5c705c;
-        color: #293629;
-        justify-content: center;
-        margin: 20px;
-        padding: 10px;
-      }
-      h2 {
-        color: #293629;
-        text-align: center;
-        font-size: 100px;
-        padding: 10px;
-      }
-      #comparebutton {
-        background-color: #2e3b2e;
-        color: white;
-        font-family: helvetica;
-        border: none;
-        text-align: center;
-        border-radius: 5px;
-        font-size: 20px;
-        padding: 10px;
-      }
-      #backbutton {
-        background-color: #2e3b2e;
-        color: white;
-        font-family: helvetica;
-        border: none;
-        text-align: center;
-        border-radius: 5px;
-        font-size: 10px;
-        padding: 10px;
-      }
-      table {
-        width: 15%;
-        background-color: #5c705c;
-        border-collapse: collapse;
-        margin-top: 20px;
-      }
-      #stock1,
-      #stock2 {
-        background-color: #2e3b2e;
-        font-size: 30px;
-        color: #4c634d;
-        text-align: center;
-        padding: 20px;
-        border-radius: 6px;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Compare Two Stocks</h2>
-    <input type="text" id="stock1" placeholder="Enter stock symbol">
-    <input type="text" id="stock2" placeholder="Enter stock symbol">
-    <button id="comparebutton" onclick="compareStocks()">Compare</button>
-    <button id="backbutton" onclick="goback()">Go Back</button>
-    <div id="result"></div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compare Two Stocks</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom font for a more professional look */
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+  <!-- Google Fonts - Inter (for a clean, modern look) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 font-inter text-gray-300">
 
-    <script>
+  <!-- Page Title -->
+  <h2 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-100 mb-10 text-center leading-tight">
+    Compare Two Stocks
+  </h2>
+
+  <!-- Main Content Card -->
+  <div class="w-full max-w-3xl bg-gray-800 rounded-xl shadow-2xl p-6 md:p-8 border border-gray-700 flex flex-col items-center space-y-6">
+    
+    <!-- Input fields for stock symbols -->
+    <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+      <input 
+        type="text" 
+        id="stock1" 
+        placeholder="Stock Symbol 1 (e.g., MSFT)"
+        class="flex-1 px-5 py-4 text-xl border-2 border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500 placeholder-gray-500 text-gray-200 bg-gray-700 transition duration-300 ease-in-out text-center"
+      />
+      <input 
+        type="text" 
+        id="stock2" 
+        placeholder="Stock Symbol 2 (e.g., GOOGL)"
+        class="flex-1 px-5 py-4 text-xl border-2 border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500 placeholder-gray-500 text-gray-200 bg-gray-700 transition duration-300 ease-in-out text-center"
+      />
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+      <button id="comparebutton" onclick="compareStocks()"
+        class="bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg flex-1">
+        Compare
+      </button>
+      <button id="backbutton" onclick="goback()"
+        class="bg-gray-700 text-gray-200 font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg flex-1">
+        Back to Home
+      </button>
+    </div>
+
+    <!-- Results Display Area -->
+    <div id="result" class="w-full text-center text-lg text-gray-400 mt-6">
+      <!-- Initial message or loading state -->
+      Enter two stock symbols and click 'Compare'.
+    </div>
+  </div>
+
+  <script>
     function compareStocks() {
-      console.log("Comparing stocks...");
-      const stock_1 = document.getElementById("stock1").value.toUpperCase();
-      const stock_2 = document.getElementById("stock2").value.toUpperCase();
+      const stock_1 = document.getElementById("stock1").value.trim().toUpperCase();
+      const stock_2 = document.getElementById("stock2").value.trim().toUpperCase();
+      const resultDiv = document.getElementById("result");
+
+      if (!stock_1 || !stock_2) {
+        resultDiv.className = 'w-full text-center text-red-400 text-lg md:text-xl font-semibold p-4 bg-gray-700 rounded-lg';
+        resultDiv.innerText = "Please enter both stock symbols to compare.";
+        return;
+      }
+
+      resultDiv.className = 'w-full text-center text-gray-400 text-lg md:text-xl p-4';
+      resultDiv.innerText = `Fetching data for ${stock_1} and ${stock_2}...`;
 
       Promise.all([
-        fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock_1}`).then(res => res.json()),
-        fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock_2}`).then(res => res.json())
+        fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock_1}`).then(res => {
+          if (!res.ok) throw new Error(`Failed to fetch data for ${stock_1} (Status: ${res.status})`);
+          return res.json();
+        }),
+        fetch(`https://stock-backend-0128.onrender.com/rate?stock=${stock_2}`).then(res => {
+          if (!res.ok) throw new Error(`Failed to fetch data for ${stock_2} (Status: ${res.status})`);
+          return res.json();
+        })
       ])
       .then(([data1, data2]) => {
-        let html = `<table><tr><th>Category</th><th>${stock_1}</th><th>${stock_2}</th></tr>`;
+        let html = `
+          <table class="w-full border-collapse text-left rounded-lg overflow-hidden">
+            <thead>
+              <tr class="bg-gray-700">
+                <th class="py-3 px-4 text-gray-100 font-semibold text-lg md:text-xl">Category</th>
+                <th class="py-3 px-4 text-gray-100 font-semibold text-lg md:text-xl">${stock_1}</th>
+                <th class="py-3 px-4 text-gray-100 font-semibold text-lg md:text-xl">${stock_2}</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
 
         const categories = ["valuation", "profitability", "growth", "stability", "overallrating"];
         const labels = {
@@ -86,24 +107,37 @@
           overallrating: "Overall Rating"
         };
 
-          categories.forEach(cat => {
-            html += `<tr>
-              <td><strong>${labels[cat]}</strong></td>
-              <td>${data1[cat] || 'N/A'}</td>
-              <td>${data2[cat] || 'N/A'}</td>
-            </tr>`;
-          });
+        categories.forEach((cat, index) => {
+          // Apply alternating row background for better readability
+          const rowBgClass = index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-750'; // bg-gray-750 is a custom shade, you might need to define it in tailwind.config.js or use a slightly different gray like bg-gray-700 for odd rows. For simplicity, I'll use bg-gray-700 for odd rows.
+          const actualRowBgClass = index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700'; // Using existing Tailwind shades
 
-          html += `</table>`;
-          document.getElementById("result").innerHTML = html;
-        })
-        .catch(err => {
-          document.getElementById("result").innerHTML = "Error fetching stock data.";
+          html += `
+            <tr class="${actualRowBgClass} hover:bg-gray-600 transition duration-150 ease-in-out">
+              <td class="py-3 px-4 border-b border-gray-700 text-gray-200 font-medium text-base md:text-lg">${labels[cat]}</td>
+              <td class="py-3 px-4 border-b border-gray-700 text-gray-300 text-base md:text-lg">${data1[cat] || 'N/A'}</td>
+              <td class="py-3 px-4 border-b border-gray-700 text-gray-300 text-base md:text-lg">${data2[cat] || 'N/A'}</td>
+            </tr>
+          `;
         });
-      }
-      function goback() {
-        window.location.href = 'index.html';
-      }
-    </script>
-  </body>
+
+        html += `
+            </tbody>
+          </table>
+        `;
+        resultDiv.innerHTML = html;
+        resultDiv.className = 'w-full mt-6'; // Reset class after content is loaded
+      })
+      .catch(err => {
+        resultDiv.className = 'w-full text-center text-red-400 text-lg md:text-xl font-semibold p-4 bg-gray-700 rounded-lg';
+        resultDiv.innerText = `Error: ${err.message}. Please check stock symbols.`;
+        console.error("Comparison fetch error:", err);
+      });
+    }
+
+    function goback() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
 </html>
