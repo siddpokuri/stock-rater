@@ -1,72 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stock Rater</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* Custom font for a more professional look */
     body {
-      font-family: helvetica;
-      align-items: center;
-      justify-content: center;
-      background-color: #5c705c;
-      color: #293629;
-      justify-content: center;
-      margin: 20px;
-      padding: 10px;
-    }
-    h1 {
-      color: #293629;
-      text-align: center;
-      font-size: 100px;
-      padding: 10px;
-    }
-    .centered-controls {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-    #ratebutton,
-    #genbutton,
-    #comparebutton,
-    #insiderbutton,
-    #pastbutton,
-    #targetbutton,
-    #nextqbutton {
-      background-color: #2e3b2e;
-      color: white;
-      font-family: helvetica;
-      border: none;
-      text-align: center;
-      border-radius: 5px;
-      font-size: 30px;
-      padding: 20px;
-    }
-    #stockInput {
-      background-color: 2e3b2e;
-      font-size: 30px;
-      color: 4c634d;
-      text-align: center;
-      padding: 20px;
-      border-radius: 6px;
-    }
-    #stockInput::placeholder {
-      color: #a0a0a0;
+      font-family: 'Inter', sans-serif;
     }
   </style>
+  <!-- Google Fonts - Inter (for a clean, modern look) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-  <h1>Stock Rater</h1>
-  <div class="controls">
-    <input type="text" id="stockInput" placeholder="Enter a stock symbol" />
-    <div class="button-group">
-      <button id="genbutton" onclick="goTo('general')">General Info</button>
-      <button id="ratebutton" onclick="goTo('rate')">Rating</button>
-      <button id="comparebutton" onclick="gocompare()">Compare Two Stocks</button>
-      <button id="insiderbutton" onclick="goTo('insidertrades')">Latest Insider Trades</button>
-      <button id="pastbutton" onclick="goTo('pastearnings')">Past Earnings Results</button>
-      <button id="targetbutton" onclick="goTo('pricetargets')">Stock Price Targets</button>
-      <button id="nextqbutton" onclick="goTo('nextqearnings')">Next Quarter Earnings Estimates</button>
+<body class="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 font-inter text-gray-300">
+
+  <h1 class="text-6xl md:text-7xl lg:text-8xl font-extrabold text-gray-100 mb-10 text-center leading-tight">
+    Stock Rater
+  </h1>
+
+  <div class="w-full max-w-2xl bg-gray-800 rounded-xl shadow-2xl p-6 md:p-8 border border-gray-700">
+    <div class="flex flex-col items-center space-y-6">
+      <input 
+        type="text" 
+        id="stockInput" 
+        placeholder="Enter a stock symbol (e.g., AAPL)"
+        class="w-full px-5 py-4 text-xl border-2 border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500 placeholder-gray-500 text-gray-200 bg-gray-700 transition duration-300 ease-in-out"
+      />
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+        <button id="genbutton" onclick="goTo('general')"
+          class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+          General Info
+        </button>
+        <button id="ratebutton" onclick="goTo('rate')"
+          class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+          Rating
+        </button>
+        <button id="comparebutton" onclick="gocompare()"
+          class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+          Compare Two Stocks
+        </button>
+        <button id="insiderbutton" onclick="goTo('insidertrades')"
+          class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+          Latest Insider Trades
+        </button>
+        <button id="pastbutton" onclick="goTo('pastearnings')"
+          class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+          Past Earnings Results
+        </button>
+        <button id="targetbutton" onclick="goTo('pricetargets')"
+          class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+          Stock Price Targets
+        </button>
+        <button id="nextqbutton" onclick="goTo('nextqearnings')"
+          class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+          Next Quarter Earnings Estimates
+        </button>
+      </div>
     </div>
   </div>
 
@@ -74,13 +67,16 @@
     function goTo(type) {
       const stock = document.getElementById("stockInput").value.trim().toUpperCase();
       if (!stock) {
-        alert("Please enter a stock symbol.");
+        // Replaced alert with a simple console log for demonstration, 
+        // as alerts are generally avoided in modern web UIs. 
+        // For a real app, you'd show a custom modal or inline message.
+        console.log("Please enter a stock symbol."); 
         return;
       }
       window.location.href = `${type}.html?stock=${stock}`;
     }
     function gocompare() {
-      window.location.href = `compare.html`
+      window.location.href = `compare.html`;
     }
   </script>
 </body>
