@@ -31,7 +31,8 @@
     #comparebutton,
     #insiderbutton,
     #pastbutton,
-    #targetbutton {
+    #targetbutton,
+    #nextqbutton {
       background-color: #2e3b2e;
       color: white;
       font-family: helvetica;
@@ -59,12 +60,13 @@
   <div class="controls">
     <input type="text" id="stockInput" placeholder="Enter a stock symbol" />
     <div class="button-group">
-      <button id="genbutton" onclick="goTo('general')">Get General Info</button>
-      <button id="ratebutton" onclick="goTo('rate')">Get Rating</button>
+      <button id="genbutton" onclick="goTo('general')">General Info</button>
+      <button id="ratebutton" onclick="goTo('rate')">Rating</button>
       <button id="comparebutton" onclick="gocompare()">Compare Two Stocks</button>
-      <button id="insiderbutton" onclick="goTo('insidertrades')">Get Latest Insider Trades</button>
-      <button id="pastbutton" onclick="goTo('pastearnings')">Get Past Earnings Results</button>
-      <button id="targetbutton" onclick="goTo('pricetargets')">Get Price Targets</button>
+      <button id="insiderbutton" onclick="goTo('insidertrades')">Latest Insider Trades</button>
+      <button id="pastbutton" onclick="goTo('pastearnings')">Past Earnings Results</button>
+      <button id="targetbutton" onclick="goTo('pricetargets')">Stock Price Targets</button>
+      <button id="nextqbutton" onclick="goTo('nextqearnings')">Next Quarter Estimates</button>
     </div>
   </div>
 
