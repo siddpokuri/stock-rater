@@ -22,9 +22,9 @@
       font-size: 0.875rem; /* text-sm */
       fill: #9ca3af; /* gray-400 */
     }
+    /* Line color will be set dynamically by JS */
     .line {
       fill: none;
-      stroke: #6366f1; /* indigo-500 */
       stroke-width: 2px;
     }
     .overlay {
@@ -77,9 +77,14 @@
       </button>
     </div>
 
-    <!-- Volume Display -->
-    <div id="volumeDisplay" class="text-xl md:text-2xl font-semibold text-gray-200 mb-4">
-      Volume: Loading...
+    <!-- Percentage Change and Volume Display -->
+    <div class="flex flex-col sm:flex-row justify-center items-center gap-4 w-full mb-4">
+      <div id="percentageChangeDisplay" class="text-xl md:text-2xl font-semibold text-gray-200">
+        Change: Loading...
+      </div>
+      <div id="volumeDisplay" class="text-xl md:text-2xl font-semibold text-gray-200">
+        Volume: Loading...
+      </div>
     </div>
 
     <!-- Chart Container -->
@@ -99,11 +104,21 @@
     const stock = params.get("stock");
     const chartContainer = document.getElementById("chartContainer");
     const volumeDisplay = document.getElementById("volumeDisplay");
+    const percentageChangeDisplay = document.getElementById("percentageChangeDisplay");
     let allChartData = null; // To store fetched data for all periods
 
     // Display stock symbol in title if available
     if (stock) {
       document.querySelector('h2').textContent = `${stock} Chart`;
+    }
+
+    // Function to calculate percentage change
+    function calculatePercentageChange(data) {
+      if (!data || data.length < 2) return null;
+      const firstPrice = +data[0].close || +data[0].price;
+      const lastPrice = +data[data.length - 1].close || +data[data.length - 1].price;
+      if (isNaN(firstPrice) || isNaN(lastPrice) || firstPrice === 0) return null;
+      return ((lastPrice - firstPrice) / firstPrice) * 100;
     }
 
     // Function to fetch all chart data
@@ -121,8 +136,18 @@
         }
 
         allChartData = data;
-        volumeDisplay.textContent = `Volume: ${data["Volume"] !== 'N/A' ? data["Volume"].toLocaleString() : 'N/A'}`;
         
+        // Calculate percentage change for each period and store it
+        if (allChartData["1D"] && allChartData["1D"] !== 'N/A') {
+          allChartData["1D"].percentageChange = calculatePercentageChange(allChartData["1D"]);
+        }
+        if (allChartData["5D"] && allChartData["5D"] !== 'N/A') {
+          allChartData["5D"].percentageChange = calculatePercentageChange(allChartData["5D"]);
+        }
+        if (allChartData["1M"] && allChartData["1M"] !== 'N/A') {
+          allChartData["1M"].percentageChange = calculatePercentageChange(allChartData["1M"]);
+        }
+
         // Render 1D chart by default if available, otherwise try 5D, then 1M
         if (allChartData["1D"] && allChartData["1D"] !== 'N/A' && allChartData["1D"].length > 0) {
           renderChart(allChartData["1D"], '1D');
@@ -135,11 +160,16 @@
           setActiveButton('btn1M');
         } else {
           chartContainer.innerHTML = `<p class="text-red-400">No chart data available for ${stock}.</p>`;
+          percentageChangeDisplay.textContent = `Change: N/A`;
+          volumeDisplay.textContent = `Volume: N/A`;
+          volumeDisplay.classList.remove('hidden'); // Ensure it's visible if no chart data
         }
 
       } catch (err) {
         chartContainer.innerHTML = `<p class="text-red-400">Error: ${err.message}</p>`;
+        percentageChangeDisplay.textContent = `Change: N/A`;
         volumeDisplay.textContent = `Volume: N/A`;
+        volumeDisplay.classList.remove('hidden'); // Ensure it's visible if error
         console.error("Fetch error:", err);
       }
     }
@@ -161,8 +191,32 @@
 
       if (!data || data === 'N/A' || data.length === 0) {
         chartContainer.innerHTML = `<p class="text-gray-400">No ${period} data available for ${stock}.</p>`;
+        percentageChangeDisplay.textContent = `Change: N/A`;
+        volumeDisplay.textContent = `Volume: N/A`;
+        volumeDisplay.classList.remove('hidden'); // Show volume N/A if no chart data
         return;
       }
+
+      // Update Percentage Change Display
+      const pChange = data.percentageChange;
+      if (pChange !== null) {
+        const pChangeText = pChange.toFixed(2);
+        percentageChangeDisplay.textContent = `Change: ${pChangeText}%`;
+        percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold ${pChange >= 0 ? 'text-green-400' : 'text-red-400'}`;
+      } else {
+        percentageChangeDisplay.textContent = `Change: N/A`;
+        percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-gray-200`;
+      }
+
+      // Update Volume Display (only for 1D)
+      if (period === '1D' && allChartData["Volume"] !== 'N/A') {
+        volumeDisplay.textContent = `Volume: ${allChartData["Volume"].toLocaleString()}`;
+        volumeDisplay.classList.remove('hidden');
+      } else {
+        volumeDisplay.textContent = `Volume: N/A`; // Reset if switching from 1D
+        volumeDisplay.classList.add('hidden'); // Hide for 5D and 1M
+      }
+
 
       const margin = { top: 20, right: 30, bottom: 40, left: 60 };
       const width = chartContainer.clientWidth - margin.left - margin.right;
@@ -188,6 +242,8 @@
 
       if (filteredData.length === 0) {
         chartContainer.innerHTML = `<p class="text-gray-400">No valid ${period} data to display for ${stock}.</p>`;
+        percentageChangeDisplay.textContent = `Change: N/A`;
+        percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-gray-200`;
         return;
       }
 
@@ -209,8 +265,8 @@
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x)
           .tickValues(x.domain().filter((d, i) => { // Filter ticks to avoid overcrowding
-            // Adjust tick density based on number of data points
-            const interval = Math.ceil(filteredData.length / 7); // Show max 7 ticks
+            // Show max 7 ticks, adjust interval based on data length
+            const interval = Math.ceil(filteredData.length / 7); 
             return i % interval === 0;
           }))
           .tickFormat(d => { // Format tick labels
@@ -236,7 +292,7 @@
       svg.append("path")
         .datum(filteredData)
         .attr("class", "line")
-        .attr("d", line);
+        .attr("stroke", pChange >= 0 ? '#10b981' : '#ef4444'); // Dynamic stroke color
 
       // Add tooltip functionality
       const focus = svg.append("g")
@@ -280,7 +336,11 @@
         setActiveButton('btn1D');
       } else {
         chartContainer.innerHTML = `<p class="text-gray-400">No 1 Day data available for ${stock}.</p>`;
-        setActiveButton('btn1D'); // Still set active to show it was clicked
+        percentageChangeDisplay.textContent = `Change: N/A`;
+        percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-gray-200`;
+        volumeDisplay.textContent = `Volume: N/A`;
+        volumeDisplay.classList.remove('hidden'); // Show N/A volume if 1D selected but no data
+        setActiveButton('btn1D');
       }
     });
 
@@ -290,6 +350,10 @@
         setActiveButton('btn5D');
       } else {
         chartContainer.innerHTML = `<p class="text-gray-400">No 5 Day data available for ${stock}.</p>`;
+        percentageChangeDisplay.textContent = `Change: N/A`;
+        percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-gray-200`;
+        volumeDisplay.textContent = `Volume: N/A`;
+        volumeDisplay.classList.add('hidden'); // Hide volume for 5D
         setActiveButton('btn5D');
       }
     });
@@ -300,6 +364,10 @@
         setActiveButton('btn1M');
       } else {
         chartContainer.innerHTML = `<p class="text-gray-400">No 1 Month data available for ${stock}.</p>`;
+        percentageChangeDisplay.textContent = `Change: N/A`;
+        percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-gray-200`;
+        volumeDisplay.textContent = `Volume: N/A`;
+        volumeDisplay.classList.add('hidden'); // Hide volume for 1M
         setActiveButton('btn1M');
       }
     });
