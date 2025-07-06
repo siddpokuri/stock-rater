@@ -31,6 +31,11 @@
       />
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+        <!-- First Row -->
+        <button id="chartbutton" onclick="goTo('charting')"
+          class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+          Price Chart
+        </button>
         <button id="genbutton" onclick="goTo('general')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           General Info
@@ -39,29 +44,29 @@
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           Rating
         </button>
-        <button id="comparebutton" onclick="gocompare()"
+
+        <!-- Second Row -->
+        <button id="pastbutton" onclick="goTo('pastearnings')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
-          Compare Two Stocks
+          Past Earnings Results
         </button>
         <button id="insiderbutton" onclick="goTo('insidertrades')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           Latest Insider Trades
         </button>
-        <button id="pastbutton" onclick="goTo('pastearnings')"
-          class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
-          Past Earnings Results
-        </button>
         <button id="targetbutton" onclick="goTo('pricetargets')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           Stock Price Targets
         </button>
+
+        <!-- Third Row -->
         <button id="nextqbutton" onclick="goTo('nextqearnings')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           Next Quarter Earnings Estimates
         </button>
-        <button id="chartbutton" onclick="goTo('chart')"
+        <button id="comparebutton" onclick="gocompare()"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
-          Stock Price Chart
+          Compare Two Stocks
         </button>
       </div>
     </div>
@@ -71,9 +76,7 @@
     function goTo(type) {
       const stock = document.getElementById("stockInput").value.trim().toUpperCase();
       if (!stock) {
-        // Replaced alert with a simple console log for demonstration, 
-        // as alerts are generally avoided in modern web UIs. 
-        // For a real app, you'd show a custom modal or inline message.
+        // For a real app, you'd show a custom modal or inline message instead of alert
         console.log("Please enter a stock symbol."); 
         return;
       }
