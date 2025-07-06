@@ -192,6 +192,7 @@
       if (!data || data === 'N/A' || data.length === 0) {
         chartContainer.innerHTML = `<p class="text-gray-400">No ${period} data available for ${stock}.</p>`;
         percentageChangeDisplay.textContent = `Change: N/A`;
+        percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-gray-200`;
         volumeDisplay.textContent = `Volume: N/A`;
         volumeDisplay.classList.remove('hidden'); // Show volume N/A if no chart data
         return;
@@ -292,7 +293,12 @@
       svg.append("path")
         .datum(filteredData)
         .attr("class", "line")
-        .attr("stroke", pChange >= 0 ? '#10b981' : '#ef4444'); // Dynamic stroke color
+        .attr("stroke", () => { // Dynamically set stroke color
+            if (pChange !== null) {
+              return pChange >= 0 ? '#10b981' : '#ef4444'; // Green or Red
+            }
+            return '#6366f1'; // Default Indigo if percentage change cannot be calculated
+          });
 
       // Add tooltip functionality
       const focus = svg.append("g")
