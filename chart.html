@@ -25,7 +25,7 @@
     /* Line will have dynamic stroke color, no fill */
     .line {
       fill: none;
-      stroke-width: 3px; /* Increased line thickness */
+      stroke-width: 4px; /* Increased line thickness */
     }
     /* Area will have dynamic fill (gradient) */
     .area {
@@ -211,16 +211,16 @@
         const pChangeText = pChange.toFixed(2);
         percentageChangeDisplay.textContent = `Change: ${pChangeText}%`;
         if (pChange > threshold) {
-          lineColor = '#10b981'; // Tailwind green-500
-          gradientColor = '#10b981';
+          lineColor = '#059669'; // Tailwind green-600 (darker green)
+          gradientColor = '#10b981'; // Tailwind green-500 (lighter for gradient)
           percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-green-400`;
         } else if (pChange < -threshold) {
-          lineColor = '#ef4444'; // Tailwind red-500
-          gradientColor = '#ef4444';
+          lineColor = '#dc2626'; // Tailwind red-600 (darker red)
+          gradientColor = '#ef4444'; // Tailwind red-500 (lighter for gradient)
           percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-red-400`;
         } else { // Close to zero or exactly zero
-          lineColor = '#9ca3af'; // Tailwind gray-400
-          gradientColor = '#9ca3af';
+          lineColor = '#6b7280'; // Tailwind gray-500 (darker gray)
+          gradientColor = '#9ca3af'; // Tailwind gray-400 (lighter for gradient)
           percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-gray-400`;
         }
       } else {
@@ -253,6 +253,9 @@
 
       // Define gradient
       const gradientId = `area-gradient-${period}`;
+      // Remove existing gradient definition if any, to prevent ID conflicts on re-render
+      svg.select(`#${gradientId}`).remove(); 
+
       const gradient = svg.append("defs")
         .append("linearGradient")
         .attr("id", gradientId)
@@ -264,7 +267,7 @@
       gradient.append("stop")
         .attr("offset", "0%")
         .attr("stop-color", gradientColor)
-        .attr("stop-opacity", 0.4); // Adjusted opacity for brighter line
+        .attr("stop-opacity", 0.2); // Reduced opacity further for brighter line
 
       gradient.append("stop")
         .attr("offset", "100%")
