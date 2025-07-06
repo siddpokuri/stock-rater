@@ -125,9 +125,21 @@
 
       try {
         const response = await fetch(`https://stock-backend-0128.onrender.com/check?stock=${stock}`);
-        const data = await response.json();
+        console.log("Backend response status:", response.status);
+        console.log("Backend response OK:", response.ok);
 
-        if (response.ok && data["valid?"] === 1) {
+        // Check if response is not OK (e.g., 400, 500)
+        if (!response.ok) {
+          const errorText = await response.text(); // Get raw text to debug non-JSON errors
+          console.error("Backend error response text:", errorText);
+          showValidationMessage(`Backend error (${response.status}): ${errorText.substring(0, 100)}...`); // Show first 100 chars
+          return; // Stop execution here
+        }
+
+        const data = await response.json();
+        console.log("Backend response JSON:", data);
+
+        if (data["valid?"] === 1) {
           window.location.href = `${type}.html?stock=${stock}`;
         } else {
           // Use the error message from the backend if available, otherwise a default
@@ -135,8 +147,8 @@
           showValidationMessage(errorMessage);
         }
       } catch (error) {
-        console.error("Validation fetch error:", error);
-        showValidationMessage("An error occurred during validation. Please try again later.");
+        console.error("Validation fetch error caught:", error); // Log the full error object
+        showValidationMessage("An error occurred during validation. Please check console for details.");
       } finally {
         setButtonsDisabled(false); // Re-enable buttons
       }
