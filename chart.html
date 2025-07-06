@@ -117,7 +117,7 @@
         
         // Check if all relevant data points are 'N/A'
         if (data["1D"] === 'N/A' && data["5D"] === 'N/A' && data["1M"] === 'N/A' && data["Volume"] === 'N/A') {
-          throw new Error("No chart data available.");
+          throw new Error("No chart data available for this stock.");
         }
 
         allChartData = data;
@@ -175,16 +175,16 @@
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-      // Parse dates based on the period
-      const parseDate = period === '1M' ? d3.timeParse("%Y-%m-%d") : d3.timeParse("%Y-%m-%d %H:%M:%S");
-
+      // Prepare data: Ensure 'date' and 'value' properties are consistent
+      // We will still parse dates for tooltip display, but the X-axis will use original strings
       data.forEach(d => {
-        d.date = parseDate(d.datetime || d.date); // Use 'datetime' for 1D/5D, 'date' for 1M
-        d.value = +d.close || +d.price; // Use 'close' for 1D/5D, 'price' for 1M
+        d.displayDate = d.datetime || d.date; // Use original string for X-axis domain
+        d.parsedDate = period === '1M' ? d3.timeParse("%Y-%m-%d")(d.displayDate) : d3.timeParse("%Y-%m-%d %H:%M:%S")(d.displayDate);
+        d.value = +d.close || +d.price;
       });
 
-      // Filter out invalid dates or values
-      const filteredData = data.filter(d => d.date && !isNaN(d.value));
+      // Filter out invalid data points
+      const filteredData = data.filter(d => d.parsedDate && !isNaN(d.value));
 
       if (filteredData.length === 0) {
         chartContainer.innerHTML = `<p class="text-gray-400">No valid ${period} data to display for ${stock}.</p>`;
@@ -192,9 +192,11 @@
       }
 
       // Set up scales
-      const x = d3.scaleTime()
-        .domain(d3.extent(filteredData, d => d.date))
-        .range([0, width]);
+      // X-axis: Use d3.scalePoint for consistent spacing of each data point
+      const x = d3.scalePoint()
+        .domain(filteredData.map(d => d.displayDate)) // Domain is an array of date strings
+        .range([0, width])
+        .padding(0.5); // Add some padding between points
 
       const y = d3.scaleLinear()
         .domain(d3.extent(filteredData, d => d.value))
@@ -205,7 +207,21 @@
       svg.append("g")
         .attr("class", "x axis")
         .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(x).ticks(5).tickFormat(period === '1M' ? d3.timeFormat("%b %d") : d3.timeFormat("%H:%M")));
+        .call(d3.axisBottom(x)
+          .tickValues(x.domain().filter((d, i) => { // Filter ticks to avoid overcrowding
+            // Adjust tick density based on number of data points
+            const interval = Math.ceil(filteredData.length / 7); // Show max 7 ticks
+            return i % interval === 0;
+          }))
+          .tickFormat(d => { // Format tick labels
+            const dateObj = period === '1M' ? d3.timeParse("%Y-%m-%d")(d) : d3.timeParse("%Y-%m-%d %H:%M:%S")(d);
+            if (!dateObj) return '';
+            return period === '1M' ? d3.timeFormat("%b %d")(dateObj) : d3.timeFormat("%H:%M")(dateObj);
+          })
+        )
+        .selectAll("text")
+        .attr("transform", "rotate(-45)")
+        .style("text-anchor", "end"); // Rotate and align text for better readability
 
       // Add Y axis
       svg.append("g")
@@ -214,7 +230,7 @@
 
       // Add the line
       const line = d3.line()
-        .x(d => x(d.date))
+        .x(d => x(d.displayDate)) // Use displayDate for X position
         .y(d => y(d.value));
 
       svg.append("path")
@@ -243,17 +259,17 @@
         .on("mousemove", mousemove);
 
       function mousemove(event) {
-        const x0 = x.invert(d3.pointer(event)[0]);
-        const bisectDate = d3.bisector(d => d.date).left;
-        const i = bisectDate(filteredData, x0, 1);
-        const d0 = filteredData[i - 1];
-        const d1 = filteredData[i];
-        const d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+        const xPos = d3.pointer(event)[0];
+        // Find the closest data point based on X position
+        const closestIndex = d3.leastIndex(filteredData, d => Math.abs(x(d.displayDate) - xPos));
+        const d = filteredData[closestIndex];
 
-        focus.attr("transform", `translate(${x(d.date)},${y(d.value)})`);
-        tooltip.html(`Date: ${d3.timeFormat("%Y-%m-%d %H:%M")(d.date)}<br>Price: ${d.value.toFixed(2)}`)
-          .style("left", (event.pageX + 15) + "px")
-          .style("top", (event.pageY - 28) + "px");
+        if (d) {
+          focus.attr("transform", `translate(${x(d.displayDate)},${y(d.value)})`);
+          tooltip.html(`Date: ${d3.timeFormat("%Y-%m-%d %H:%M")(d.parsedDate)}<br>Price: ${d.value.toFixed(2)}`)
+            .style("left", (event.pageX + 15) + "px")
+            .style("top", (event.pageY - 28) + "px");
+        }
       }
     }
 
