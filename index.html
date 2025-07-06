@@ -128,27 +128,32 @@
         console.log("Backend response status:", response.status);
         console.log("Backend response OK:", response.ok);
 
-        // Check if response is not OK (e.g., 400, 500)
-        if (!response.ok) {
-          const errorText = await response.text(); // Get raw text to debug non-JSON errors
-          console.error("Backend error response text:", errorText);
-          showValidationMessage(`Backend error (${response.status}): ${errorText.substring(0, 100)}...`); // Show first 100 chars
-          return; // Stop execution here
+        let data;
+        try {
+          // Always attempt to parse JSON, even if response.ok is false
+          data = await response.json(); 
+          console.log("Backend response JSON:", data);
+        } catch (jsonError) {
+          // If JSON parsing fails, it means the response was not valid JSON (e.g., HTML error page)
+          const errorText = await response.text(); // Get raw text to debug
+          console.error("JSON parsing error:", jsonError);
+          console.error("Raw backend response text (non-JSON):", errorText);
+          showValidationMessage(`Backend returned unexpected data (${response.status}). Please check console.`);
+          return; // Stop execution
         }
 
-        const data = await response.json();
-        console.log("Backend response JSON:", data);
-
-        if (data["valid?"] === 1) {
+        // Now, handle based on response.ok and the parsed data
+        if (response.ok && data["valid?"] === 1) {
           window.location.href = `${type}.html?stock=${stock}`;
-        } else {
-          // Use the error message from the backend if available, otherwise a default
-          const errorMessage = data.error || "Invalid stock symbol provided.";
-          showValidationMessage(errorMessage);
+        } else if (data && data.error) { // If 'data' exists and has an 'error' field (e.g., from 400 status)
+          showValidationMessage(data.error);
+        } else { // Fallback for other unexpected scenarios
+          showValidationMessage("An unknown validation error occurred. Please check console for details.");
         }
       } catch (error) {
-        console.error("Validation fetch error caught:", error); // Log the full error object
-        showValidationMessage("An error occurred during validation. Please check console for details.");
+        // This catch block is for true network errors (e.g., server unreachable, CORS issues)
+        console.error("Validation fetch error caught (network issue):", error); 
+        showValidationMessage("A network error occurred. Please check your internet connection or try again later.");
       } finally {
         setButtonsDisabled(false); // Re-enable buttons
       }
