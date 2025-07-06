@@ -29,38 +29,40 @@
         placeholder="Enter a stock symbol (e.g., AAPL)"
         class="w-full px-5 py-4 text-xl border-2 border-gray-600 rounded-lg focus:outline-none focus:border-indigo-500 placeholder-gray-500 text-gray-200 bg-gray-700 transition duration-300 ease-in-out"
       />
+      <!-- Validation message display area -->
+      <div id="validationMessage" class="text-red-400 text-sm mt-2 hidden"></div>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
         <!-- First Row -->
-        <button id="chartbutton" onclick="goTo('chart')"
+        <button id="chartbutton" onclick="handleNavigation('chart')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           Price Chart
         </button>
-        <button id="genbutton" onclick="goTo('general')"
+        <button id="genbutton" onclick="handleNavigation('general')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           General Info
         </button>
-        <button id="ratebutton" onclick="goTo('rate')"
+        <button id="ratebutton" onclick="handleNavigation('rate')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           Rating
         </button>
 
         <!-- Second Row -->
-        <button id="pastbutton" onclick="goTo('pastearnings')"
+        <button id="pastbutton" onclick="handleNavigation('pastearnings')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           Past Earnings Results
         </button>
-        <button id="insiderbutton" onclick="goTo('insidertrades')"
+        <button id="insiderbutton" onclick="handleNavigation('insidertrades')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           Latest Insider Trades
         </button>
-        <button id="targetbutton" onclick="goTo('pricetargets')"
+        <button id="targetbutton" onclick="handleNavigation('pricetargets')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           Stock Price Targets
         </button>
 
         <!-- Third Row -->
-        <button id="nextqbutton" onclick="goTo('nextqearnings')"
+        <button id="nextqbutton" onclick="handleNavigation('nextqearnings')"
           class="bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
           Next Quarter Earnings Estimates
         </button>
@@ -73,16 +75,77 @@
   </div>
 
   <script>
-    function goTo(type) {
-      const stock = document.getElementById("stockInput").value.trim().toUpperCase();
+    const stockInput = document.getElementById("stockInput");
+    const validationMessage = document.getElementById("validationMessage");
+    const allButtons = document.querySelectorAll('.grid button'); // Select all feature buttons
+
+    // Function to show validation message
+    function showValidationMessage(message, isError = true) {
+      validationMessage.textContent = message;
+      validationMessage.classList.remove('hidden');
+      if (isError) {
+        validationMessage.classList.add('text-red-400');
+        validationMessage.classList.remove('text-gray-400');
+      } else {
+        validationMessage.classList.add('text-gray-400');
+        validationMessage.classList.remove('text-red-400');
+      }
+    }
+
+    // Function to hide validation message
+    function hideValidationMessage() {
+      validationMessage.classList.add('hidden');
+      validationMessage.textContent = '';
+    }
+
+    // Function to disable/enable buttons during validation
+    function setButtonsDisabled(disabled) {
+      allButtons.forEach(button => {
+        button.disabled = disabled;
+        if (disabled) {
+          button.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+          button.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      });
+    }
+
+    // Main navigation handler for stock-specific pages
+    async function handleNavigation(type) {
+      const stock = stockInput.value.trim().toUpperCase();
+      hideValidationMessage(); // Clear previous messages
+
       if (!stock) {
-        // For a real app, you'd show a custom modal or inline message instead of alert
-        console.log("Please enter a stock symbol."); 
+        showValidationMessage("Please enter a stock symbol.");
         return;
       }
-      window.location.href = `${type}.html?stock=${stock}`;
+
+      setButtonsDisabled(true); // Disable buttons during validation
+      showValidationMessage("Checking stock symbol...", false); // Show loading message
+
+      try {
+        const response = await fetch(`https://stock-backend-0128.onrender.com/check?stock=${stock}`);
+        const data = await response.json();
+
+        if (response.ok && data["valid?"] === 1) {
+          window.location.href = `${type}.html?stock=${stock}`;
+        } else {
+          // Use the error message from the backend if available, otherwise a default
+          const errorMessage = data.error || "Invalid stock symbol provided.";
+          showValidationMessage(errorMessage);
+        }
+      } catch (error) {
+        console.error("Validation fetch error:", error);
+        showValidationMessage("An error occurred during validation. Please try again later.");
+      } finally {
+        setButtonsDisabled(false); // Re-enable buttons
+      }
     }
+
+    // Special handler for compare page as it doesn't need a single stock symbol initially
     function gocompare() {
+      // For compare, we don't need to validate a single stock symbol before navigating
+      // The validation for two stocks will happen on the compare.html page itself.
       window.location.href = `compare.html`;
     }
   </script>
