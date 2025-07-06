@@ -22,10 +22,14 @@
       font-size: 0.875rem; /* text-sm */
       fill: #9ca3af; /* gray-400 */
     }
-    /* Line color will be set dynamically by JS */
+    /* Line will have dynamic stroke color, no fill */
     .line {
       fill: none;
       stroke-width: 2px;
+    }
+    /* Area will have dynamic fill (gradient) */
+    .area {
+      stroke-width: 0; /* No stroke for the area */
     }
     .overlay {
       fill: none;
@@ -200,11 +204,28 @@
 
       // Update Percentage Change Display
       const pChange = data.percentageChange;
+      let lineColor, gradientColor;
+      const threshold = 0.01; // Define a small threshold for "no change"
+
       if (pChange !== null) {
         const pChangeText = pChange.toFixed(2);
         percentageChangeDisplay.textContent = `Change: ${pChangeText}%`;
-        percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold ${pChange >= 0 ? 'text-green-400' : 'text-red-400'}`;
+        if (pChange > threshold) {
+          lineColor = '#10b981'; // Tailwind green-500
+          gradientColor = '#10b981';
+          percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-green-400`;
+        } else if (pChange < -threshold) {
+          lineColor = '#ef4444'; // Tailwind red-500
+          gradientColor = '#ef4444';
+          percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-red-400`;
+        } else { // Close to zero or exactly zero
+          lineColor = '#9ca3af'; // Tailwind gray-400
+          gradientColor = '#9ca3af';
+          percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-gray-400`;
+        }
       } else {
+        lineColor = '#6366f1'; // Default Indigo if percentage change cannot be calculated
+        gradientColor = '#6366f1';
         percentageChangeDisplay.textContent = `Change: N/A`;
         percentageChangeDisplay.className = `text-xl md:text-2xl font-semibold text-gray-200`;
       }
@@ -229,6 +250,27 @@
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      // Define gradient
+      const gradientId = `area-gradient-${period}`;
+      const gradient = svg.append("defs")
+        .append("linearGradient")
+        .attr("id", gradientId)
+        .attr("x1", "0%")
+        .attr("y1", "0%")
+        .attr("x2", "0%")
+        .attr("y2", "100%");
+
+      gradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", gradientColor)
+        .attr("stop-opacity", 0.6); // Start with some opacity
+
+      gradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", gradientColor)
+        .attr("stop-opacity", 0); // Fade to transparent at the bottom
+
 
       // Prepare data: Ensure 'date' and 'value' properties are consistent
       // We will still parse dates for tooltip display, but the X-axis will use original strings
@@ -285,7 +327,19 @@
         .attr("class", "y axis")
         .call(d3.axisLeft(y).ticks(5));
 
-      // Add the line
+      // Add the area path (gradient fill)
+      const area = d3.area()
+        .x(d => x(d.displayDate))
+        .y0(height) // Start from the bottom of the chart
+        .y1(d => y(d.value)); // End at the line's Y position
+
+      svg.append("path")
+        .datum(filteredData)
+        .attr("class", "area")
+        .attr("fill", `url(#${gradientId})`) // Fill with the defined gradient
+        .attr("d", area);
+
+      // Add the line path
       const line = d3.line()
         .x(d => x(d.displayDate)) // Use displayDate for X position
         .y(d => y(d.value));
@@ -293,12 +347,7 @@
       svg.append("path")
         .datum(filteredData)
         .attr("class", "line")
-        .attr("stroke", () => { // Dynamically set stroke color
-            if (pChange !== null) {
-              return pChange >= 0 ? '#10b981' : '#ef4444'; // Green or Red
-            }
-            return '#6366f1'; // Default Indigo if percentage change cannot be calculated
-          });
+        .attr("stroke", lineColor); // Set stroke to the determined color
 
       // Add tooltip functionality
       const focus = svg.append("g")
