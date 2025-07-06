@@ -25,7 +25,7 @@
     /* Line will have dynamic stroke color, no fill */
     .line {
       fill: none;
-      stroke-width: 2px;
+      stroke-width: 3px; /* Increased line thickness */
     }
     /* Area will have dynamic fill (gradient) */
     .area {
@@ -264,7 +264,7 @@
       gradient.append("stop")
         .attr("offset", "0%")
         .attr("stop-color", gradientColor)
-        .attr("stop-opacity", 0.6); // Start with some opacity
+        .attr("stop-opacity", 0.4); // Adjusted opacity for brighter line
 
       gradient.append("stop")
         .attr("offset", "100%")
