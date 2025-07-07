@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Balance Sheet</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom font for a more professional look */
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+  <!-- Google Fonts - Inter (for a clean, modern look) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 font-inter text-gray-300">
+
+  <!-- Page Title -->
+  <h2 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-100 mb-10 text-center leading-tight">
+    Stock Balance Sheet
+  </h2>
+
+  <!-- Main Content Card -->
+  <div class="w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl p-6 md:p-8 border border-gray-700 flex flex-col items-center space-y-6">
+    
+    <!-- Period Selection Buttons -->
+    <div class="flex flex-wrap justify-center gap-4 w-full mb-4">
+      <button id="btnYearly" class="period-btn bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-base">
+        Yearly
+      </button>
+      <button id="btnQuarterly" class="period-btn bg-gray-700 text-gray-200 font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-base">
+        Quarterly
+      </button>
+    </div>
+
+    <!-- Balance Sheet Data Display -->
+    <div id="balancesheetBox" class="w-full text-center text-lg text-gray-400">
+      Loading balance sheet data...
+    </div>
+
+    <!-- Back Button -->
+    <button id="backbutton" onclick="goback()"
+      class="bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+      Back to Home
+    </button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const stock = params.get("stock");
+    const balancesheetBox = document.getElementById("balancesheetBox");
+    let allBalanceSheetData = null; // To store fetched yearly and quarterly data
+
+    // Display stock symbol in title if available
+    if (stock) {
+      document.querySelector('h2').textContent = `${stock} Balance Sheet`;
+    }
+
+    // Function to fetch all balance sheet data (yearly and quarterly)
+    async function fetchBalanceSheetData() {
+      try {
+        // Fetch Yearly Data
+        const yearlyResponse = await fetch(`https://stock-backend-0128.onrender.com/ybalancesheet?stock=${stock}`);
+        const yearlyData = await yearlyResponse.json();
+
+        // Fetch Quarterly Data
+        const quarterlyResponse = await fetch(`https://stock-backend-0128.onrender.com/qbalancesheet?stock=${stock}`);
+        const quarterlyData = await quarterlyResponse.json();
+
+        allBalanceSheetData = {
+          yearly: yearlyData,
+          quarterly: quarterlyData
+        };
+
+        // Check if both are N/A or empty errors
+        if ((yearlyData === 'N/A' || (yearlyData.error && yearlyResponse.status !== 200)) &&
+            (quarterlyData === 'N/A' || (quarterlyData.error && quarterlyResponse.status !== 200))) {
+          throw new Error("No balance sheet data available for this stock.");
+        }
+
+        // Render Yearly by default if available, otherwise Quarterly
+        if (yearlyData !== 'N/A' && !yearlyData.error) {
+          renderBalanceSheet(yearlyData, 'Yearly');
+          setActiveButton('btnYearly');
+        } else if (quarterlyData !== 'N/A' && !quarterlyData.error) {
+          renderBalanceSheet(quarterlyData, 'Quarterly');
+          setActiveButton('btnQuarterly');
+        } else {
+          balancesheetBox.innerHTML = `<p class="text-red-400">No balance sheet data available for ${stock}.</p>`;
+        }
+
+      } catch (err) {
+        balancesheetBox.innerHTML = `<p class="text-red-400">Error: ${err.message}</p>`;
+        console.error("Fetch error:", err);
+      }
+    }
+
+    // Function to set active button style
+    function setActiveButton(activeBtnId) {
+      document.querySelectorAll('.period-btn').forEach(button => {
+        if (button.id === activeBtnId) {
+          button.className = 'period-btn bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-base';
+        } else {
+          button.className = 'period-btn bg-gray-700 text-gray-200 font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-base';
+        }
+      });
+    }
+
+    // Function to render balance sheet data
+    function renderBalanceSheet(data, period) {
+      balancesheetBox.innerHTML = ''; // Clear previous content
+
+      if (!data || data === 'N/A' || data.error) {
+        balancesheetBox.innerHTML = `<p class="text-gray-400">No ${period} balance sheet data available for ${stock}.</p>`;
+        return;
+      }
+
+      // Create a container for the data items
+      const dataContainer = document.createElement('div');
+      dataContainer.className = 'w-full divide-y divide-gray-700 rounded-lg border border-gray-700 overflow-hidden'; // Added border and overflow hidden
+
+      for (const key in data) {
+        const value = data[key];
+        const item = document.createElement('div');
+        item.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 px-4 bg-gray-700 hover:bg-gray-600 transition-colors duration-200';
+
+        const keyElement = document.createElement('strong');
+        keyElement.className = 'text-gray-200 text-lg sm:text-xl mb-1 sm:mb-0'; // Adjusted font size and margin
+        keyElement.textContent = `${key}:`;
+
+        const valueElement = document.createElement('span');
+        // Check if value is an array (for quarterly data) or single value (for yearly)
+        if (Array.isArray(value)) {
+          valueElement.className = 'text-gray-300 text-base sm:text-lg text-right sm:text-left';
+          valueElement.innerHTML = value.join('<br>'); // Join array elements with line breaks
+        } else {
+          valueElement.className = 'text-gray-300 text-lg sm:text-xl text-right';
+          valueElement.textContent = value;
+        }
+
+        item.appendChild(keyElement);
+        item.appendChild(valueElement);
+        dataContainer.appendChild(item);
+      }
+      balancesheetBox.appendChild(dataContainer);
+    }
+
+    // Event listeners for period selection buttons
+    document.getElementById("btnYearly").addEventListener("click", () => {
+      if (allBalanceSheetData && allBalanceSheetData.yearly !== 'N/A' && !allBalanceSheetData.yearly.error) {
+        renderBalanceSheet(allBalanceSheetData.yearly, 'Yearly');
+        setActiveButton('btnYearly');
+      } else {
+        balancesheetBox.innerHTML = `<p class="text-gray-400">No Yearly balance sheet data available for ${stock}.</p>`;
+        setActiveButton('btnYearly');
+      }
+    });
+
+    document.getElementById("btnQuarterly").addEventListener("click", () => {
+      if (allBalanceSheetData && allBalanceSheetData.quarterly !== 'N/A' && !allBalanceSheetData.quarterly.error) {
+        renderBalanceSheet(allBalanceSheetData.quarterly, 'Quarterly');
+        setActiveButton('btnQuarterly');
+      } else {
+        balancesheetBox.innerHTML = `<p class="text-gray-400">No Quarterly balance sheet data available for ${stock}.</p>`;
+        setActiveButton('btnQuarterly');
+      }
+    });
+
+    // Function to navigate back to the index page
+    function goback() {
+      window.location.href = 'index.html';
+    }
+
+    // Initial fetch of data when the page loads
+    fetchBalanceSheetData();
+  </script>
+</body>
+</html>
