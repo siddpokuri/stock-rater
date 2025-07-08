@@ -43,6 +43,21 @@
         border-right: 1px solid #4b5563; /* gray-600 */
         text-align: left; /* Ensure metric names are left-aligned */
     }
+
+    /* Styling for individual data cells in the quarterly table */
+    .quarterly-data-cell {
+        background-color: #1f2937; /* gray-900 for cells */
+        border: 1px solid #374151; /* gray-700 for cell borders */
+        padding: 0.75rem 1rem; /* py-3 px-4 */
+        text-align: center;
+        font-size: 0.875rem; /* text-sm */
+        color: #d1d5db; /* gray-300 */
+        white-space: nowrap;
+    }
+    /* Ensure no double borders where sticky header meets cells */
+    .sticky-row-header + .quarterly-data-cell {
+        border-left: none; /* Remove left border from first data cell to avoid double border with sticky header */
+    }
   </style>
   <!-- Google Fonts - Inter (for a clean, modern look) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -186,11 +201,12 @@
 
         // Table Body (Metrics and Values)
         const tbody = document.createElement('tbody');
-        tbody.className = 'divide-y divide-gray-700';
-
+        // Removed tbody.className = 'divide-y divide-gray-700'; as rows will handle borders
+        
         metrics.forEach(metricName => {
           const row = document.createElement('tr');
-          row.className = 'bg-gray-800 hover:bg-gray-700 transition-colors duration-200';
+          // Add alternating row backgrounds for better readability
+          row.className = 'odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-colors duration-200 border-b border-gray-700'; /* Row styling with bottom border */
 
           // Metric Name Cell - sticky
           const metricTh = document.createElement('th');
@@ -202,14 +218,15 @@
           if (Array.isArray(values)) {
             dates.forEach((date, index) => {
               const td = document.createElement('td');
-              td.className = 'py-3 px-4 text-center text-sm text-gray-300 whitespace-nowrap border-l border-gray-700'; /* Cell styling for 'boxes' */
+              // Apply the new quarterly-data-cell class for distinct boxes
+              td.className = 'quarterly-data-cell'; 
               td.textContent = values[index] !== undefined ? values[index] : 'N/A'; // Handle potential missing values
               row.appendChild(td);
             });
           } else {
             // Fallback if a 'metric' in quarterly data isn't an array (shouldn't happen if backend is consistent)
             const td = document.createElement('td');
-            td.className = 'py-3 px-4 text-center text-sm text-gray-300 col-span-full';
+            td.className = 'quarterly-data-cell col-span-full'; // Use col-span-full for fallback
             td.textContent = values;
             row.appendChild(td);
           }
@@ -235,7 +252,7 @@
 
           const valueElement = document.createElement('span');
           valueElement.className = 'text-gray-300 text-lg sm:text-xl text-right';
-          valueElement.textContent = value; // This will be a single value for yearly
+          valueElement.textContent = value; // Direct text content, no array joining here
 
           item.appendChild(keyElement);
           item.appendChild(valueElement);
