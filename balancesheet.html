@@ -120,6 +120,11 @@
         const quarterlyResponse = await fetch(`https://stock-backend-0128.onrender.com/qbalancesheet?stock=${stock}`);
         const quarterlyData = await quarterlyResponse.json();
 
+        // --- DEBUGGING: Log raw data received from backend ---
+        console.log("Raw Yearly Data from Backend:", yearlyData);
+        console.log("Raw Quarterly Data from Backend:", quarterlyData);
+        // --- END DEBUGGING ---
+
         allBalanceSheetData = {
           yearly: yearlyData,
           quarterly: quarterlyData
@@ -176,9 +181,6 @@
         const dates = data.dates;
         // Filter out 'dates' key from metrics to display
         const metrics = Object.keys(data).filter(key => key !== 'dates');
-
-        // Debug log to check the incoming data structure for quarterly
-        console.log("Quarterly Data Received (for debugging commas):", data);
 
         // Create a scrollable container for the table
         const tableContainer = document.createElement('div');
