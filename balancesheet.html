@@ -34,6 +34,7 @@
         z-index: 20; /* Higher than other cells */
         background-color: #374151; /* gray-700 */
         border-right: 1px solid #4b5563; /* gray-600 */
+        box-shadow: 2px 0 5px rgba(0,0,0,0.2); /* Subtle shadow for depth */
     }
     .sticky-row-header {
         position: sticky;
@@ -42,17 +43,20 @@
         background-color: #374151; /* gray-700 */
         border-right: 1px solid #4b5563; /* gray-600 */
         text-align: left; /* Ensure metric names are left-aligned */
+        box-shadow: 2px 0 5px rgba(0,0,0,0.2); /* Subtle shadow for depth */
     }
 
     /* Styling for individual data cells in the quarterly table */
     .quarterly-data-cell {
         background-color: #1f2937; /* gray-900 for cells */
-        border: 1px solid #374151; /* gray-700 for cell borders */
+        border: 1px solid #374151; /* gray-700 for cell borders on all sides */
         padding: 0.75rem 1rem; /* py-3 px-4 */
         text-align: center;
         font-size: 0.875rem; /* text-sm */
         color: #d1d5db; /* gray-300 */
         white-space: nowrap;
+        /* Optional: for better numerical alignment if numbers vary in length */
+        font-variant-numeric: tabular-nums; 
     }
     /* Ensure no double borders where sticky header meets cells */
     .sticky-row-header + .quarterly-data-cell {
@@ -165,6 +169,7 @@
       }
 
       // Check if this is quarterly data by looking for a 'dates' key and if values are arrays
+      // IMPORTANT: The backend now returns 'dates' (lowercase, plural)
       const isQuarterly = period === 'Quarterly' && data.dates && Array.isArray(data.dates) && data.dates.length > 0;
 
       if (isQuarterly) {
@@ -172,17 +177,20 @@
         // Filter out 'dates' key from metrics to display
         const metrics = Object.keys(data).filter(key => key !== 'dates');
 
+        // Debug log to check the incoming data structure for quarterly
+        console.log("Quarterly Data Received (for debugging commas):", data);
+
         // Create a scrollable container for the table
         const tableContainer = document.createElement('div');
         tableContainer.className = 'data-table-container w-full overflow-x-auto rounded-lg border border-gray-700 shadow-lg';
 
         const table = document.createElement('table');
-        table.className = 'min-w-full divide-y divide-gray-700';
+        table.className = 'min-w-full'; // Removed divide-y from table, will apply to rows
 
         // Table Header (Dates)
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        headerRow.className = 'bg-gray-700';
+        headerRow.className = 'bg-gray-700 border-b border-gray-600'; // Added bottom border to header row
 
         // Empty corner for the metric names - sticky
         const cornerTh = document.createElement('th');
@@ -205,8 +213,8 @@
         
         metrics.forEach(metricName => {
           const row = document.createElement('tr');
-          // Add alternating row backgrounds for better readability
-          row.className = 'odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-colors duration-200 border-b border-gray-700'; /* Row styling with bottom border */
+          // Add alternating row backgrounds for better readability and bottom border
+          row.className = 'odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-colors duration-200 border-b border-gray-700'; 
 
           // Metric Name Cell - sticky
           const metricTh = document.createElement('th');
