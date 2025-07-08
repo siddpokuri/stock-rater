@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Income Statement</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom font for a more professional look */
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Custom scrollbar for data tables */
+    .data-table-container::-webkit-scrollbar {
+      height: 8px;
+    }
+    .data-table-container::-webkit-scrollbar-track {
+      background: #374151; /* gray-700 */
+      border-radius: 10px;
+    }
+    .data-table-container::-webkit-scrollbar-thumb {
+      background: #6b7280; /* gray-500 */
+      border-radius: 10px;
+    }
+    .data-table-container::-webkit-scrollbar-thumb:hover {
+      background: #9ca3af; /* gray-400 */
+    }
+
+    /* Specific styles for sticky table headers/cells */
+    .sticky-col-header {
+        position: sticky;
+        left: 0;
+        z-index: 20; /* Higher than other cells */
+        background-color: #374151; /* gray-700 */
+        border-right: 1px solid #4b5563; /* gray-600 */
+        box-shadow: 2px 0 5px rgba(0,0,0,0.2); /* Subtle shadow for depth */
+    }
+    .sticky-row-header {
+        position: sticky;
+        left: 0;
+        z-index: 10; /* Lower than corner, higher than data cells */
+        background-color: #374151; /* gray-700 */
+        border-right: 1px solid #4b5563; /* gray-600 */
+        text-align: left; /* Ensure metric names are left-aligned */
+        box-shadow: 2px 0 5px rgba(0,0,0,0.2); /* Subtle shadow for depth */
+    }
+
+    /* Styling for individual data cells in the quarterly table */
+    .quarterly-data-cell {
+        background-color: #1f2937; /* gray-900 for cells */
+        border: 1px solid #374151; /* gray-700 for cell borders on all sides */
+        padding: 0.75rem 1rem; /* py-3 px-4 */
+        text-align: center;
+        font-size: 0.875rem; /* text-sm */
+        color: #d1d5db; /* gray-300 */
+        white-space: nowrap;
+        /* Optional: for better numerical alignment if numbers vary in length */
+        font-variant-numeric: tabular-nums; 
+    }
+    /* Ensure no double borders where sticky header meets cells */
+    .sticky-row-header + .quarterly-data-cell {
+        border-left: none; /* Remove left border from first data cell to avoid double border with sticky header */
+    }
+  </style>
+  <!-- Google Fonts - Inter (for a clean, modern look) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 font-inter text-gray-300">
+
+  <!-- Page Title -->
+  <h2 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-100 mb-10 text-center leading-tight">
+    Stock Income Statement
+  </h2>
+
+  <!-- Main Content Card -->
+  <div class="w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl p-6 md:p-8 border border-gray-700 flex flex-col items-center space-y-6">
+    
+    <!-- Period Selection Buttons -->
+    <div class="flex flex-wrap justify-center gap-4 w-full mb-4">
+      <button id="btnYearly" class="period-btn bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-base">
+        Yearly
+      </button>
+      <button id="btnQuarterly" class="period-btn bg-gray-700 text-gray-200 font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-base">
+        Quarterly
+      </button>
+    </div>
+
+    <!-- Income Statement Data Display -->
+    <div id="incomestatementBox" class="w-full text-center text-lg text-gray-400">
+      Loading income statement data...
+    </div>
+
+    <!-- Back Button -->
+    <button id="backbutton" onclick="goback()"
+      class="bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+      Back to Home
+    </button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const stock = params.get("stock");
+    const incomestatementBox = document.getElementById("incomestatementBox");
+    let allIncomeStatementData = null; // To store fetched yearly and quarterly data
+
+    // Display stock symbol in title if available
+    if (stock) {
+      document.querySelector('h2').textContent = `${stock} Income Statement`;
+    }
+
+    // Function to fetch all income statement data (yearly and quarterly)
+    async function fetchIncomeStatementData() {
+      try {
+        // Fetch Yearly Data
+        const yearlyResponse = await fetch(`https://stock-backend-0128.onrender.com/yincomestatement?stock=${stock}`);
+        const yearlyData = await yearlyResponse.json();
+
+        // Fetch Quarterly Data
+        const quarterlyResponse = await fetch(`https://stock-backend-0128.onrender.com/qincomestatement?stock=${stock}`);
+        const quarterlyData = await quarterlyResponse.json();
+
+        allIncomeStatementData = {
+          yearly: yearlyData,
+          quarterly: quarterlyData
+        };
+
+        // Check if both are N/A or empty errors
+        if ((yearlyData === 'N/A' || (yearlyData.error && yearlyResponse.status !== 200)) &&
+            (quarterlyData === 'N/A' || (quarterlyData.error && quarterlyResponse.status !== 200))) {
+          throw new Error("No income statement data available for this stock.");
+        }
+
+        // Render Yearly by default if available, otherwise Quarterly
+        if (yearlyData !== 'N/A' && !yearlyData.error) {
+          renderIncomeStatement(yearlyData, 'Yearly');
+          setActiveButton('btnYearly');
+        } else if (quarterlyData !== 'N/A' && !quarterlyData.error) {
+          renderIncomeStatement(quarterlyData, 'Quarterly');
+          setActiveButton('btnQuarterly');
+        } else {
+          incomestatementBox.innerHTML = `<p class="text-red-400">No income statement data available for ${stock}.</p>`;
+        }
+
+      } catch (err) {
+        incomestatementBox.innerHTML = `<p class="text-red-400">Error: ${err.message}</p>`;
+        console.error("Fetch error:", err);
+      }
+    }
+
+    // Function to set active button style
+    function setActiveButton(activeBtnId) {
+      document.querySelectorAll('.period-btn').forEach(button => {
+        if (button.id === activeBtnId) {
+          button.className = 'period-btn bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-base';
+        } else {
+          button.className = 'period-btn bg-gray-700 text-gray-200 font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-base';
+        }
+      });
+    }
+
+    // Function to render income statement data
+    function renderIncomeStatement(data, period) {
+      incomestatementBox.innerHTML = ''; // Clear previous content
+
+      if (!data || data === 'N/A' || data.error) {
+        incomestatementBox.innerHTML = `<p class="text-gray-400">No ${period} income statement data available for ${stock}.</p>`;
+        return;
+      }
+
+      // Check if this is quarterly data by looking for 'Ratios' and 'Details'
+      // and if 'Details' contains 'dates' key from backend
+      const isQuarterly = period === 'Quarterly' && data.Details && data.Details.dates && Array.isArray(data.Details.dates) && data.Details.dates.length > 0;
+
+      if (isQuarterly) {
+        const dates = data.Details.dates;
+        const ratiosData = data.Ratios;
+        const detailsData = data.Details;
+
+        // Combine all metrics (excluding dates from details)
+        const allMetrics = { ...ratiosData, ...detailsData };
+        const metricsToDisplay = Object.keys(allMetrics).filter(key => key !== 'dates');
+
+        // Create a scrollable container for the table
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'data-table-container w-full overflow-x-auto rounded-lg border border-gray-700 shadow-lg';
+
+        const table = document.createElement('table');
+        table.className = 'min-w-full'; 
+
+        // Table Header (Dates)
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        headerRow.className = 'bg-gray-700 border-b border-gray-600'; 
+
+        // Empty corner for the metric names - sticky
+        const cornerTh = document.createElement('th');
+        cornerTh.className = 'py-3 px-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider sticky-col-header';
+        cornerTh.textContent = 'Metric';
+        headerRow.appendChild(cornerTh);
+
+        dates.forEach(date => {
+          const th = document.createElement('th');
+          th.className = 'py-3 px-4 text-center text-sm font-medium text-gray-300 uppercase tracking-wider min-w-[100px] border-l border-gray-600'; 
+          th.textContent = date;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Table Body (Metrics and Values)
+        const tbody = document.createElement('tbody');
+        
+        metricsToDisplay.forEach(metricName => {
+          const row = document.createElement('tr');
+          row.className = 'odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-colors duration-200 border-b border-gray-700'; 
+
+          // Metric Name Cell - sticky
+          const metricTh = document.createElement('th');
+          metricTh.className = 'py-3 px-4 text-sm font-medium text-gray-200 sticky-row-header whitespace-nowrap';
+          metricTh.textContent = metricName;
+          row.appendChild(metricTh);
+
+          // Get values from either ratiosData or detailsData
+          const values = allMetrics[metricName]; 
+          if (Array.isArray(values)) {
+            dates.forEach((date, index) => {
+              const td = document.createElement('td');
+              td.className = 'quarterly-data-cell'; 
+              td.textContent = values[index] !== undefined ? values[index] : 'N/A'; 
+              row.appendChild(td);
+            });
+          } else {
+            // Fallback if a 'metric' in quarterly data isn't an array
+            const td = document.createElement('td');
+            td.className = 'quarterly-data-cell col-span-full'; 
+            td.textContent = values;
+            row.appendChild(td);
+          }
+          tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        tableContainer.appendChild(table);
+        incomestatementBox.appendChild(tableContainer);
+
+      } else {
+        // Render as simple key-value pairs for Yearly data or if 'dates' key is missing
+        const dataContainer = document.createElement('div');
+        dataContainer.className = 'w-full divide-y divide-gray-700 rounded-lg border border-gray-700 overflow-hidden';
+
+        // Display Ratios first
+        if (data.Ratios && typeof data.Ratios === 'object') {
+            const ratiosTitle = document.createElement('div');
+            ratiosTitle.className = 'py-3 px-4 bg-gray-700 text-gray-200 font-semibold text-xl border-b border-gray-600';
+            ratiosTitle.textContent = 'Ratios';
+            dataContainer.appendChild(ratiosTitle);
+            for (const key in data.Ratios) {
+                const value = data.Ratios[key];
+                const item = document.createElement('div');
+                item.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 px-4 bg-gray-800 hover:bg-gray-700 transition-colors duration-200';
+                const keyElement = document.createElement('strong');
+                keyElement.className = 'text-gray-200 text-lg sm:text-xl mb-1 sm:mb-0';
+                keyElement.textContent = `${key}:`;
+                const valueElement = document.createElement('span');
+                valueElement.className = 'text-gray-300 text-lg sm:text-xl text-right';
+                valueElement.textContent = value;
+                item.appendChild(keyElement);
+                item.appendChild(valueElement);
+                dataContainer.appendChild(item);
+            }
+        }
+
+        // Display Details second
+        if (data.Details && typeof data.Details === 'object') {
+            const detailsTitle = document.createElement('div');
+            detailsTitle.className = 'py-3 px-4 bg-gray-700 text-gray-200 font-semibold text-xl border-b border-gray-600 mt-4'; // Added margin-top
+            detailsTitle.textContent = 'Details';
+            dataContainer.appendChild(detailsTitle);
+            for (const key in data.Details) {
+                const value = data.Details[key];
+                const item = document.createElement('div');
+                item.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 px-4 bg-gray-800 hover:bg-gray-700 transition-colors duration-200';
+                const keyElement = document.createElement('strong');
+                keyElement.className = 'text-gray-200 text-lg sm:text-xl mb-1 sm:mb-0';
+                keyElement.textContent = `${key}:`;
+                const valueElement = document.createElement('span');
+                valueElement.className = 'text-gray-300 text-lg sm:text-xl text-right';
+                valueElement.textContent = value;
+                item.appendChild(keyElement);
+                item.appendChild(valueElement);
+                dataContainer.appendChild(item);
+            }
+        }
+        incomestatementBox.appendChild(dataContainer);
+      }
+    }
+
+    // Event listeners for period selection buttons
+    document.getElementById("btnYearly").addEventListener("click", () => {
+      if (allIncomeStatementData && allIncomeStatementData.yearly !== 'N/A' && !allIncomeStatementData.yearly.error) {
+        renderIncomeStatement(allIncomeStatementData.yearly, 'Yearly');
+        setActiveButton('btnYearly');
+      } else {
+        incomestatementBox.innerHTML = `<p class="text-gray-400">No Yearly income statement data available for ${stock}.</p>`;
+        setActiveButton('btnYearly');
+      }
+    });
+
+    document.getElementById("btnQuarterly").addEventListener("click", () => {
+      if (allIncomeStatementData && allIncomeStatementData.quarterly !== 'N/A' && !allIncomeStatementData.quarterly.error) {
+        renderIncomeStatement(allIncomeStatementData.quarterly, 'Quarterly');
+        setActiveButton('btnQuarterly');
+      } else {
+        incomestatementBox.innerHTML = `<p class="text-gray-400">No Quarterly income statement data available for ${stock}.</p>`;
+        setActiveButton('btnQuarterly');
+      }
+    });
+
+    // Function to navigate back to the index page
+    function goback() {
+      window.location.href = 'index.html';
+    }
+
+    // Initial fetch of data when the page loads
+    fetchIncomeStatementData();
+  </script>
+</body>
+</html>
