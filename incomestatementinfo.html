@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Info - Income Statement</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        .nav-button {
+            @apply px-4 py-2 rounded-lg font-semibold transition duration-200 ease-in-out;
+            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        }
+        .nav-button.active {
+            @apply bg-blue-600 text-white hover:bg-blue-700;
+        }
+        .data-table th, .data-table td {
+            @apply px-4 py-2 text-left;
+        }
+        .data-table th {
+            @apply bg-gray-50 text-gray-600 uppercase text-sm;
+        }
+        .data-table tr:nth-child(even) {
+            @apply bg-gray-50;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4">
+        <a href="#" id="navGeneral" class="nav-button">General Info</a>
+        <a href="#" id="navIncome" class="nav-button active">Income Statement</a>
+        <a href="#" id="navBalance" class="nav-button">Balance Sheet</a>
+        <a href="#" id="navRatings" class="nav-button">Ratings</a>
+        <a href="#" id="navEarnings" class="nav-button">Earnings</a>
+        <a href="#" id="navInsider" class="nav-button">Insider Trades</a>
+        <a href="#" id="navTargets" class="nav-button">Analyst Targets</a>
+    </header>
+
+    <main class="container mx-auto p-6">
+        <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
+        
+        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
+            Fetching Income Statement Data...
+        </div>
+
+        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline" id="errorText"></span>
+        </div>
+
+        <div id="incomeStatementContent" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Quarterly Income Statement Info -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Quarterly Income Statement</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg data-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th id="q1Date"></th>
+                                <th id="q2Date"></th>
+                                <th id="q3Date"></th>
+                                <th id="q4Date"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Revenue</td>
+                                <td id="q1Revenue"></td>
+                                <td id="q2Revenue"></td>
+                                <td id="q3Revenue"></td>
+                                <td id="q4Revenue"></td>
+                            </tr>
+                            <tr>
+                                <td>Gross Profit</td>
+                                <td id="q1GrossProfit"></td>
+                                <td id="q2GrossProfit"></td>
+                                <td id="q3GrossProfit"></td>
+                                <td id="q4GrossProfit"></td>
+                            </tr>
+                            <tr>
+                                <td>Operating Income</td>
+                                <td id="q1OperatingIncome"></td>
+                                <td id="q2OperatingIncome"></td>
+                                <td id="q3OperatingIncome"></td>
+                                <td id="q4OperatingIncome"></td>
+                            </tr>
+                            <tr>
+                                <td>EBITDA</td>
+                                <td id="q1Ebitda"></td>
+                                <td id="q2Ebitda"></td>
+                                <td id="q3Ebitda"></td>
+                                <td id="q4Ebitda"></td>
+                            </tr>
+                            <tr>
+                                <td>Net Income</td>
+                                <td id="q1NetIncome"></td>
+                                <td id="q2NetIncome"></td>
+                                <td id="q3NetIncome"></td>
+                                <td id="q4NetIncome"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quarterly Ratios -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Quarterly Ratios</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg data-table">
+                        <thead>
+                            <tr>
+                                <th>Ratio</th>
+                                <th id="qr1Date"></th>
+                                <th id="qr2Date"></th>
+                                <th id="qr3Date"></th>
+                                <th id="qr4Date"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Net Profit Margin</td>
+                                <td id="qr1NetProfitMargin"></td>
+                                <td id="qr2NetProfitMargin"></td>
+                                <td id="qr3NetProfitMargin"></td>
+                                <td id="qr4NetProfitMargin"></td>
+                            </tr>
+                            <tr>
+                                <td>Price to Sales Ratio</td>
+                                <td id="qr1PriceToSales"></td>
+                                <td id="qr2PriceToSales"></td>
+                                <td id="qr3PriceToSales"></td>
+                                <td id="qr4PriceToSales"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Yearly Income Statement Info -->
+            <div class="bg-white p-6 rounded-xl shadow-md lg:col-span-2">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Yearly Income Statement</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg data-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th id="y1Date"></th>
+                                <th id="y2Date"></th>
+                                <th id="y3Date"></th>
+                                <th id="y4Date"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Revenue</td>
+                                <td id="y1Revenue"></td>
+                                <td id="y2Revenue"></td>
+                                <td id="y3Revenue"></td>
+                                <td id="y4Revenue"></td>
+                            </tr>
+                            <tr>
+                                <td>Gross Profit</td>
+                                <td id="y1GrossProfit"></td>
+                                <td id="y2GrossProfit"></td>
+                                <td id="y3GrossProfit"></td>
+                                <td id="y4GrossProfit"></td>
+                            </tr>
+                            <tr>
+                                <td>Operating Income</td>
+                                <td id="y1OperatingIncome"></td>
+                                <td id="y2OperatingIncome"></td>
+                                <td id="y3OperatingIncome"></td>
+                                <td id="y4OperatingIncome"></td>
+                            </tr>
+                            <tr>
+                                <td>EBITDA</td>
+                                <td id="y1Ebitda"></td>
+                                <td id="y2Ebitda"></td>
+                                <td id="y3Ebitda"></td>
+                                <td id="y4Ebitda"></td>
+                            </tr>
+                            <tr>
+                                <td>Net Income</td>
+                                <td id="y1NetIncome"></td>
+                                <td id="y2NetIncome"></td>
+                                <td id="y3NetIncome"></td>
+                                <td id="y4NetIncome"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Yearly Ratios -->
+            <div class="bg-white p-6 rounded-xl shadow-md lg:col-span-2">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Yearly Ratios</h2>
+                <p class="text-gray-700 mb-2"><strong class="font-semibold">Net Profit Margin:</strong> <span id="yNetProfitMargin"></span></p>
+                <p class="text-gray-700 mb-2"><strong class="font-semibold">Price to Sales Ratio:</strong> <span id="yPriceToSales"></span></p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let stockSymbol = '';
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com'; // Your Render backend URL
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            stockSymbol = urlParams.get('stock');
+
+            if (!stockSymbol) {
+                showError('No stock symbol provided in the URL.');
+                return;
+            }
+
+            document.getElementById('stockTitle').textContent = `${stockSymbol} - Income Statement`;
+            // Corrected: Use /tab2 endpoint
+            fetchIncomeStatement(stockSymbol);
+            setupNavigationButtons();
+        });
+
+        function setupNavigationButtons() {
+            const navButtons = {
+                'navGeneral': 'general_info.html',
+                'navIncome': 'income_statement.html',
+                'navBalance': 'balance_sheet.html',
+                'navRatings': 'ratings.html',
+                'navEarnings': 'earnings.html',
+                'navInsider': 'insider_trades.html',
+                'navTargets': 'analyst_targets.html'
+            };
+
+            for (const [id, page] of Object.entries(navButtons)) {
+                const button = document.getElementById(id);
+                if (button) {
+                    button.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        window.location.href = `${page}?stock=${stockSymbol}`;
+                    });
+                }
+            }
+        }
+
+        async function fetchIncomeStatement(symbol) {
+            showLoading(true);
+            try {
+                // Corrected: Use /tab2 endpoint
+                const response = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.error) {
+                        showError(data.error);
+                    } else {
+                        displayIncomeStatement(data);
+                        showLoading(false);
+                    }
+                } else {
+                    showError(data.error || 'Failed to fetch income statement data from backend.');
+                }
+            } catch (error) {
+                console.error('Error fetching income statement:', error);
+                showError('A network error occurred while fetching income statement. Please check your internet connection or try again later.');
+            }
+        }
+
+        function displayIncomeStatement(data) {
+            // The backend JSON structure provided is directly the content of "Tab 2", not wrapped in "Tab 2"
+            // So, we use 'data' directly instead of 'data['Tab 2']'
+            const tab2Data = data; 
+            if (!tab2Data) {
+                showError('Income statement data structure is invalid.');
+                return;
+            }
+
+            // --- Quarterly Income Statement Info ---
+            const quarterlyInfo = tab2Data['Quarterly Income Statement Info'];
+            if (quarterlyInfo && quarterlyInfo.dates) {
+                const dates = quarterlyInfo.dates;
+                document.getElementById('q1Date').textContent = dates[0] || 'N/A';
+                document.getElementById('q2Date').textContent = dates[1] || 'N/A';
+                document.getElementById('q3Date').textContent = dates[2] || 'N/A';
+                document.getElementById('q4Date').textContent = dates[3] || 'N/A';
+
+                document.getElementById('q1Revenue').textContent = quarterlyInfo.Revenue?.[0] || 'N/A';
+                document.getElementById('q2Revenue').textContent = quarterlyInfo.Revenue?.[1] || 'N/A';
+                document.getElementById('q3Revenue').textContent = quarterlyInfo.Revenue?.[2] || 'N/A';
+                document.getElementById('q4Revenue').textContent = quarterlyInfo.Revenue?.[3] || 'N/A';
+
+                document.getElementById('q1GrossProfit').textContent = quarterlyInfo['Gross Profit']?.[0] || 'N/A';
+                document.getElementById('q2GrossProfit').textContent = quarterlyInfo['Gross Profit']?.[1] || 'N/A';
+                document.getElementById('q3GrossProfit').textContent = quarterlyInfo['Gross Profit']?.[2] || 'N/A';
+                document.getElementById('q4GrossProfit').textContent = quarterlyInfo['Gross Profit']?.[3] || 'N/A';
+
+                document.getElementById('q1OperatingIncome').textContent = quarterlyInfo['Operating Income']?.[0] || 'N/A';
+                document.getElementById('q2OperatingIncome').textContent = quarterlyInfo['Operating Income']?.[1] || 'N/A';
+                document.getElementById('q3OperatingIncome').textContent = quarterlyInfo['Operating Income']?.[2] || 'N/A';
+                document.getElementById('q4OperatingIncome').textContent = quarterlyInfo['Operating Income']?.[3] || 'N/A';
+
+                document.getElementById('q1Ebitda').textContent = quarterlyInfo.Ebitda?.[0] || 'N/A';
+                document.getElementById('q2Ebitda').textContent = quarterlyInfo.Ebitda?.[1] || 'N/A';
+                document.getElementById('q3Ebitda').textContent = quarterlyInfo.Ebitda?.[2] || 'N/A';
+                document.getElementById('q4Ebitda').textContent = quarterlyInfo.Ebitda?.[3] || 'N/A';
+
+                document.getElementById('q1NetIncome').textContent = quarterlyInfo['Net Income']?.[0] || 'N/A';
+                document.getElementById('q2NetIncome').textContent = quarterlyInfo['Net Income']?.[1] || 'N/A';
+                document.getElementById('q3NetIncome').textContent = quarterlyInfo['Net Income']?.[2] || 'N/A';
+                document.getElementById('q4NetIncome').textContent = quarterlyInfo['Net Income']?.[3] || 'N/A';
+            }
+
+            // --- Quarterly Ratios ---
+            const quarterlyRatios = tab2Data['Quarterly Ratios'];
+            if (quarterlyRatios) {
+                // Assuming quarterly ratios share the same dates as quarterly income statement
+                const dates = quarterlyInfo.dates; // Re-use dates from quarterly info for ratio headers
+                document.getElementById('qr1Date').textContent = dates[0] || 'N/A';
+                document.getElementById('qr2Date').textContent = dates[1] || 'N/A';
+                document.getElementById('qr3Date').textContent = dates[2] || 'N/A';
+                document.getElementById('qr4Date').textContent = dates[3] || 'N/A';
+
+                document.getElementById('qr1NetProfitMargin').textContent = quarterlyRatios['Net Profit Margin']?.[0] || 'N/A';
+                document.getElementById('qr2NetProfitMargin').textContent = quarterlyRatios['Net Profit Margin']?.[1] || 'N/A';
+                document.getElementById('qr3NetProfitMargin').textContent = quarterlyRatios['Net Profit Margin']?.[2] || 'N/A';
+                document.getElementById('qr4NetProfitMargin').textContent = quarterlyRatios['Net Profit Margin']?.[3] || 'N/A';
+
+                document.getElementById('qr1PriceToSales').textContent = quarterlyRatios['Price to Sales Ratio']?.[0] || 'N/A';
+                document.getElementById('qr2PriceToSales').textContent = quarterlyRatios['Price to Sales Ratio']?.[1] || 'N/A';
+                document.getElementById('qr3PriceToSales').textContent = quarterlyRatios['Price to Sales Ratio']?.[2] || 'N/A';
+                document.getElementById('qr4PriceToSales').textContent = quarterlyRatios['Price to Sales Ratio']?.[3] || 'N/A';
+            }
+
+            // --- Yearly Income Statement Info ---
+            const yearlyInfo = tab2Data['Yearly Income Statement Info'];
+            if (yearlyInfo && yearlyInfo.Revenue) { // Assuming Revenue list defines the years
+                // The backend JSON for yearly revenue is an array, so extract dates from it
+                const yearlyDates = yearlyInfo.Revenue.map((_, index) => {
+                    const currentYear = new Date().getFullYear();
+                    // Assuming data[0] is most recent year, data[1] is previous, etc.
+                    // Adjust this if your backend provides explicit yearly dates.
+                    return `${currentYear - (yearlyInfo.Revenue.length - 1 - index)}`;
+                }).reverse(); // Reverse to get most recent year first for headers
+
+                document.getElementById('y1Date').textContent = yearlyDates[0] || 'N/A';
+                document.getElementById('y2Date').textContent = yearlyDates[1] || 'N/A';
+                document.getElementById('y3Date').textContent = yearlyDates[2] || 'N/A';
+                document.getElementById('y4Date').textContent = yearlyDates[3] || 'N/A';
+
+                // Yearly Revenue is a list
+                document.getElementById('y1Revenue').textContent = yearlyInfo.Revenue?.[0] || 'N/A';
+                document.getElementById('y2Revenue').textContent = yearlyInfo.Revenue?.[1] || 'N/A';
+                document.getElementById('y3Revenue').textContent = yearlyInfo.Revenue?.[2] || 'N/A';
+                document.getElementById('y4Revenue').textContent = yearlyInfo.Revenue?.[3] || 'N/A';
+
+                // Other yearly metrics are single values in the provided JSON,
+                // so we display the single value for the first column and N/A for others.
+                document.getElementById('y1GrossProfit').textContent = yearlyInfo['Gross Profit'] || 'N/A';
+                document.getElementById('y2GrossProfit').textContent = 'N/A';
+                document.getElementById('y3GrossProfit').textContent = 'N/A';
+                document.getElementById('y4GrossProfit').textContent = 'N/A';
+
+                document.getElementById('y1OperatingIncome').textContent = yearlyInfo['Operating Income'] || 'N/A';
+                document.getElementById('y2OperatingIncome').textContent = 'N/A';
+                document.getElementById('y3OperatingIncome').textContent = 'N/A';
+                document.getElementById('y4OperatingIncome').textContent = 'N/A';
+
+                document.getElementById('y1Ebitda').textContent = yearlyInfo.Ebitda || 'N/A';
+                document.getElementById('y2Ebitda').textContent = 'N/A';
+                document.getElementById('y3Ebitda').textContent = 'N/A';
+                document.getElementById('y4Ebitda').textContent = 'N/A';
+
+                document.getElementById('y1NetIncome').textContent = yearlyInfo['Net Income'] || 'N/A';
+                document.getElementById('y2NetIncome').textContent = 'N/A';
+                document.getElementById('y3NetIncome').textContent = 'N/A';
+                document.getElementById('y4NetIncome').textContent = 'N/A';
+            }
+
+            // --- Yearly Ratios ---
+            const yearlyRatios = tab2Data['Yearly Ratios'];
+            if (yearlyRatios) {
+                document.getElementById('yNetProfitMargin').textContent = yearlyRatios['Net Profit Margin'] || 'N/A';
+                document.getElementById('yPriceToSales').textContent = yearlyRatios['Price to Sales Ratio'] || 'N/A';
+            }
+
+            document.getElementById('incomeStatementContent').classList.remove('hidden');
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
+            document.getElementById('incomeStatementContent').classList.toggle('hidden', show);
+            document.getElementById('errorMessage').classList.add('hidden'); // Hide error when loading
+        }
+
+        function showError(message) {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('incomeStatementContent').classList.add('hidden');
+            document.getElementById('errorMessage').classList.remove('hidden');
+            document.getElementById('errorText').textContent = message;
+        }
+    </script>
+</body>
+</html>
