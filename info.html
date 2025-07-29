@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Info</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom font for a more professional look */
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Custom scrollbar for data tables */
+    .data-table-container::-webkit-scrollbar {
+      height: 8px;
+    }
+    .data-table-container::-webkit-scrollbar-track {
+      background: #374151; /* gray-700 */
+      border-radius: 10px;
+    }
+    .data-table-container::-webkit-scrollbar-thumb {
+      background: #6b7280; /* gray-500 */
+      border-radius: 10px;
+    }
+    .data-table-container::-webkit-scrollbar-thumb:hover {
+      background: #9ca3af; /* gray-400 */
+    }
+
+    /* Specific styles for sticky table headers/cells */
+    .sticky-col-header {
+        position: sticky;
+        left: 0;
+        z-index: 20; /* Higher than other cells */
+        background-color: #374151; /* gray-700 */
+        border-right: 1px solid #4b5563; /* gray-600 */
+        box-shadow: 2px 0 5px rgba(0,0,0,0.2); /* Subtle shadow for depth */
+    }
+    .sticky-row-header {
+        position: sticky;
+        left: 0;
+        z-index: 10; /* Lower than corner, higher than data cells */
+        background-color: #374151; /* gray-700 */
+        border-right: 1px solid #4b5563; /* gray-600 */
+        text-align: left; /* Ensure metric names are left-aligned */
+        box-shadow: 2px 0 5px rgba(0,0,0,0.2); /* Subtle shadow for depth */
+    }
+
+    /* Styling for individual data cells in the quarterly table */
+    .quarterly-data-cell {
+        background-color: #1f2937; /* gray-900 for cells */
+        border: 1px solid #374151; /* gray-700 for cell borders on all sides */
+        padding: 0.75rem 1rem; /* py-3 px-4 */
+        text-align: center;
+        font-size: 0.875rem; /* text-sm */
+        color: #d1d5db; /* gray-300 */
+        white-space: nowrap;
+        /* Optional: for better numerical alignment if numbers vary in length */
+        font-variant-numeric: tabular-nums; 
+    }
+    /* Ensure no double borders where sticky header meets cells */
+    .sticky-row-header + .quarterly-data-cell {
+        border-left: none; /* Remove left border from first data cell to avoid double border with sticky header */
+    }
+
+    /* D3 Chart Specific Styles */
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #6b7280; /* gray-500 */
+      shape-rendering: crispEdges;
+    }
+    .axis text {
+      font-size: 0.875rem; /* text-sm */
+      fill: #9ca3af; /* gray-400 */
+    }
+    .chart-line { /* Renamed from .line to avoid conflict */
+      fill: none;
+      stroke-width: 4px; 
+    }
+    .chart-area { /* Renamed from .area to avoid conflict */
+      stroke-width: 0; 
+    }
+    .overlay {
+      fill: none;
+      pointer-events: all;
+    }
+    .focus circle {
+      fill: #6366f1; /* indigo-500 */
+      stroke: #a5b4fc; /* indigo-300 */
+      stroke-width: 2px;
+    }
+    .tooltip {
+      position: absolute;
+      text-align: center;
+      padding: 8px;
+      font: 12px sans-serif;
+      background: #374151; /* gray-700 */
+      border: 0px;
+      border-radius: 4px;
+      pointer-events: none;
+      color: #d1d5db; /* gray-300 */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+  </style>
+  <!-- Google Fonts - Inter (for a clean, modern look) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- D3.js CDN for charting -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body class="min-h-screen bg-gray-900 flex flex-col items-center p-4 font-inter text-gray-300">
+
+  <!-- Stock Header -->
+  <div class="w-full max-w-5xl flex flex-col items-center mb-6">
+    <h1 id="stockNameHeader" class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-100 text-center leading-tight mb-2">
+      Loading Stock...
+    </h1>
+    <p id="stockSymbolHeader" class="text-2xl md:text-3xl font-semibold text-gray-400 mb-6">
+      Loading...
+    </p>
+  </div>
+
+  <!-- Main Content Card -->
+  <div class="w-full max-w-5xl bg-gray-800 rounded-xl shadow-2xl p-6 md:p-8 border border-gray-700 flex flex-col items-center space-y-6">
+    
+    <!-- Tab Navigation -->
+    <div class="flex flex-wrap justify-center gap-2 md:gap-4 w-full mb-6 border-b border-gray-700 pb-4">
+      <button id="tabGeneral" class="tab-btn active-tab-btn">General</button>
+      <button id="tabIncomeStatement" class="tab-btn inactive-tab-btn">Income Statement Info</button>
+      <button id="tabBalanceSheet" class="tab-btn inactive-tab-btn">Balance Sheet Info</button>
+      <button id="tabRating" class="tab-btn inactive-tab-btn">Rating</button>
+      <button id="tabEarnings" class="tab-btn inactive-tab-btn">Earnings Data</button>
+      <button id="tabInsiderTrades" class="tab-btn inactive-tab-btn">Latest Insider Trades</button>
+      <button id="tabPriceTargets" class="tab-btn inactive-tab-btn">Analyst Price Targets</button>
+    </div>
+
+    <!-- Tab Content Areas -->
+    <div id="generalContent" class="tab-content w-full">
+      <!-- Content for General Tab will be loaded here -->
+      <p class="text-gray-400 text-center">Loading General Info...</p>
+    </div>
+
+    <div id="incomeStatementContent" class="tab-content w-full hidden">
+      <!-- Content for Income Statement Info Tab -->
+      <p class="text-gray-400 text-center">Loading Income Statement Info...</p>
+    </div>
+
+    <div id="balanceSheetContent" class="tab-content w-full hidden">
+      <!-- Content for Balance Sheet Info Tab -->
+      <p class="text-gray-400 text-center">Loading Balance Sheet Info...</p>
+    </div>
+
+    <div id="ratingContent" class="tab-content w-full hidden">
+      <!-- Content for Rating Tab -->
+      <p class="text-gray-400 text-center">Loading Rating Info...</p>
+    </div>
+
+    <div id="earningsContent" class="tab-content w-full hidden">
+      <!-- Content for Earnings Data Tab -->
+      <p class="text-gray-400 text-center">Loading Earnings Data...</p>
+    </div>
+
+    <div id="insiderTradesContent" class="tab-content w-full hidden">
+      <!-- Content for Latest Insider Trades Tab -->
+      <p class="text-gray-400 text-center">Loading Insider Trades...</p>
+    </div>
+
+    <div id="priceTargetsContent" class="tab-content w-full hidden">
+      <!-- Content for Analyst Price Targets Tab -->
+      <p class="text-gray-400 text-center">Loading Price Targets...</p>
+    </div>
+
+    <!-- Back Button -->
+    <button id="backbutton" onclick="goback()"
+      class="bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-300 ease-in-out text-lg">
+      Back to Home
+    </button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const stock = params.get("stock");
+    const stockNameHeader = document.getElementById("stockNameHeader");
+    const stockSymbolHeader = document.getElementById("stockSymbolHeader");
+
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    let allStockData = null; // This will hold all the fetched data
+    let activeTabId = 'generalContent'; // Default active tab
+
+    // Function to switch tabs
+    function showTab(tabId) {
+      tabContents.forEach(content => {
+        content.classList.add('hidden');
+      });
+      document.getElementById(tabId).classList.remove('hidden');
+
+      tabButtons.forEach(button => {
+        if (button.id === `tab${tabId.replace('Content', '')}`) {
+          button.classList.remove('inactive-tab-btn');
+          button.classList.add('active-tab-btn');
+        } else {
+          button.classList.remove('active-tab-btn');
+          button.classList.add('inactive-tab-btn');
+        }
+      });
+      activeTabId = tabId; // Update active tab
+      renderActiveTabContent(); // Re-render content for the newly active tab
+    }
+
+    // Add event listeners to tab buttons
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        showTab(`${button.id.replace('tab', '')}Content`);
+      });
+    });
+
+    // Function to render content based on the active tab and fetched data
+    function renderActiveTabContent() {
+      if (!allStockData) {
+        // Data not yet loaded, keep showing loading messages
+        return;
+      }
+
+      // Clear current tab content
+      document.getElementById(activeTabId).innerHTML = '';
+
+      // Render content based on activeTabId
+      switch (activeTabId) {
+        case 'generalContent':
+          renderGeneralTab(allStockData.general);
+          break;
+        case 'incomeStatementContent':
+          renderIncomeStatementTab(allStockData.incomeStatement);
+          break;
+        case 'balanceSheetContent':
+          renderBalanceSheetTab(allStockData.balanceSheet);
+          break;
+        case 'ratingContent':
+          renderRatingTab(allStockData.rating);
+          break;
+        case 'earningsContent':
+          renderEarningsTab(allStockData.earnings);
+          break;
+        case 'insiderTradesContent':
+          renderInsiderTradesTab(allStockData.insiderTrades);
+          break;
+        case 'priceTargetsContent':
+          renderPriceTargetsTab(allStockData.priceTargets);
+          break;
+        default:
+          break;
+      }
+    }
+
+    // --- Placeholder Render Functions for Each Tab (Will be filled later) ---
+    function renderGeneralTab(data) {
+      const contentDiv = document.getElementById('generalContent');
+      if (!data) {
+        contentDiv.innerHTML = `<p class="text-red-400 text-center">No General data available for ${stock}.</p>`;
+        return;
+      }
+      contentDiv.innerHTML = `<p class="text-gray-400 text-center">General data will go here. Data: ${JSON.stringify(data)}</p>`;
+      // This is where D3 chart and general info box will be rendered
+    }
+
+    function renderIncomeStatementTab(data) {
+      const contentDiv = document.getElementById('incomeStatementContent');
+      if (!data) {
+        contentDiv.innerHTML = `<p class="text-red-400 text-center">No Income Statement data available for ${stock}.</p>`;
+        return;
+      }
+      contentDiv.innerHTML = `<p class="text-gray-400 text-center">Income Statement data will go here. Data: ${JSON.stringify(data)}</p>`;
+      // This is where yearly/quarterly toggle, table, and bar chart will be rendered
+    }
+
+    function renderBalanceSheetTab(data) {
+      const contentDiv = document.getElementById('balanceSheetContent');
+      if (!data) {
+        contentDiv.innerHTML = `<p class="text-red-400 text-center">No Balance Sheet data available for ${stock}.</p>`;
+        return;
+      }
+      contentDiv.innerHTML = `<p class="text-gray-400 text-center">Balance Sheet data will go here. Data: ${JSON.stringify(data)}</p>`;
+      // This is where yearly/quarterly toggle and table will be rendered
+    }
+
+    function renderRatingTab(data) {
+      const contentDiv = document.getElementById('ratingContent');
+      if (!data) {
+        contentDiv.innerHTML = `<p class="text-red-400 text-center">No Rating data available for ${stock}.</p>`;
+        return;
+      }
+      contentDiv.innerHTML = `<p class="text-gray-400 text-center">Rating data will go here. Data: ${JSON.stringify(data)}</p>`;
+    }
+
+    function renderEarningsTab(data) {
+      const contentDiv = document.getElementById('earningsContent');
+      if (!data) {
+        contentDiv.innerHTML = `<p class="text-red-400 text-center">No Earnings data available for ${stock}.</p>`;
+        return;
+      }
+      contentDiv.innerHTML = `<p class="text-gray-400 text-center">Earnings data will go here. Data: ${JSON.stringify(data)}</p>`;
+    }
+
+    function renderInsiderTradesTab(data) {
+      const contentDiv = document.getElementById('insiderTradesContent');
+      if (!data) {
+        contentDiv.innerHTML = `<p class="text-red-400 text-center">No Insider Trades data available for ${stock}.</p>`;
+        return;
+      }
+      contentDiv.innerHTML = `<p class="text-gray-400 text-center">Insider Trades data will go here. Data: ${JSON.stringify(data)}</p>`;
+    }
+
+    function renderPriceTargetsTab(data) {
+      const contentDiv = document.getElementById('priceTargetsContent');
+      if (!data) {
+        contentDiv.innerHTML = `<p class="text-red-400 text-center">No Price Targets data available for ${stock}.</p>`;
+        return;
+      }
+      contentDiv.innerHTML = `<p class="text-gray-400 text-center">Price Targets data will go here. Data: ${JSON.stringify(data)}</p>`;
+    }
+
+    // Main function to fetch all data
+    async function fetchAndRenderAllData() {
+      if (!stock) {
+        stockNameHeader.textContent = "Error";
+        stockSymbolHeader.textContent = "No stock symbol provided.";
+        return;
+      }
+
+      stockNameHeader.textContent = `${stock} - Loading...`;
+      stockSymbolHeader.textContent = "Fetching all data...";
+
+      try {
+        // This URL will be your new aggregated backend endpoint
+        const response = await fetch(`https://stock-backend-0128.onrender.com/all_stock_data?stock=${stock}`);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Backend error (${response.status}): ${errorText.substring(0, 200)}`);
+        }
+        
+        allStockData = await response.json();
+        console.log("All Stock Data Fetched:", allStockData); // Debug log
+
+        // Update header with actual company name and symbol if available
+        if (allStockData.general && allStockData.general.companyName && allStockData.general.exchange) {
+          stockNameHeader.textContent = allStockData.general.companyName;
+          stockSymbolHeader.textContent = `(${allStockData.general.exchange}: ${stock})`;
+        } else {
+          stockNameHeader.textContent = `${stock} - Data Loaded`;
+          stockSymbolHeader.textContent = `(Symbol: ${stock})`;
+        }
+
+        // Render the initial active tab content
+        renderActiveTabContent();
+
+      } catch (error) {
+        stockNameHeader.textContent = "Error Loading Data";
+        stockSymbolHeader.textContent = `For ${stock}: ${error.message}`;
+        console.error("Error fetching all stock data:", error);
+        // Display error message in all tab content areas
+        tabContents.forEach(content => {
+          content.innerHTML = `<p class="text-red-400 text-center">Error loading data: ${error.message}</p>`;
+        });
+      }
+    }
+
+    // Function to navigate back to the index page
+    function goback() {
+      window.location.href = 'index.html';
+    }
+
+    // Initial fetch when the page loads
+    fetchAndRenderAllData();
+  </script>
+</body>
+</html>
