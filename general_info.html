@@ -43,7 +43,8 @@
         }
         /* Styling for the main page title (Company Name - Symbol) - Increased size and boldness */
         #mainPageTitle {
-            @apply text-4xl md:text-5xl font-extrabold text-gray-800 text-center mb-8; /* Larger, bolder, centered */
+            /* Using Tailwind's largest font size and extra bold for maximum prominence */
+            @apply text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-800 text-center mb-8; 
             margin-top: 1rem; /* Space below the header */
         }
         #currentPriceDisplay {
@@ -64,7 +65,7 @@
     </header>
 
     <main class="container mx-auto p-6">
-        <!-- Main page title: Company Name - Symbol -->
+        <!-- Main page title: Company Name - Symbol - This is the ONLY place for the main title -->
         <div id="mainPageTitle"></div>
         
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
@@ -143,6 +144,10 @@
                 return;
             }
             
+            // This is the correct place to set the main page title
+            // It will be updated by displayGeneralInfo once data is fetched
+            document.getElementById('mainPageTitle').textContent = `${stockSymbol} - Loading...`; 
+
             fetchGeneralInfo(stockSymbol);
             setupNavigationButtons();
         });
@@ -208,6 +213,8 @@
 
             if (!generalData || Object.keys(generalData).length === 0) {
                 generalInfoDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No general info data available.</p>';
+                // Also update the main title to indicate no data
+                document.getElementById('mainPageTitle').textContent = `${stockSymbol} - No Data Available`;
             } else {
                 const profileInfo = generalData["Profile Info"] || {};
                 
