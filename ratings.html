@@ -44,13 +44,11 @@
         </div>
 
         <div id="ratingsContent" class="hidden bg-white p-6 rounded-xl shadow-md mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Analyst Ratings</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Stock Ratings</h2>
             
             <div id="ratingDetails" class="max-w-md mx-auto divide-y divide-gray-200">
                 <!-- Individual ratings will be inserted here -->
             </div>
-
-            <!-- Removed overall rating and breakdown sections as per backend data structure -->
         </div>
     </main>
 
@@ -100,17 +98,21 @@
 
             const lowerRating = String(ratingText).toLowerCase();
 
-            // Positive ratings (Green tones)
-            if (lowerRating.includes('strong buy') || lowerRating.includes('buy') || lowerRating === 'a' || lowerRating === 'a+') {
-                return 'text-green-600';
+            // Green for A grades and Strong Buy/Buy
+            if (lowerRating === 'a' || lowerRating === 'a+' || lowerRating === 'a-' || lowerRating.includes('strong buy') || lowerRating.includes('buy')) {
+                return 'text-green-600'; // Tailwind green-600
             }
-            // Neutral ratings (Orange/Yellow tones)
-            if (lowerRating.includes('hold') || lowerRating.includes('peer perform') || lowerRating.includes('market perform') || lowerRating === 'b' || lowerRating === 'b+' || lowerRating === 'b-' || lowerRating === 'c' || lowerRating === 'c+' || lowerRating === 'c-') {
-                return 'text-orange-500';
+            // Yellow for B grades and Hold/Neutral
+            if (lowerRating === 'b' || lowerRating === 'b+' || lowerRating === 'b-' || lowerRating.includes('hold') || lowerRating.includes('peer perform') || lowerRating.includes('market perform')) {
+                return 'text-yellow-500'; // Tailwind yellow-500
             }
-            // Negative ratings (Red tones)
-            if (lowerRating.includes('sell') || lowerRating.includes('strong sell') || lowerRating.includes('underperform') || lowerRating === 'd' || lowerRating === 'f') {
-                return 'text-red-600';
+            // Orange for C grades
+            if (lowerRating === 'c' || lowerRating === 'c+' || lowerRating === 'c-') {
+                return 'text-orange-500'; // Tailwind orange-500
+            }
+            // Red for D/F grades and Sell
+            if (lowerRating === 'd' || lowerRating === 'f' || lowerRating.includes('sell') || lowerRating.includes('strong sell') || lowerRating.includes('underperform')) {
+                return 'text-red-600'; // Tailwind red-600
             }
             
             // Default if no specific match
