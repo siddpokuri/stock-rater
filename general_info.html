@@ -41,10 +41,10 @@
             top: 50%;
             transform: translateY(-50%);
         }
-        /* New styling for company name and symbol in the header */
-        #headerCompanyInfo {
-            @apply text-xl md:text-2xl font-bold text-gray-800 absolute top-4 right-6;
-            /* Adjust top and right as needed for desired spacing */
+        /* Styling for the main page title (Company Name - Symbol) */
+        #mainPageTitle {
+            @apply text-3xl md:text-4xl font-extrabold text-gray-800 text-center mb-8; /* Big, bold, centered */
+            margin-top: 1rem; /* Space below the header */
         }
         #currentPriceDisplay {
             @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4; /* Styling for price above chart */
@@ -53,9 +53,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
     <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4 relative">
-        <!-- New div for Company Name - Symbol at top right -->
-        <div id="headerCompanyInfo"></div>
-
+        <!-- Navigation buttons remain here -->
         <a href="#" id="navGeneral" class="nav-button active">General Info</a>
         <a href="#" id="navIncome" class="nav-button">Income Statement</a>
         <a href="#" id="navBalance" class="nav-button">Balance Sheet</a>
@@ -66,6 +64,8 @@
     </header>
 
     <main class="container mx-auto p-6">
+        <!-- Main page title: Company Name - Symbol -->
+        <div id="mainPageTitle"></div>
         
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
             Fetching General Info and Chart Data...
@@ -143,7 +143,7 @@
                 return;
             }
 
-            // No longer setting stockSymbolDisplay here as it's part of headerCompanyInfo
+            // Removed setting stockSymbolDisplay here
             
             fetchGeneralInfo(stockSymbol);
             setupNavigationButtons();
@@ -213,10 +213,10 @@
             } else {
                 const profileInfo = generalData["Profile Info"] || {};
                 
-                // Update Company Name and Symbol in the header
-                const headerCompanyInfo = document.getElementById('headerCompanyInfo');
+                // Update main page title: Company Name - Symbol
+                const mainPageTitle = document.getElementById('mainPageTitle');
                 const companyName = profileInfo["Company Name"] || 'N/A';
-                headerCompanyInfo.textContent = `${companyName} - ${stockSymbol}`;
+                mainPageTitle.textContent = `${companyName} - ${stockSymbol}`;
 
 
                 // Update current price display above the chart
