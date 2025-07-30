@@ -191,9 +191,7 @@
                     { label: "Market Cap", value: profileInfo["Market Cap"] },
                     { label: "PE Ratio", value: generalData["PE Ratio"] },
                     { label: "EPS", value: generalData["EPS"] },
-                    { label: "Net Profit Margin", value: generalData["Net Profit Margin"] },
-                    { label: "Yearly Revenue", value: generalData["Yearly Revenue"] },
-                    { label: "Intrinsic Value", value: generalData["Intrinsic Value"] },
+                    { label: "Quarterly Dividend", value: generalData["Quarterly Dividend"] },
                     { label: "Beta", value: profileInfo["Beta"] },
                     { label: "Industry", value: profileInfo["Industry"] },
                     { label: "Sector", value: profileInfo["Sector"] },
@@ -226,18 +224,12 @@
             if (value === null || value === undefined || value === 'N/A' || value === 'TBA') {
                 return 'N/A';
             }
-            if (label === "Net Profit Margin") {
-                // Assuming Net Profit Margin from /generalinfo is a decimal (e.g., 0.29)
-                return (parseFloat(value) * 100).toFixed(2) + '%';
-            }
-            // For Market Cap, Yearly Revenue, use the shorten function
-            if (label === "Market Cap" || label === "Yearly Revenue") {
-                // The backend already provides these as "2.370T", "350.018B", etc.
-                // So, we just return the value as is.
+            // For Market Cap, the backend already provides it as "2.370T"
+            if (label === "Market Cap") {
                 return value;
             }
-            // For other numeric values like Price, PE Ratio, EPS, Intrinsic Value, Beta
-            if (typeof value === 'number') {
+            // For Price, PE Ratio, EPS, Quarterly Dividend, Beta - format to 2 decimal places if number
+            if (typeof value === 'number' && (label === "Price" || label === "PE Ratio" || label === "EPS" || label === "Quarterly Dividend" || label === "Beta")) {
                 return value.toFixed(2);
             }
             return value; // Return as is for strings like Industry, Sector, Country, Company Name
@@ -257,17 +249,27 @@
         }
 
         function renderPriceChart(period) {
-            const ctx = document.getElementById('priceChart').getContext('2d');
-            
+            const chartContainerDiv = document.querySelector('.chart-container');
+            let ctx = null;
+
+            // Destroy previous chart instance if it exists
             if (priceChartInstance) {
-                priceChartInstance.destroy(); // Destroy previous chart instance
+                priceChartInstance.destroy();
+                priceChartInstance = null; // Clear the instance
             }
+
+            // Always ensure the canvas element exists before trying to get its context
+            // If it was previously replaced by a "No data" message, re-add it.
+            if (!document.getElementById('priceChart')) {
+                chartContainerDiv.innerHTML = '<canvas id="priceChart"></canvas>';
+            }
+            ctx = document.getElementById('priceChart').getContext('2d');
 
             const chartDataForPeriod = generalData[period]; // Access chart data from the single generalData object
 
             // Handle cases where data for a period is "N/A" or empty
             if (!chartDataForPeriod || chartDataForPeriod === "N/A" || chartDataForPeriod.length === 0) {
-                document.getElementById('priceChart').parentNode.innerHTML = '<p class="text-center text-gray-500 mt-4">No chart data available for this period.</p>';
+                chartContainerDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No chart data available for this period.</p>';
                 document.getElementById('chartPercentageChange').textContent = 'Change: N/A';
                 document.getElementById('chartPercentageChange').className = 'text-xl md:text-2xl font-semibold text-gray-800';
                 document.getElementById('chartVolume').textContent = 'Volume: N/A';
@@ -292,7 +294,7 @@
             if (prices.length > 1) {
                 const firstPrice = prices[0];
                 const lastPrice = prices[prices.length - 1];
-                if (firstPrice !== 0) {
+                if (firstPrice !== 0 && !isNaN(firstPrice) && !isNaN(lastPrice)) {
                     const change = ((lastPrice - firstPrice) / firstPrice) * 100;
                     percentageChange = change.toFixed(2) + '%';
                     if (change > 0) {
@@ -306,21 +308,14 @@
             document.getElementById('chartPercentageChange').className = `text-xl md:text-2xl font-semibold ${changeColorClass}`;
 
             // Display Volume (only for 1D, as per backend structure)
-            if (period === '1D' && generalData["Volume (last trading day)"] !== undefined) {
-                document.getElementById('chartVolume').textContent = `Volume: ${formatGeneralInfoValue(generalData["Volume (last trading day)"], "Volume")}`;
-                document.getElementById('chartVolume').classList.remove('hidden');
+            const chartVolumeElement = document.getElementById('chartVolume');
+            if (period === '1D' && generalData["Volume (last trading day)"] !== undefined && generalData["Volume (last trading day)"] !== null) {
+                chartVolumeElement.textContent = `Volume: ${formatGeneralInfoValue(generalData["Volume (last trading day)"], "Volume")}`;
+                chartVolumeElement.classList.remove('hidden');
             } else {
-                document.getElementById('chartVolume').textContent = 'Volume: N/A';
-                document.getElementById('chartVolume').classList.add('hidden'); // Hide for other periods
+                chartVolumeElement.textContent = 'Volume: N/A';
+                chartVolumeElement.classList.add('hidden'); // Hide for other periods
             }
-
-            // Re-add the canvas element if it was replaced by a "No data" message
-            if (!document.getElementById('priceChart')) {
-                const chartContainer = document.querySelector('.chart-container');
-                chartContainer.innerHTML = '<canvas id="priceChart"></canvas>';
-                ctx = document.getElementById('priceChart').getContext('2d');
-            }
-
 
             priceChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -355,7 +350,19 @@
                                 minRotation: 45,
                                 color: '#4b5563', // Gray text for ticks
                                 autoSkip: true, // Automatically skip labels if too many
-                                maxTicksLimit: 10 // Limit the number of ticks
+                                maxTicksLimit: 10, // Limit the number of ticks
+                                // Custom callback for 1M/1Y to show only date, 1D to show time
+                                callback: function(value, index, ticks) {
+                                    const datetimeStr = this.getLabelForValue(value);
+                                    if (period === '1D') {
+                                        // For 1D, show time (e.g., 09:30)
+                                        return datetimeStr.substring(11, 16);
+                                    } else if (period === '1M' || period === '1Y') {
+                                        // For 1M/1Y, show date (e.g., 2025-07-01)
+                                        return datetimeStr.substring(0, 10);
+                                    }
+                                    return datetimeStr; // Default
+                                }
                             },
                             grid: {
                                 display: false // Hide x-axis grid lines
