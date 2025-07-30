@@ -41,20 +41,10 @@
             top: 50%;
             transform: translateY(-50%);
         }
-        /* Custom styling for the main title */
-        #stockTitle {
-            display: flex;
-            flex-direction: column; /* Stack symbol and company name */
-            align-items: center;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-        #stockSymbolDisplay {
-            @apply text-4xl font-bold text-gray-800;
-        }
-        #companyNameDisplay {
-            @apply text-2xl md:text-3xl font-bold text-gray-700; /* Larger company name */
-            margin-top: 0.5rem; /* Space between symbol and name */
+        /* New styling for company name and symbol in the header */
+        #headerCompanyInfo {
+            @apply text-xl md:text-2xl font-bold text-gray-800 absolute top-4 right-6;
+            /* Adjust top and right as needed for desired spacing */
         }
         #currentPriceDisplay {
             @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4; /* Styling for price above chart */
@@ -62,7 +52,10 @@
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4">
+    <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4 relative">
+        <!-- New div for Company Name - Symbol at top right -->
+        <div id="headerCompanyInfo"></div>
+
         <a href="#" id="navGeneral" class="nav-button active">General Info</a>
         <a href="#" id="navIncome" class="nav-button">Income Statement</a>
         <a href="#" id="navBalance" class="nav-button">Balance Sheet</a>
@@ -73,11 +66,6 @@
     </header>
 
     <main class="container mx-auto p-6">
-        <!-- Combined Stock Symbol and Company Name -->
-        <div id="stockTitle">
-            <span id="stockSymbolDisplay"></span>
-            <span id="companyNameDisplay"></span>
-        </div>
         
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
             Fetching General Info and Chart Data...
@@ -155,8 +143,7 @@
                 return;
             }
 
-            // Set initial stock symbol display
-            document.getElementById('stockSymbolDisplay').textContent = stockSymbol;
+            // No longer setting stockSymbolDisplay here as it's part of headerCompanyInfo
             
             fetchGeneralInfo(stockSymbol);
             setupNavigationButtons();
@@ -226,16 +213,17 @@
             } else {
                 const profileInfo = generalData["Profile Info"] || {};
                 
-                // Update Company Name in the main title
-                const companyNameDisplay = document.getElementById('companyNameDisplay');
-                companyNameDisplay.textContent = profileInfo["Company Name"] || 'N/A';
+                // Update Company Name and Symbol in the header
+                const headerCompanyInfo = document.getElementById('headerCompanyInfo');
+                const companyName = profileInfo["Company Name"] || 'N/A';
+                headerCompanyInfo.textContent = `${companyName} - ${stockSymbol}`;
+
 
                 // Update current price display above the chart
                 const currentPriceDisplay = document.getElementById('currentPriceDisplay');
                 currentPriceDisplay.textContent = `Price: ${formatGeneralInfoValue(profileInfo["Price"], "Price")}`;
 
                 const infoItems = [
-                    // Removed Price from here
                     { label: "Market Cap", value: profileInfo["Market Cap"] },
                     { label: "PE Ratio", value: generalData["PE Ratio"] },
                     { label: "EPS", value: generalData["EPS"] },
