@@ -92,22 +92,20 @@
             </div>
 
             <!-- Yearly Data Section -->
-            <div id="yearlyData" class="hidden bg-white p-6 rounded-xl shadow-md mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Left Box: Latest Year Metrics -->
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Metrics (Latest Year)</h2>
-                    <div id="yearlyMetricsLatest" class="space-y-2">
-                        <!-- Latest year's metrics will be inserted here -->
-                    </div>
-                </div>
-
-                <!-- Right Box: Revenue Change Bar Graph -->
-                <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center justify-center">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Revenue Change</h2>
-                    <!-- Added a fixed height container for the chart to make it "small" -->
-                    <div class="w-full h-64"> 
-                        <canvas id="yearlyRevenueChangeChart"></canvas>
-                    </div>
+            <div id="yearlyData" class="hidden bg-white p-6 rounded-xl shadow-md mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Financials & Ratios (Latest Year)</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg data-table">
+                        <thead>
+                            <tr id="yearlyHeaderRow">
+                                <th>Metric</th>
+                                <!-- Yearly date (e.g., 2025) will be inserted here -->
+                            </tr>
+                        </thead>
+                        <tbody id="yearlyTableBody">
+                            <!-- Latest year's data will be inserted here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -118,7 +116,6 @@
         let stockSymbol = '';
         let incomeStatementData = null; // Store fetched data globally
         let quarterlyRevenueChartInstance = null;
-        let yearlyRevenueChangeChartInstance = null; 
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -269,60 +266,34 @@
             // Assuming the latest data point corresponds to the current year or the most recent available year
             const latestYear = currentYear - (yearlyInfo.Revenue.length - 1 - latestYearIndex); 
 
-            const yearlyMetricsLatestDiv = document.getElementById('yearlyMetricsLatest');
-            yearlyMetricsLatestDiv.innerHTML = ''; // Clear previous content
+            const yearlyHeaderRow = document.getElementById('yearlyHeaderRow');
+            yearlyHeaderRow.innerHTML = `<th>Metric</th><th>${latestYear}</th>`;
 
-            // Populate Latest Year Metrics (e.g., 2025)
-            const metricsToDisplay = {
-                'Revenue': yearlyInfo.Revenue?.[latestYearIndex],
-                'Gross Profit': Array.isArray(yearlyInfo['Gross Profit']) ? yearlyInfo['Gross Profit'][latestYearIndex] : yearlyInfo['Gross Profit'],
-                'Operating Income': Array.isArray(yearlyInfo['Operating Income']) ? yearlyInfo['Operating Income'][latestYearIndex] : yearlyInfo['Operating Income'],
-                'EBITDA': Array.isArray(yearlyInfo.Ebitda) ? yearlyInfo.Ebitda[latestYearIndex] : yearlyInfo.Ebitda,
-                'Net Income': Array.isArray(yearlyInfo['Net Income']) ? yearlyInfo['Net Income'][latestYearIndex] : yearlyInfo['Net Income'],
-                'Net Profit Margin': yearlyRatios['Net Profit Margin'],
-                'Price to Sales Ratio': yearlyRatios['Price to Sales Ratio']
-            };
+            const yearlyTableBody = document.getElementById('yearlyTableBody');
+            yearlyTableBody.innerHTML = ''; // Clear previous content
 
-            for (const metric in metricsToDisplay) {
-                const value = metricsToDisplay[metric];
-                const p = document.createElement('p');
-                p.className = 'text-gray-700';
-                let formattedValue = 'N/A';
+            const metrics = [
+                'Revenue', 'Gross Profit', 'Operating Income', 'Ebitda', 'Net Income'
+            ];
+            const ratios = [
+                'Net Profit Margin', 'Price to Sales Ratio'
+            ];
 
-                if (value !== undefined && value !== null) {
-                    if (metric === 'Net Profit Margin' || metric === 'Price to Sales Ratio') {
-                        formattedValue = formatPercentage(value);
-                    } else {
-                        formattedValue = formatNumber(value);
-                    }
-                }
-                p.innerHTML = `<strong class="font-semibold">${metric}:</strong> ${formattedValue}`;
-                yearlyMetricsLatestDiv.appendChild(p);
-            }
+            metrics.forEach(metric => {
+                const row = document.createElement('tr');
+                const value = Array.isArray(yearlyInfo[metric]) ? yearlyInfo[metric][latestYearIndex] : yearlyInfo[metric];
+                row.innerHTML = `<td>${metric}</td><td>${formatNumber(value) || 'N/A'}</td>`;
+                yearlyTableBody.appendChild(row);
+            });
 
-            // Calculate Yearly Revenue Change for the last 4 years (3 changes)
-            const revenueData = yearlyInfo.Revenue;
-            const revenueChangeLabels = [];
-            const revenueChangeValues = [];
+            ratios.forEach(ratio => {
+                const row = document.createElement('tr');
+                const value = yearlyRatios[ratio];
+                row.innerHTML = `<td>${ratio}</td><td>${formatPercentage(value) || 'N/A'}</td>`;
+                yearlyTableBody.appendChild(row);
+            });
 
-            // We need at least two years to calculate a change.
-            // Loop from the second year's data point to the last.
-            for (let i = 1; i < revenueData.length; i++) {
-                const yearCurrent = currentYear - (revenueData.length - 1 - i);
-                const yearPrevious = currentYear - (revenueData.length - 1 - (i - 1));
-                const change = revenueData[i] - revenueData[i - 1];
-                revenueChangeLabels.push(`${yearPrevious} to ${yearCurrent}`); // e.g., "2022 to 2023"
-                revenueChangeValues.push(change);
-            }
-
-            // Render Yearly Revenue Change Chart
-            renderRevenueChangeChart(
-                'yearlyRevenueChangeChart',
-                revenueChangeLabels,
-                revenueChangeValues,
-                `${stockSymbol} Yearly Revenue Change`,
-                yearlyRevenueChangeChartInstance
-            );
+            // No yearly revenue change chart or separate metrics box needed as per new request
         }
 
         function renderRevenueChart(canvasId, labels, data, title, chartInstance) {
@@ -388,68 +359,6 @@
                     }
                 });
             }
-        }
-
-        function renderRevenueChangeChart(canvasId, labels, data, title, chartInstance) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            yearlyRevenueChangeChartInstance = new Chart(ctx, { 
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Revenue Change',
-                        data: data,
-                        backgroundColor: 'rgba(34, 139, 34, 0.8)', // Dark green bars
-                        borderColor: 'rgba(34, 139, 34, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: title,
-                            font: {
-                                size: 18,
-                                weight: 'bold'
-                            },
-                            color: '#374151'
-                        },
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: '#4b5563'
-                            },
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: false, 
-                            ticks: {
-                                color: '#4b5563',
-                                callback: function(value) {
-                                    return formatNumber(value);
-                                }
-                            },
-                            grid: {
-                                color: '#e5e7eb'
-                            }
-                        }
-                    }
-                }
-            });
         }
 
         // Helper function to format large numbers (e.g., 1234567890 -> 1.23B)
