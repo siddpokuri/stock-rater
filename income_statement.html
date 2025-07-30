@@ -91,23 +91,19 @@
             </div>
 
             <!-- Yearly Data Section -->
-            <div id="yearlyData" class="hidden bg-white p-6 rounded-xl shadow-md mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Revenue Trend</h2>
-                <canvas id="yearlyRevenueChart"></canvas>
+            <div id="yearlyData" class="hidden bg-white p-6 rounded-xl shadow-md mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Box: 2025 Metrics -->
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Metrics (Latest Year)</h2>
+                    <div id="yearlyMetricsLatest" class="space-y-2">
+                        <!-- 2025 metrics will be inserted here -->
+                    </div>
+                </div>
 
-                <h2 class="text-2xl font-bold text-gray-800 mt-8 mb-4 text-center">Yearly Financials & Ratios</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white border border-gray-200 rounded-lg data-table">
-                        <thead>
-                            <tr id="yearlyHeaderRow">
-                                <th>Metric</th>
-                                <!-- Yearly dates will be inserted here -->
-                            </tr>
-                        </thead>
-                        <tbody id="yearlyTableBody">
-                            <!-- Yearly data will be inserted here -->
-                        </tbody>
-                    </table>
+                <!-- Right Box: Revenue Change Bar Graph -->
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Revenue Change</h2>
+                    <canvas id="yearlyRevenueChangeChart"></canvas>
                 </div>
             </div>
         </div>
@@ -117,8 +113,8 @@
     <script>
         let stockSymbol = '';
         let incomeStatementData = null; // Store fetched data globally
-        let quarterlyChartInstance = null;
-        let yearlyChartInstance = null;
+        let quarterlyRevenueChartInstance = null;
+        let yearlyRevenueChangeChartInstance = null; // New chart instance for yearly change
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -235,13 +231,13 @@
 
             metrics.forEach(metric => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>${metric}</td>` + dates.map((_, i) => `<td>${quarterlyInfo[metric]?.[i] || 'N/A'}</td>`).join('');
+                row.innerHTML = `<td>${metric}</td>` + dates.map((_, i) => `<td>${formatNumber(quarterlyInfo[metric]?.[i]) || 'N/A'}</td>`).join('');
                 tableBody.appendChild(row);
             });
 
             ratios.forEach(ratio => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>${ratio}</td>` + dates.map((_, i) => `<td>${quarterlyRatios[ratio]?.[i] || 'N/A'}</td>`).join('');
+                row.innerHTML = `<td>${ratio}</td>` + dates.map((_, i) => `<td>${formatPercentage(quarterlyRatios[ratio]?.[i]) || 'N/A'}</td>`).join('');
                 tableBody.appendChild(row);
             });
 
@@ -250,7 +246,8 @@
                 'quarterlyRevenueChart',
                 dates,
                 quarterlyInfo['Revenue'],
-                `${stockSymbol} Quarterly Revenue`
+                `${stockSymbol} Quarterly Revenue`,
+                quarterlyRevenueChartInstance
             );
         }
 
@@ -263,57 +260,70 @@
                 return;
             }
 
-            // Generate approximate years for yearly data
+            const latestYearIndex = yearlyInfo.Revenue.length - 1;
             const currentYear = new Date().getFullYear();
-            const years = Array.from({ length: yearlyInfo.Revenue.length }, (_, i) => currentYear - (yearlyInfo.Revenue.length - 1 - i));
+            const latestYear = currentYear; // Assuming the last element is the current year
 
-            const headerRow = document.getElementById('yearlyHeaderRow');
-            headerRow.innerHTML = '<th>Metric</th>' + years.map(year => `<th>${year}</th>`).join('');
+            const yearlyMetricsLatestDiv = document.getElementById('yearlyMetricsLatest');
+            yearlyMetricsLatestDiv.innerHTML = ''; // Clear previous content
 
-            const tableBody = document.getElementById('yearlyTableBody');
-            tableBody.innerHTML = ''; // Clear previous content
+            // Populate 2025 Metrics (Latest Year)
+            const metricsToDisplay = {
+                'Revenue': yearlyInfo.Revenue?.[latestYearIndex],
+                'Gross Profit': Array.isArray(yearlyInfo['Gross Profit']) ? yearlyInfo['Gross Profit'][latestYearIndex] : yearlyInfo['Gross Profit'],
+                'Operating Income': Array.isArray(yearlyInfo['Operating Income']) ? yearlyInfo['Operating Income'][latestYearIndex] : yearlyInfo['Operating Income'],
+                'EBITDA': Array.isArray(yearlyInfo.Ebitda) ? yearlyInfo.Ebitda[latestYearIndex] : yearlyInfo.Ebitda,
+                'Net Income': Array.isArray(yearlyInfo['Net Income']) ? yearlyInfo['Net Income'][latestYearIndex] : yearlyInfo['Net Income'],
+                'Net Profit Margin': yearlyRatios['Net Profit Margin'],
+                'Price to Sales Ratio': yearlyRatios['Price to Sales Ratio']
+            };
 
-            const metrics = [
-                'Revenue', 'Gross Profit', 'Operating Income', 'Ebitda', 'Net Income'
-            ];
-            const ratios = [
-                'Net Profit Margin', 'Price to Sales Ratio'
-            ];
+            for (const metric in metricsToDisplay) {
+                const value = metricsToDisplay[metric];
+                const p = document.createElement('p');
+                p.className = 'text-gray-700';
+                let formattedValue = 'N/A';
 
-            metrics.forEach(metric => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${metric}</td>` + years.map((_, i) => `<td>${Array.isArray(yearlyInfo[metric]) ? (yearlyInfo[metric][i] || 'N/A') : (i === 0 ? (yearlyInfo[metric] || 'N/A') : 'N/A')}</td>`).join('');
-                tableBody.appendChild(row);
-            });
+                if (value !== undefined && value !== null) {
+                    if (metric === 'Net Profit Margin' || metric === 'Price to Sales Ratio') {
+                        formattedValue = formatPercentage(value);
+                    } else {
+                        formattedValue = formatNumber(value);
+                    }
+                }
+                p.innerHTML = `<strong class="font-semibold">${metric} (${latestYear}):</strong> ${formattedValue}`;
+                yearlyMetricsLatestDiv.appendChild(p);
+            }
 
-            // Special handling for yearly ratios as they are not arrays in the provided JSON
-            const yearlyRatioRowNetProfit = document.createElement('tr');
-            yearlyRatioRowNetProfit.innerHTML = `<td>Net Profit Margin</td>` + years.map((_, i) => `<td>${i === 0 ? (yearlyRatios['Net Profit Margin'] || 'N/A') : 'N/A'}</td>`).join('');
-            tableBody.appendChild(yearlyRatioRowNetProfit);
+            // Calculate Yearly Revenue Change
+            const revenueData = yearlyInfo.Revenue;
+            const revenueChangeLabels = [];
+            const revenueChangeData = [];
 
-            const yearlyRatioRowPriceToSales = document.createElement('tr');
-            yearlyRatioRowPriceToSales.innerHTML = `<td>Price to Sales Ratio</td>` + years.map((_, i) => `<td>${i === 0 ? (yearlyRatios['Price to Sales Ratio'] || 'N/A') : 'N/A'}</td>`).join('');
-            tableBody.appendChild(yearlyRatioRowPriceToSales);
+            // Iterate from the second oldest year to the newest
+            for (let i = 1; i < revenueData.length; i++) {
+                const yearCurrent = currentYear - (revenueData.length - 1 - i);
+                const yearPrevious = currentYear - (revenueData.length - 1 - (i - 1));
+                const change = revenueData[i] - revenueData[i - 1];
+                revenueChangeLabels.push(`${yearPrevious} vs ${yearCurrent}`);
+                revenueChangeData.push(change);
+            }
 
-
-            // Render Yearly Revenue Chart
-            renderRevenueChart(
-                'yearlyRevenueChart',
-                years,
-                yearlyInfo['Revenue'],
-                `${stockSymbol} Yearly Revenue`
+            // Render Yearly Revenue Change Chart
+            renderRevenueChangeChart(
+                'yearlyRevenueChangeChart',
+                revenueChangeLabels,
+                revenueChangeData,
+                `${stockSymbol} Yearly Revenue Change`,
+                yearlyRevenueChangeChartInstance
             );
         }
 
-        function renderRevenueChart(canvasId, labels, data, title) {
+        function renderRevenueChart(canvasId, labels, data, title, chartInstance) {
             const ctx = document.getElementById(canvasId).getContext('2d');
-            let chartInstance;
-
-            // Destroy existing chart instance if it exists
-            if (canvasId === 'quarterlyRevenueChart' && quarterlyChartInstance) {
-                quarterlyChartInstance.destroy();
-            } else if (canvasId === 'yearlyRevenueChart' && yearlyChartInstance) {
-                yearlyChartInstance.destroy();
+            
+            if (chartInstance) {
+                chartInstance.destroy();
             }
 
             chartInstance = new Chart(ctx, {
@@ -342,7 +352,7 @@
                             color: '#374151'
                         },
                         legend: {
-                            display: false // No need for legend for single dataset
+                            display: false
                         }
                     },
                     scales: {
@@ -359,10 +369,7 @@
                             ticks: {
                                 color: '#4b5563',
                                 callback: function(value) {
-                                    // Format large numbers for readability
-                                    if (value >= 1000000000) return (value / 1000000000).toFixed(1) + 'B';
-                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
-                                    return value;
+                                    return formatNumber(value);
                                 }
                             },
                             grid: {
@@ -374,12 +381,99 @@
             });
 
             if (canvasId === 'quarterlyRevenueChart') {
-                quarterlyChartInstance = chartInstance;
-            } else if (canvasId === 'yearlyRevenueChart') {
-                yearlyChartInstance = chartInstance;
+                quarterlyRevenueChartInstance = chartInstance;
             }
+            // No need to assign yearlyRevenueChartInstance here, as it's for the overall revenue, not change
         }
 
+        function renderRevenueChangeChart(canvasId, labels, data, title, chartInstance) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            yearlyRevenueChangeChartInstance = new Chart(ctx, { // Assign to the specific instance
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue Change',
+                        data: data,
+                        backgroundColor: 'rgba(34, 139, 34, 0.8)', // Dark green bars
+                        borderColor: 'rgba(34, 139, 34, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#374151'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#4b5563'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: false, // Can be negative for drops
+                            ticks: {
+                                color: '#4b5563',
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            },
+                            grid: {
+                                color: '#e5e7eb'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Helper function to format large numbers (e.g., 1234567890 -> 1.23B)
+        function formatNumber(num) {
+            if (num === null || num === undefined) return 'N/A';
+            num = Number(num);
+            if (isNaN(num)) return 'N/A';
+
+            const absNum = Math.abs(num);
+            if (absNum >= 1.0e+9) {
+                return (num / 1.0e+9).toFixed(2) + "B";
+            }
+            if (absNum >= 1.0e+6) {
+                return (num / 1.0e+6).toFixed(2) + "M";
+            }
+            if (absNum >= 1.0e+3) {
+                return (num / 1.0e+3).toFixed(2) + "K";
+            }
+            return num.toFixed(2);
+        }
+
+        // Helper function to format percentages
+        function formatPercentage(num) {
+            if (num === null || num === undefined) return 'N/A';
+            num = Number(num);
+            if (isNaN(num)) return 'N/A';
+            return (num * 100).toFixed(2) + '%';
+        }
 
         function showLoading(show) {
             document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
