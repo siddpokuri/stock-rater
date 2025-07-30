@@ -34,7 +34,6 @@
         .data-table tr:nth-child(even) {
             @apply bg-gray-50;
         }
-        /* No canvas specific height/width needed for quarterly chart as it's removed */
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -108,7 +107,6 @@
     <script>
         let stockSymbol = '';
         let incomeStatementData = null; // Store fetched data globally
-        // Removed quarterlyRevenueChartInstance as the chart is removed
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -231,25 +229,29 @@
 
             ratios.forEach(ratio => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>${ratio}</td>` + dates.map((_, i) => `<td>${formatPercentage(quarterlyRatios[ratio]?.[i]) || 'N/A'}</td>`).join('');
+                let formattedValue;
+                if (ratio === 'Net Profit Margin') {
+                    formattedValue = formatRatioAsPercentage(quarterlyRatios[ratio]?.[i]);
+                } else if (ratio === 'Price to Sales Ratio') {
+                    formattedValue = formatRatio(quarterlyRatios[ratio]?.[i]);
+                } else {
+                    formattedValue = 'N/A'; // Fallback for other ratios if any
+                }
+                row.innerHTML = `<td>${ratio}</td>` + dates.map((_, i) => `<td>${formattedValue || 'N/A'}</td>`).join('');
                 tableBody.appendChild(row);
             });
-
-            // Removed quarterly revenue chart rendering
         }
 
         function displayYearlyData(data) {
             const yearlyInfo = data['Yearly Income Statement Info'];
             const yearlyRatios = data['Yearly Ratios'];
 
-            if (!yearlyInfo || (!yearlyInfo.Revenue && !yearlyInfo['Gross Profit'] && !yearlyInfo['Net Income'])) { // Check for at least one key
+            if (!yearlyInfo || (!yearlyInfo.Revenue && !yearlyInfo['Gross Profit'] && !yearlyInfo['Net Income'])) { 
                 document.getElementById('yearlyData').innerHTML = '<p class="text-center text-gray-500 mt-4">No yearly data available.</p>';
                 return;
             }
 
             const currentYear = new Date().getFullYear();
-            // Since yearlyInfo values are single strings (except Revenue array), we assume it's for the latest year.
-            // We'll just display "2025" as the header, implying it's the latest.
             const latestYear = currentYear; 
 
             const yearlyHeaderRow = document.getElementById('yearlyHeaderRow');
@@ -265,13 +267,12 @@
                 'Net Profit Margin', 'Price to Sales Ratio'
             ];
 
-            // Helper to get the value, handling both array (for Revenue) and string values
             const getValueForLatestYear = (key, dataObj) => {
                 const value = dataObj[key];
                 if (Array.isArray(value)) {
-                    return value[value.length - 1]; // Get the last element for Revenue
+                    return value[value.length - 1]; 
                 }
-                return value; // For single string values like Ebitda, Gross Profit etc.
+                return value; 
             };
 
             metrics.forEach(metric => {
@@ -283,8 +284,16 @@
 
             ratios.forEach(ratio => {
                 const row = document.createElement('tr');
+                let formattedValue;
                 const value = yearlyRatios[ratio];
-                row.innerHTML = `<td>${ratio}</td><td>${formatPercentage(value) || 'N/A'}</td>`;
+                if (ratio === 'Net Profit Margin') {
+                    formattedValue = formatRatioAsPercentage(value);
+                } else if (ratio === 'Price to Sales Ratio') {
+                    formattedValue = formatRatio(value);
+                } else {
+                    formattedValue = 'N/A'; // Fallback
+                }
+                row.innerHTML = `<td>${ratio}</td><td>${formattedValue || 'N/A'}</td>`;
                 yearlyTableBody.appendChild(row);
             });
         }
@@ -293,9 +302,8 @@
         function formatNumber(num) {
             if (num === null || num === undefined) return 'N/A';
             
-            let value = String(num).trim(); // Ensure it's a string and trim whitespace
+            let value = String(num).trim(); 
 
-            // Check if it's a string with a B, M, or K suffix
             const match = value.match(/^([\d.]+)([BMK]?)$/i);
             if (match) {
                 let numericValue = parseFloat(match[1]);
@@ -305,9 +313,9 @@
                 else if (suffix === 'M') numericValue *= 1.0e+6;
                 else if (suffix === 'K') numericValue *= 1.0e+3;
                 
-                value = numericValue; // Use the parsed numeric value for further formatting
+                value = numericValue; 
             } else {
-                value = Number(value); // Try to convert to number directly if no suffix
+                value = Number(value); 
             }
 
             if (isNaN(value)) return 'N/A';
@@ -325,15 +333,20 @@
             return value.toFixed(2);
         }
 
-        // Helper function to format percentages
-        function formatPercentage(num) {
+        // New helper function to format ratios that should be percentages (e.g., 0.29 -> 29.00%)
+        function formatRatioAsPercentage(num) {
             if (num === null || num === undefined) return 'N/A';
             num = Number(num);
             if (isNaN(num)) return 'N/A';
-            // Assuming ratios like 0.29 should display as 29.00%
-            // If 6.66 for Price to Sales should be 6.66x, this needs a separate check or backend change.
-            // For now, it will be 666.00% as per the image.
             return (num * 100).toFixed(2) + '%';
+        }
+
+        // New helper function to format ratios that should be direct numbers (e.g., 22.15 -> 22.15)
+        function formatRatio(num) {
+            if (num === null || num === undefined) return 'N/A';
+            num = Number(num);
+            if (isNaN(num)) return 'N/A';
+            return num.toFixed(2);
         }
 
         function showLoading(show) {
