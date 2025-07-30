@@ -41,22 +41,13 @@
             top: 50%;
             transform: translateY(-50%);
         }
-        /* Styling for the main page title (Company Name - Symbol) */
-        #mainPageTitle {
-            /* Using Tailwind's largest font sizes and extra bold for maximum prominence */
-            @apply text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 text-center mb-8; 
-            margin-top: 1rem; /* Space below the header */
-            /* Ensure it's above other content if there's any z-index conflict */
-            position: relative; 
-            z-index: 10; 
-        }
+        /* No specific styling for #mainPageTitle anymore as it's removed */
         #currentPriceDisplay {
             @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4; /* Styling for price above chart */
         }
-        /* Ensure header is on top if needed */
-        header {
-            position: relative;
-            z-index: 20; /* Higher than mainPageTitle if they overlap, though they shouldn't */
+        /* Styling for the new chart section title */
+        #chartSectionTitle {
+            @apply text-2xl font-bold text-gray-800 mb-4 text-center; /* Keep existing H2 styling */
         }
     </style>
 </head>
@@ -73,9 +64,7 @@
     </header>
 
     <main class="container mx-auto p-6">
-        <!-- IMPORTANT: This is the ONLY place for the main title. 
-             Ensure no other <h1> or <h2> tags with stock info are present in this file. -->
-        <div id="mainPageTitle"></div>
+        <!-- Removed #mainPageTitle from here -->
         
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
             Fetching General Info and Chart Data...
@@ -98,7 +87,8 @@
 
                 <!-- Chart Section -->
                 <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Price Chart</h2>
+                    <!-- Changed h2 id to chartSectionTitle -->
+                    <h2 id="chartSectionTitle" class="text-2xl font-bold text-gray-800 mb-4 text-center">Price Chart</h2> 
                     <!-- Current Price Display -->
                     <div id="currentPriceDisplay" class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
                         Price: N/A
@@ -153,9 +143,8 @@
                 return;
             }
             
-            // Set initial placeholder for the main page title
-            document.getElementById('mainPageTitle').textContent = `${stockSymbol} - Loading...`; 
-
+            // Removed initial placeholder for mainPageTitle here
+            
             fetchGeneralInfo(stockSymbol);
             setupNavigationButtons();
         });
@@ -221,15 +210,15 @@
 
             if (!generalData || Object.keys(generalData).length === 0) {
                 generalInfoDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No general info data available.</p>';
-                // Also update the main title to indicate no data
-                document.getElementById('mainPageTitle').textContent = `${stockSymbol} - No Data Available`;
+                // Set chart section title even if no data
+                document.getElementById('chartSectionTitle').textContent = `${stockSymbol} - No Data Available`;
             } else {
                 const profileInfo = generalData["Profile Info"] || {};
                 
-                // Update main page title: Company Name - Symbol
-                const mainPageTitle = document.getElementById('mainPageTitle');
+                // Set chart section title: Company Name - Symbol
+                const chartSectionTitle = document.getElementById('chartSectionTitle');
                 const companyName = profileInfo["Company Name"] || 'N/A';
-                mainPageTitle.textContent = `${companyName} - ${stockSymbol}`;
+                chartSectionTitle.textContent = `${companyName} - ${stockSymbol}`;
 
 
                 // Update current price display above the chart
