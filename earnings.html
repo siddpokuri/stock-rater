@@ -37,10 +37,10 @@
         .earnings-table tr:nth-child(even) {
             @apply bg-gray-50;
         }
-        /* Removed fixed height from canvas directly, now controlled by parent div */
+        /* Canvas will fill its parent container's height */
         canvas {
             max-width: 100%;
-            height: 100%; /* Make canvas fill its parent container's height */
+            height: 100%; 
         }
     </style>
 </head>
@@ -81,8 +81,8 @@
                 <!-- Last 4 Quarters' EPS Bar Graph (Right) -->
                 <div class="bg-white p-6 rounded-xl shadow-md flex flex-col">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Last 4 Quarters' EPS Results</h2>
-                    <!-- Added a fixed height container for the chart -->
-                    <div class="relative h-64 w-full"> 
+                    <!-- Adjusted height of the chart container to h-40 (160px) -->
+                    <div class="relative h-40 w-full"> 
                         <canvas id="epsChart"></canvas>
                     </div>
                 </div>
@@ -245,7 +245,9 @@
             }
 
             if (!pastEarningsData || pastEarningsData.length === 0) {
-                document.getElementById('epsChart').innerHTML = '<p class="text-center text-gray-500 mt-4">No EPS data for chart.</p>';
+                // If no data, display a message in the chart container
+                const chartContainer = document.getElementById('epsChart').parentNode; // Get parent div
+                chartContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No EPS data for chart.</p>';
                 return;
             }
 
