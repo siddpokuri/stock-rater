@@ -34,7 +34,6 @@
         .data-table tr:nth-child(even) {
             @apply bg-gray-50;
         }
-        /* No canvas specific height/width needed as charts are removed */
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -155,23 +154,42 @@
             showLoading(true);
             try {
                 const response = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`);
+                
+                // Check if the response is OK (status 200-299)
+                if (!response.ok) {
+                    const errorBody = await response.text(); // Get raw text for non-OK responses
+                    console.error('Backend responded with non-OK status:', response.status, response.statusText, errorBody);
+                    showError(`Failed to fetch income statement data. Server responded with status: ${response.status}.`);
+                    return; // Exit function if response is not OK
+                }
+
+                // Try to parse JSON. This is where the error might be if the response isn't JSON.
                 const data = await response.json();
 
-                if (response.ok) {
-                    if (data.error) {
-                        showError(data.error);
-                    } else {
-                        incomeStatementData = data; // Store the fetched data
-                        showData('quarterly'); // Show quarterly data by default
-                        showLoading(false);
-                        document.getElementById('incomeStatementContent').classList.remove('hidden');
-                    }
+                if (data.error) {
+                    showError(data.error);
                 } else {
-                    showError(data.error || 'Failed to fetch income statement data from backend.');
+                    incomeStatementData = data; // Store the fetched data
+                    showData('quarterly'); // Show quarterly data by default
+                    showLoading(false);
+                    document.getElementById('incomeStatementContent').classList.remove('hidden');
                 }
             } catch (error) {
-                console.error('Error fetching income statement:', error);
-                showError('A network error occurred while fetching income statement. Please check your internet connection or try again later.');
+                console.error('Error fetching income statement (network or JSON parse error):', error);
+                // If it's a TypeError (often from .json() on non-JSON response), log the raw text
+                if (error instanceof TypeError && error.message.includes('JSON')) {
+                    try {
+                        const responseClone = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`); // Re-fetch to get text
+                        const rawText = await responseClone.text();
+                        console.error('Raw response text that caused JSON parsing error:', rawText);
+                        showError('Failed to parse income statement data. The server might be returning non-JSON content. Check console for raw response.');
+                    } catch (reFetchError) {
+                        console.error('Error re-fetching for raw text:', reFetchError);
+                        showError('A network error occurred while fetching income statement. Please check your internet connection or try again later.');
+                    }
+                } else {
+                    showError('A network error occurred while fetching income statement. Please check your internet connection or try again later.');
+                }
             }
         }
 
@@ -229,18 +247,17 @@
 
             ratios.forEach(ratio => {
                 const row = document.createElement('tr');
-                let formattedValue;
-                const value = quarterlyRatios[ratio]?.[i]; // Get value from array
-                if (ratio === 'Net Profit Margin') {
-                    // Quarterly Net Profit Margin is already scaled (e.g., 29.24), just add %
-                    formattedValue = formatPercentageDirect(value);
-                } else if (ratio === 'Price to Sales Ratio') {
-                    // Price to Sales Ratio is a direct number, no %
-                    formattedValue = formatNumberDirect(value);
-                } else {
-                    formattedValue = 'N/A'; // Fallback for other ratios if any
-                }
-                row.innerHTML = `<td>${ratio}</td>` + dates.map((_, i) => `<td>${formattedValue || 'N/A'}</td>`).join('');
+                // The 'i' for cellValue is correctly scoped within this map function.
+                // Removed the redundant 'value' and 'formattedValue' outside this map.
+                row.innerHTML = `<td>${ratio}</td>` + dates.map((_, i) => {
+                    const cellValue = quarterlyRatios[ratio] && quarterlyRatios[ratio][i] !== undefined ? quarterlyRatios[ratio][i] : undefined;
+                    if (ratio === 'Net Profit Margin') {
+                        return `<td>${formatPercentageDirect(cellValue) || 'N/A'}</td>`;
+                    } else if (ratio === 'Price to Sales Ratio') {
+                        return `<td>${formatNumberDirect(cellValue) || 'N/A'}</td>`;
+                    }
+                    return `<td>N/A</td>`;
+                }).join('');
                 tableBody.appendChild(row);
             });
         }
@@ -290,13 +307,11 @@
                 let formattedValue;
                 const value = yearlyRatios[ratio];
                 if (ratio === 'Net Profit Margin') {
-                    // Yearly Net Profit Margin is a decimal (e.g., 0.29), needs * 100 and %
                     formattedValue = formatPercentageFromDecimal(value);
                 } else if (ratio === 'Price to Sales Ratio') {
-                    // Price to Sales Ratio is a direct number, no %
                     formattedValue = formatNumberDirect(value);
                 } else {
-                    formattedValue = 'N/A'; // Fallback
+                    formattedValue = 'N/A';
                 }
                 row.innerHTML = `<td>${ratio}</td><td>${formattedValue || 'N/A'}</td>`;
                 yearlyTableBody.appendChild(row);
@@ -338,7 +353,7 @@
             return value.toFixed(2);
         }
 
-        // New helper function for percentages that are already scaled (e.g., 29.24)
+        // Helper function for percentages that are already scaled (e.g., 29.24)
         function formatPercentageDirect(num) {
             if (num === null || num === undefined) return 'N/A';
             num = Number(num);
@@ -346,7 +361,7 @@
             return num.toFixed(2) + '%';
         }
 
-        // New helper function for percentages that are decimals (e.g., 0.29)
+        // Helper function for percentages that are decimals (e.g., 0.29)
         function formatPercentageFromDecimal(num) {
             if (num === null || num === undefined) return 'N/A';
             num = Number(num);
@@ -354,7 +369,7 @@
             return (num * 100).toFixed(2) + '%';
         }
 
-        // New helper function to format numbers directly (e.g., 22.15)
+        // Helper function to format numbers directly (e.g., 22.15)
         function formatNumberDirect(num) {
             if (num === null || num === undefined) return 'N/A';
             num = Number(num);
