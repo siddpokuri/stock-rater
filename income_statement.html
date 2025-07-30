@@ -34,9 +34,10 @@
         .data-table tr:nth-child(even) {
             @apply bg-gray-50;
         }
+        /* Ensure canvases are responsive within their containers */
         canvas {
             max-width: 100%;
-            height: 300px; /* Fixed height for consistency */
+            height: 100%; /* Let the parent div control height */
         }
     </style>
 </head>
@@ -92,18 +93,21 @@
 
             <!-- Yearly Data Section -->
             <div id="yearlyData" class="hidden bg-white p-6 rounded-xl shadow-md mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Left Box: 2025 Metrics -->
+                <!-- Left Box: Latest Year Metrics -->
                 <div class="bg-white p-6 rounded-xl shadow-md">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Metrics (Latest Year)</h2>
                     <div id="yearlyMetricsLatest" class="space-y-2">
-                        <!-- 2025 metrics will be inserted here -->
+                        <!-- Latest year's metrics will be inserted here -->
                     </div>
                 </div>
 
                 <!-- Right Box: Revenue Change Bar Graph -->
-                <div class="bg-white p-6 rounded-xl shadow-md">
+                <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center justify-center">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Revenue Change</h2>
-                    <canvas id="yearlyRevenueChangeChart"></canvas>
+                    <!-- Added a fixed height container for the chart to make it "small" -->
+                    <div class="w-full h-64"> 
+                        <canvas id="yearlyRevenueChangeChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -114,7 +118,7 @@
         let stockSymbol = '';
         let incomeStatementData = null; // Store fetched data globally
         let quarterlyRevenueChartInstance = null;
-        let yearlyRevenueChangeChartInstance = null; // New chart instance for yearly change
+        let yearlyRevenueChangeChartInstance = null; 
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -262,12 +266,13 @@
 
             const latestYearIndex = yearlyInfo.Revenue.length - 1;
             const currentYear = new Date().getFullYear();
-            const latestYear = currentYear; // Assuming the last element is the current year
+            // Assuming the latest data point corresponds to the current year or the most recent available year
+            const latestYear = currentYear - (yearlyInfo.Revenue.length - 1 - latestYearIndex); 
 
             const yearlyMetricsLatestDiv = document.getElementById('yearlyMetricsLatest');
             yearlyMetricsLatestDiv.innerHTML = ''; // Clear previous content
 
-            // Populate 2025 Metrics (Latest Year)
+            // Populate Latest Year Metrics (e.g., 2025)
             const metricsToDisplay = {
                 'Revenue': yearlyInfo.Revenue?.[latestYearIndex],
                 'Gross Profit': Array.isArray(yearlyInfo['Gross Profit']) ? yearlyInfo['Gross Profit'][latestYearIndex] : yearlyInfo['Gross Profit'],
@@ -291,29 +296,30 @@
                         formattedValue = formatNumber(value);
                     }
                 }
-                p.innerHTML = `<strong class="font-semibold">${metric} (${latestYear}):</strong> ${formattedValue}`;
+                p.innerHTML = `<strong class="font-semibold">${metric}:</strong> ${formattedValue}`;
                 yearlyMetricsLatestDiv.appendChild(p);
             }
 
-            // Calculate Yearly Revenue Change
+            // Calculate Yearly Revenue Change for the last 4 years (3 changes)
             const revenueData = yearlyInfo.Revenue;
             const revenueChangeLabels = [];
-            const revenueChangeData = [];
+            const revenueChangeValues = [];
 
-            // Iterate from the second oldest year to the newest
+            // We need at least two years to calculate a change.
+            // Loop from the second year's data point to the last.
             for (let i = 1; i < revenueData.length; i++) {
                 const yearCurrent = currentYear - (revenueData.length - 1 - i);
                 const yearPrevious = currentYear - (revenueData.length - 1 - (i - 1));
                 const change = revenueData[i] - revenueData[i - 1];
-                revenueChangeLabels.push(`${yearPrevious} vs ${yearCurrent}`);
-                revenueChangeData.push(change);
+                revenueChangeLabels.push(`${yearPrevious} to ${yearCurrent}`); // e.g., "2022 to 2023"
+                revenueChangeValues.push(change);
             }
 
             // Render Yearly Revenue Change Chart
             renderRevenueChangeChart(
                 'yearlyRevenueChangeChart',
                 revenueChangeLabels,
-                revenueChangeData,
+                revenueChangeValues,
                 `${stockSymbol} Yearly Revenue Change`,
                 yearlyRevenueChangeChartInstance
             );
@@ -326,64 +332,62 @@
                 chartInstance.destroy();
             }
 
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Revenue',
-                        data: data,
-                        backgroundColor: 'rgba(59, 130, 246, 0.6)', // Blue bars
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: title,
-                            font: {
-                                size: 18,
-                                weight: 'bold'
-                            },
-                            color: '#374151'
-                        },
-                        legend: {
-                            display: false
-                        }
+            // For quarterly, assign to quarterlyRevenueChartInstance
+            if (canvasId === 'quarterlyRevenueChart') {
+                quarterlyRevenueChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Revenue',
+                            data: data,
+                            backgroundColor: 'rgba(59, 130, 246, 0.6)', // Blue bars
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        }]
                     },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: '#4b5563'
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: title,
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                },
+                                color: '#374151'
                             },
-                            grid: {
+                            legend: {
                                 display: false
                             }
                         },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#4b5563',
-                                callback: function(value) {
-                                    return formatNumber(value);
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: '#4b5563'
+                                },
+                                grid: {
+                                    display: false
                                 }
                             },
-                            grid: {
-                                color: '#e5e7eb'
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: '#4b5563',
+                                    callback: function(value) {
+                                        return formatNumber(value);
+                                    }
+                                },
+                                grid: {
+                                    color: '#e5e7eb'
+                                }
                             }
                         }
                     }
-                }
-            });
-
-            if (canvasId === 'quarterlyRevenueChart') {
-                quarterlyRevenueChartInstance = chartInstance;
+                });
             }
-            // No need to assign yearlyRevenueChartInstance here, as it's for the overall revenue, not change
         }
 
         function renderRevenueChangeChart(canvasId, labels, data, title, chartInstance) {
@@ -393,7 +397,7 @@
                 chartInstance.destroy();
             }
 
-            yearlyRevenueChangeChartInstance = new Chart(ctx, { // Assign to the specific instance
+            yearlyRevenueChangeChartInstance = new Chart(ctx, { 
                 type: 'bar',
                 data: {
                     labels: labels,
@@ -432,7 +436,7 @@
                             }
                         },
                         y: {
-                            beginAtZero: false, // Can be negative for drops
+                            beginAtZero: false, 
                             ticks: {
                                 color: '#4b5563',
                                 callback: function(value) {
