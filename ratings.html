@@ -18,8 +18,6 @@
         .nav-button.active {
             @apply bg-blue-600 text-white hover:bg-blue-700;
         }
-        /* No specific table styling needed for this page if it's not a data table like income/balance */
-        /* If you later add tables, you can reuse the .data-table styles from income_statement.html */
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -48,17 +46,11 @@
         <div id="ratingsContent" class="hidden bg-white p-6 rounded-xl shadow-md mb-6">
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Analyst Ratings</h2>
             
-            <div id="overallRating" class="text-center mb-6">
-                <p class="text-lg text-gray-700">Overall Rating:</p>
-                <p id="ratingGrade" class="text-5xl font-extrabold"></p>
-                <p id="totalAnalysts" class="text-sm text-gray-500 mt-2"></p>
+            <div id="ratingDetails" class="max-w-md mx-auto divide-y divide-gray-200">
+                <!-- Individual ratings will be inserted here -->
             </div>
 
-            <div id="ratingBreakdown" class="max-w-md mx-auto">
-                <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Rating Breakdown:</h3>
-                <ul id="breakdownList" class="space-y-2">
-                    </ul>
-            </div>
+            <!-- Removed overall rating and breakdown sections as per backend data structure -->
         </div>
     </main>
 
@@ -165,51 +157,38 @@
         }
 
         function displayRatings(data) {
-            const overallRatingElement = document.getElementById('ratingGrade');
-            const totalAnalystsElement = document.getElementById('totalAnalysts');
-            const breakdownListElement = document.getElementById('breakdownList');
+            const ratingDetailsElement = document.getElementById('ratingDetails');
+            ratingDetailsElement.innerHTML = ''; // Clear previous content
 
-            // Clear previous content
-            overallRatingElement.textContent = '';
-            totalAnalystsElement.textContent = '';
-            breakdownListElement.innerHTML = '';
-
-            // Display Overall Rating
-            if (data.rating_summary && data.rating_summary.rating_grade) {
-                const ratingGrade = data.rating_summary.rating_grade;
-                overallRatingElement.textContent = ratingGrade;
-                overallRatingElement.className = `text-5xl font-extrabold ${getRatingColorClass(ratingGrade)}`;
-            } else {
-                overallRatingElement.textContent = 'N/A';
-                overallRatingElement.className = 'text-5xl font-extrabold text-gray-700';
+            if (!data || Object.keys(data).length === 0) {
+                ratingDetailsElement.innerHTML = '<p class="text-center text-gray-500 py-4">No ratings data available.</p>';
+                return;
             }
 
-            if (data.rating_summary && data.rating_summary.total_analysts !== undefined) {
-                totalAnalystsElement.textContent = `Based on ${data.rating_summary.total_analysts} Analyst(s)`;
-            }
+            // Define the order of metrics to display
+            const metricsOrder = [
+                "Overall Rating", "Consensus", "Valuation", "Stability", "Profitability", "Growth"
+            ];
 
-            // Display Rating Breakdown
-            if (data.rating_summary && data.rating_summary.rating_breakdown) {
-                const breakdown = data.rating_summary.rating_breakdown;
-                for (const [ratingType, count] of Object.entries(breakdown)) {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'flex justify-between items-center py-2 px-4 rounded-lg bg-gray-50';
+            metricsOrder.forEach(metric => {
+                const value = data[metric];
+                if (value !== undefined && value !== null) {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'flex justify-between items-center py-3';
                     
-                    const ratingSpan = document.createElement('span');
-                    ratingSpan.textContent = ratingType;
-                    ratingSpan.className = `font-semibold ${getRatingColorClass(ratingType)}`; // Apply color to breakdown type
+                    const metricNameSpan = document.createElement('span');
+                    metricNameSpan.textContent = `${metric}:`;
+                    metricNameSpan.className = 'text-lg font-semibold text-gray-700';
                     
-                    const countSpan = document.createElement('span');
-                    countSpan.textContent = count;
-                    countSpan.className = 'font-bold text-gray-800';
-
-                    listItem.appendChild(ratingSpan);
-                    listItem.appendChild(countSpan);
-                    breakdownListElement.appendChild(listItem);
+                    const ratingValueSpan = document.createElement('span');
+                    ratingValueSpan.textContent = value;
+                    ratingValueSpan.className = `text-xl font-bold ${getRatingColorClass(value)}`;
+                    
+                    listItem.appendChild(metricNameSpan);
+                    listItem.appendChild(ratingValueSpan);
+                    ratingDetailsElement.appendChild(listItem);
                 }
-            } else {
-                breakdownListElement.innerHTML = '<li class="text-center text-gray-500 py-4">No breakdown data available.</li>';
-            }
+            });
         }
 
         function showLoading(show) {
