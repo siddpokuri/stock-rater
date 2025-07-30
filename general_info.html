@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Info - General</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -41,14 +41,22 @@
             top: 50%;
             transform: translateY(-50%);
         }
-        /* Styling for the main page title (Company Name - Symbol) - Increased size and boldness */
+        /* Styling for the main page title (Company Name - Symbol) */
         #mainPageTitle {
-            /* Using Tailwind's largest font size and extra bold for maximum prominence */
-            @apply text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-800 text-center mb-8; 
+            /* Using Tailwind's largest font sizes and extra bold for maximum prominence */
+            @apply text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 text-center mb-8; 
             margin-top: 1rem; /* Space below the header */
+            /* Ensure it's above other content if there's any z-index conflict */
+            position: relative; 
+            z-index: 10; 
         }
         #currentPriceDisplay {
             @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4; /* Styling for price above chart */
+        }
+        /* Ensure header is on top if needed */
+        header {
+            position: relative;
+            z-index: 20; /* Higher than mainPageTitle if they overlap, though they shouldn't */
         }
     </style>
 </head>
@@ -65,7 +73,8 @@
     </header>
 
     <main class="container mx-auto p-6">
-        <!-- Main page title: Company Name - Symbol - This is the ONLY place for the main title -->
+        <!-- IMPORTANT: This is the ONLY place for the main title. 
+             Ensure no other <h1> or <h2> tags with stock info are present in this file. -->
         <div id="mainPageTitle"></div>
         
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
@@ -144,8 +153,7 @@
                 return;
             }
             
-            // This is the correct place to set the main page title
-            // It will be updated by displayGeneralInfo once data is fetched
+            // Set initial placeholder for the main page title
             document.getElementById('mainPageTitle').textContent = `${stockSymbol} - Loading...`; 
 
             fetchGeneralInfo(stockSymbol);
