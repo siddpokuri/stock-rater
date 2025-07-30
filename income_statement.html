@@ -34,6 +34,7 @@
         .data-table tr:nth-child(even) {
             @apply bg-gray-50;
         }
+        /* No canvas specific height/width needed as charts are removed */
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -103,7 +104,6 @@
         </div>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let stockSymbol = '';
         let incomeStatementData = null; // Store fetched data globally
@@ -230,10 +230,13 @@
             ratios.forEach(ratio => {
                 const row = document.createElement('tr');
                 let formattedValue;
+                const value = quarterlyRatios[ratio]?.[i]; // Get value from array
                 if (ratio === 'Net Profit Margin') {
-                    formattedValue = formatRatioAsPercentage(quarterlyRatios[ratio]?.[i]);
+                    // Quarterly Net Profit Margin is already scaled (e.g., 29.24), just add %
+                    formattedValue = formatPercentageDirect(value);
                 } else if (ratio === 'Price to Sales Ratio') {
-                    formattedValue = formatRatio(quarterlyRatios[ratio]?.[i]);
+                    // Price to Sales Ratio is a direct number, no %
+                    formattedValue = formatNumberDirect(value);
                 } else {
                     formattedValue = 'N/A'; // Fallback for other ratios if any
                 }
@@ -287,9 +290,11 @@
                 let formattedValue;
                 const value = yearlyRatios[ratio];
                 if (ratio === 'Net Profit Margin') {
-                    formattedValue = formatRatioAsPercentage(value);
+                    // Yearly Net Profit Margin is a decimal (e.g., 0.29), needs * 100 and %
+                    formattedValue = formatPercentageFromDecimal(value);
                 } else if (ratio === 'Price to Sales Ratio') {
-                    formattedValue = formatRatio(value);
+                    // Price to Sales Ratio is a direct number, no %
+                    formattedValue = formatNumberDirect(value);
                 } else {
                     formattedValue = 'N/A'; // Fallback
                 }
@@ -333,16 +338,24 @@
             return value.toFixed(2);
         }
 
-        // New helper function to format ratios that should be percentages (e.g., 0.29 -> 29.00%)
-        function formatRatioAsPercentage(num) {
+        // New helper function for percentages that are already scaled (e.g., 29.24)
+        function formatPercentageDirect(num) {
+            if (num === null || num === undefined) return 'N/A';
+            num = Number(num);
+            if (isNaN(num)) return 'N/A';
+            return num.toFixed(2) + '%';
+        }
+
+        // New helper function for percentages that are decimals (e.g., 0.29)
+        function formatPercentageFromDecimal(num) {
             if (num === null || num === undefined) return 'N/A';
             num = Number(num);
             if (isNaN(num)) return 'N/A';
             return (num * 100).toFixed(2) + '%';
         }
 
-        // New helper function to format ratios that should be direct numbers (e.g., 22.15 -> 22.15)
-        function formatRatio(num) {
+        // New helper function to format numbers directly (e.g., 22.15)
+        function formatNumberDirect(num) {
             if (num === null || num === undefined) return 'N/A';
             num = Number(num);
             if (isNaN(num)) return 'N/A';
