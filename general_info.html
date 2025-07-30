@@ -23,10 +23,41 @@
             position: relative;
             height: 250px; /* Fixed height for the chart */
             width: 100%;
+            display: flex; /* Use flexbox to center content */
+            justify-content: center;
+            align-items: center;
+            background-color: #fff; /* Ensure background is visible */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
         }
         canvas {
             max-width: 100%;
             height: 100%; /* Canvas fills its parent container's height */
+        }
+        .no-chart-data-message {
+            @apply text-center text-gray-500 text-lg;
+            position: absolute; /* Position over the canvas area */
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        /* Custom styling for the main title */
+        #stockTitle {
+            display: flex;
+            flex-direction: column; /* Stack symbol and company name */
+            align-items: center;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        #stockSymbolDisplay {
+            @apply text-4xl font-bold text-gray-800;
+        }
+        #companyNameDisplay {
+            @apply text-2xl md:text-3xl font-bold text-gray-700; /* Larger company name */
+            margin-top: 0.5rem; /* Space between symbol and name */
+        }
+        #currentPriceDisplay {
+            @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4; /* Styling for price above chart */
         }
     </style>
 </head>
@@ -42,7 +73,11 @@
     </header>
 
     <main class="container mx-auto p-6">
-        <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
+        <!-- Combined Stock Symbol and Company Name -->
+        <div id="stockTitle">
+            <span id="stockSymbolDisplay"></span>
+            <span id="companyNameDisplay"></span>
+        </div>
         
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
             Fetching General Info and Chart Data...
@@ -66,6 +101,11 @@
                 <!-- Chart Section -->
                 <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Price Chart</h2>
+                    <!-- Current Price Display -->
+                    <div id="currentPriceDisplay" class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                        Price: N/A
+                    </div>
+
                     <div class="flex flex-wrap justify-center gap-2 w-full mb-4">
                         <button id="chartBtn1D" class="chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition duration-200 ease-in-out bg-green-600 text-white hover:bg-green-700">
                             1 Day
@@ -82,6 +122,7 @@
                     </div>
                     <div class="chart-container"> 
                         <canvas id="priceChart"></canvas>
+                        <p id="noChartDataMessage" class="no-chart-data-message hidden">No chart data available for this period.</p>
                     </div>
                     <div class="flex flex-col sm:flex-row justify-center items-center gap-4 w-full mt-4">
                         <div id="chartPercentageChange" class="text-xl md:text-2xl font-semibold text-gray-800">
@@ -114,7 +155,9 @@
                 return;
             }
 
-            document.getElementById('stockTitle').textContent = `${stockSymbol} - General Info`;
+            // Set initial stock symbol display
+            document.getElementById('stockSymbolDisplay').textContent = stockSymbol;
+            
             fetchGeneralInfo(stockSymbol);
             setupNavigationButtons();
         });
@@ -144,7 +187,6 @@
         async function fetchGeneralInfo(symbol) {
             showLoading(true);
             try {
-                // Fetch data from the single /tab1 endpoint
                 const response = await fetch(`${backendBaseUrl}/tab1?stock=${symbol}`);
                 if (!response.ok) {
                     const errorBody = await response.text();
@@ -160,7 +202,6 @@
 
             } catch (error) {
                 console.error('Error fetching general info from /tab1:', error);
-                // Attempt to get raw text if JSON parsing failed
                 if (error instanceof SyntaxError && error.message.includes('JSON')) {
                     try {
                         const rawText = await (await fetch(`${backendBaseUrl}/tab1?stock=${symbol}`)).text();
@@ -183,11 +224,18 @@
             if (!generalData || Object.keys(generalData).length === 0) {
                 generalInfoDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No general info data available.</p>';
             } else {
-                // Extract fundamental info directly from generalData and Profile Info
                 const profileInfo = generalData["Profile Info"] || {};
+                
+                // Update Company Name in the main title
+                const companyNameDisplay = document.getElementById('companyNameDisplay');
+                companyNameDisplay.textContent = profileInfo["Company Name"] || 'N/A';
+
+                // Update current price display above the chart
+                const currentPriceDisplay = document.getElementById('currentPriceDisplay');
+                currentPriceDisplay.textContent = `Price: ${formatGeneralInfoValue(profileInfo["Price"], "Price")}`;
+
                 const infoItems = [
-                    { label: "Company Name", value: profileInfo["Company Name"] },
-                    { label: "Price", value: profileInfo["Price"] },
+                    // Removed Price from here
                     { label: "Market Cap", value: profileInfo["Market Cap"] },
                     { label: "PE Ratio", value: generalData["PE Ratio"] },
                     { label: "EPS", value: generalData["EPS"] },
@@ -224,15 +272,14 @@
             if (value === null || value === undefined || value === 'N/A' || value === 'TBA') {
                 return 'N/A';
             }
-            // For Market Cap, the backend already provides it as "2.370T"
             if (label === "Market Cap") {
-                return value;
+                return value; // Already formatted by backend
             }
             // For Price, PE Ratio, EPS, Quarterly Dividend, Beta - format to 2 decimal places if number
             if (typeof value === 'number' && (label === "Price" || label === "PE Ratio" || label === "EPS" || label === "Quarterly Dividend" || label === "Beta")) {
                 return value.toFixed(2);
             }
-            return value; // Return as is for strings like Industry, Sector, Country, Company Name
+            return value; 
         }
 
         function setActiveChartButton(activeBtnId) {
@@ -245,35 +292,41 @@
                     button.classList.add('bg-gray-300', 'text-gray-800', 'hover:bg-gray-400');
                 }
             });
-            currentChartPeriod = activeBtnId.replace('chartBtn', ''); // Update current period
+            currentChartPeriod = activeBtnId.replace('chartBtn', ''); 
         }
 
         function renderPriceChart(period) {
             const chartContainerDiv = document.querySelector('.chart-container');
+            const noChartDataMessageElement = document.getElementById('noChartDataMessage');
             let ctx = null;
 
             // Destroy previous chart instance if it exists
             if (priceChartInstance) {
                 priceChartInstance.destroy();
-                priceChartInstance = null; // Clear the instance
+                priceChartInstance = null; 
             }
 
-            // Always ensure the canvas element exists before trying to get its context
-            // If it was previously replaced by a "No data" message, re-add it.
-            if (!document.getElementById('priceChart')) {
+            // Ensure the canvas element exists and is visible
+            let priceChartCanvas = document.getElementById('priceChart');
+            if (!priceChartCanvas) {
                 chartContainerDiv.innerHTML = '<canvas id="priceChart"></canvas>';
+                priceChartCanvas = document.getElementById('priceChart');
             }
-            ctx = document.getElementById('priceChart').getContext('2d');
+            priceChartCanvas.style.display = 'block'; 
+            noChartDataMessageElement.classList.add('hidden'); 
 
-            const chartDataForPeriod = generalData[period]; // Access chart data from the single generalData object
+            ctx = priceChartCanvas.getContext('2d');
+
+            const chartDataForPeriod = generalData[period]; 
 
             // Handle cases where data for a period is "N/A" or empty
             if (!chartDataForPeriod || chartDataForPeriod === "N/A" || chartDataForPeriod.length === 0) {
-                chartContainerDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No chart data available for this period.</p>';
+                priceChartCanvas.style.display = 'none'; 
+                noChartDataMessageElement.classList.remove('hidden'); 
                 document.getElementById('chartPercentageChange').textContent = 'Change: N/A';
                 document.getElementById('chartPercentageChange').className = 'text-xl md:text-2xl font-semibold text-gray-800';
                 document.getElementById('chartVolume').textContent = 'Volume: N/A';
-                document.getElementById('chartVolume').classList.add('hidden'); // Hide volume if no chart data
+                document.getElementById('chartVolume').classList.add('hidden'); 
                 return;
             }
 
@@ -314,7 +367,7 @@
                 chartVolumeElement.classList.remove('hidden');
             } else {
                 chartVolumeElement.textContent = 'Volume: N/A';
-                chartVolumeElement.classList.add('hidden'); // Hide for other periods
+                chartVolumeElement.classList.add('hidden'); 
             }
 
             priceChartInstance = new Chart(ctx, {
@@ -324,19 +377,19 @@
                     datasets: [{
                         label: 'Price',
                         data: prices,
-                        borderColor: 'rgb(75, 192, 192)', // Teal color
+                        borderColor: 'rgb(75, 192, 192)', 
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         fill: true,
                         tension: 0.1,
-                        pointRadius: 0 // Hide data points
+                        pointRadius: 0 
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // Important for controlling height with parent div
+                    maintainAspectRatio: false, 
                     plugins: {
                         legend: {
-                            display: false // Hide legend
+                            display: false 
                         },
                         tooltip: {
                             mode: 'index',
@@ -348,33 +401,30 @@
                             ticks: {
                                 maxRotation: 45,
                                 minRotation: 45,
-                                color: '#4b5563', // Gray text for ticks
-                                autoSkip: true, // Automatically skip labels if too many
-                                maxTicksLimit: 10, // Limit the number of ticks
-                                // Custom callback for 1M/1Y to show only date, 1D to show time
+                                color: '#4b5563', 
+                                autoSkip: true, 
+                                maxTicksLimit: 10, 
                                 callback: function(value, index, ticks) {
                                     const datetimeStr = this.getLabelForValue(value);
                                     if (period === '1D') {
-                                        // For 1D, show time (e.g., 09:30)
-                                        return datetimeStr.substring(11, 16);
-                                    } else if (period === '1M' || period === '1Y') {
-                                        // For 1M/1Y, show date (e.g., 2025-07-01)
-                                        return datetimeStr.substring(0, 10);
+                                        return datetimeStr.substring(11, 16); // Show time for 1D
+                                    } else if (period === '1M' || period === '1Y' || period === '5D') { 
+                                        return datetimeStr.substring(0, 10); // Show date for 5D, 1M, 1Y
                                     }
-                                    return datetimeStr; // Default
+                                    return datetimeStr; 
                                 }
                             },
                             grid: {
-                                display: false // Hide x-axis grid lines
+                                display: false 
                             }
                         },
                         y: {
                             beginAtZero: false,
                             ticks: {
-                                color: '#4b5563' // Gray text for ticks
+                                color: '#4b5563' 
                             },
                             grid: {
-                                color: '#e5e7eb' // Light gray grid lines
+                                color: '#e5e7eb' 
                             }
                         }
                     }
