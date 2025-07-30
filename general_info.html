@@ -41,13 +41,25 @@
             top: 50%;
             transform: translateY(-50%);
         }
-        /* No specific styling for #mainPageTitle anymore as it's removed */
+        /* Styling for the main page title (Company Name - Symbol) */
+        /* This is now #chartSectionTitle, but keeping the old ID for clarity in comments */
+        #mainPageTitle { /* This ID is no longer in HTML, but keeping CSS here for reference if needed */
+            /* @apply text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 text-center mb-8; */
+            /* margin-top: 1rem; */
+            /* position: relative; */
+            /* z-index: 10; */
+        }
         #currentPriceDisplay {
             @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4; /* Styling for price above chart */
         }
-        /* Styling for the new chart section title */
+        /* Styling for the new chart section title (Company Name - Exchange: Symbol) */
         #chartSectionTitle {
-            @apply text-2xl font-bold text-gray-800 mb-4 text-center; /* Keep existing H2 styling */
+            @apply text-2xl font-bold text-gray-800 mb-4 text-center; /* Keep existing H2 styling, but JS will update content */
+        }
+        /* Ensure header is on top if needed */
+        header {
+            position: relative;
+            z-index: 20; /* Higher than mainPageTitle if they overlap, though they shouldn't */
         }
     </style>
 </head>
@@ -64,7 +76,7 @@
     </header>
 
     <main class="container mx-auto p-6">
-        <!-- Removed #mainPageTitle from here -->
+        <!-- Removed #mainPageTitle from here as per previous instruction -->
         
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
             Fetching General Info and Chart Data...
@@ -87,8 +99,8 @@
 
                 <!-- Chart Section -->
                 <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
-                    <!-- Changed h2 id to chartSectionTitle -->
-                    <h2 id="chartSectionTitle" class="text-2xl font-bold text-gray-800 mb-4 text-center">Price Chart</h2> 
+                    <!-- This h2 will now display Company Name - Exchange: Symbol -->
+                    <h2 id="chartSectionTitle" class="text-2xl font-bold text-gray-800 mb-4 text-center"></h2> 
                     <!-- Current Price Display -->
                     <div id="currentPriceDisplay" class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
                         Price: N/A
@@ -142,8 +154,6 @@
                 showError('No stock symbol provided in the URL.');
                 return;
             }
-            
-            // Removed initial placeholder for mainPageTitle here
             
             fetchGeneralInfo(stockSymbol);
             setupNavigationButtons();
@@ -211,14 +221,15 @@
             if (!generalData || Object.keys(generalData).length === 0) {
                 generalInfoDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No general info data available.</p>';
                 // Set chart section title even if no data
-                document.getElementById('chartSectionTitle').textContent = `${stockSymbol} - No Data Available`;
+                document.getElementById('chartSectionTitle').textContent = `No Data Available for ${stockSymbol}`; // Adjusted message
             } else {
                 const profileInfo = generalData["Profile Info"] || {};
                 
-                // Set chart section title: Company Name - Symbol
+                // Update chart section title: Company Name - Exchange: Symbol
                 const chartSectionTitle = document.getElementById('chartSectionTitle');
                 const companyName = profileInfo["Company Name"] || 'N/A';
-                chartSectionTitle.textContent = `${companyName} - ${stockSymbol}`;
+                const exchangeName = profileInfo["Exchange Name"] || 'N/A'; // Get exchange name
+                chartSectionTitle.textContent = `${companyName} - ${exchangeName}: ${stockSymbol}`;
 
 
                 // Update current price display above the chart
@@ -233,7 +244,8 @@
                     { label: "Beta", value: profileInfo["Beta"] },
                     { label: "Industry", value: profileInfo["Industry"] },
                     { label: "Sector", value: profileInfo["Sector"] },
-                    { label: "Country", value: profileInfo["Country"] }
+                    { label: "Country", value: profileInfo["Country"] },
+                    { label: "Exchange Name", value: profileInfo["Exchange Name"] } // Added to general info table
                 ];
 
                 infoItems.forEach(item => {
