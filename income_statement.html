@@ -51,6 +51,8 @@
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
             <div class="flex space-x-8 text-gray-600 font-semibold">
+                <!-- A "Home" button has been added here, with green text as requested. -->
+                <a href="index.html" class="text-green-600 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
                 <!-- Navigation items, with dynamic hrefs set by JavaScript -->
                 <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
                 <a href="#" id="nav-income-statement" class="text-blue-700 font-bold transition-colors duration-300">Income Statement</a>
@@ -229,7 +231,7 @@
                 }
                 
                 if (!response || !response.ok) {
-                     throw new Error('Max retries reached, failed to fetch data.');
+                    throw new Error('Max retries reached, failed to fetch data.');
                 }
                 
                 const data = await response.json();
