@@ -1,397 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Info - Income Statement</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background */
-        }
-        .nav-button {
-            @apply px-4 py-2 rounded-lg font-semibold transition duration-200 ease-in-out;
-            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
-        }
-        .nav-button.active {
-            @apply bg-blue-600 text-white hover:bg-blue-700;
-        }
-        .toggle-button {
-            @apply px-6 py-3 rounded-lg font-semibold text-lg transition duration-200 ease-in-out;
-            @apply bg-gray-300 text-gray-800 hover:bg-gray-400;
-        }
-        .toggle-button.active {
-            @apply bg-green-600 text-white hover:bg-green-700;
-        }
-        /* Adjusted table cell and header styling */
-        .data-table th, .data-table td {
-            @apply px-4 py-2; /* Keep padding */
-        }
-        .data-table th {
-            @apply bg-gray-50 text-gray-600 uppercase text-sm text-center; /* Align headers center */
-        }
-        .data-table td {
-            @apply text-center; /* Ensure data cells are centered */
-        }
-        .data-table {
-            @apply border-none; /* Remove main table border */
-        }
-        .data-table thead {
-            @apply border-b border-gray-300; /* Keep a bottom border for header row */
-        }
-        .data-table tbody {
-            @apply divide-y divide-gray-200; /* Add horizontal dividers for rows */
-        }
-        .data-table tr:nth-child(even) {
-            @apply bg-gray-50;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI - Income Statement</title>
+    <!-- Load Tailwind CSS from CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* A very light gray background */
+        }
+        /* Custom styles for the toggle buttons */
+        .toggle-button {
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+        }
+        .toggle-button.active {
+            background-color: white;
+            color: #2563eb; /* A nice blue color */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4">
-        <a href="#" id="navGeneral" class="nav-button">General Info</a>
-        <a href="#" id="navIncome" class="nav-button">Income Statement</a>
-        <a href="#" id="navBalance" class="nav-button active">Balance Sheet</a>
-        <a href="#" id="navRatings" class="nav-button">Ratings</a>
-        <a href="#" id="navEarnings" class="nav-button">Earnings</a>
-        <a href="#" id="navInsider" class="nav-button">Insider Trades</a>
-        <a href="#" id="navTargets" class="nav-button">Analyst Targets</a>
-    </header>
+<body class="min-h-screen">
 
-    <main class="container mx-auto p-6">
-        <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
-        
-        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
-            Fetching Income Statement Data...
-        </div>
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-center items-center">
+            <div class="flex space-x-8 text-gray-600 font-semibold">
+                <!-- Navigation items, using simple div as placeholders -->
+                <a href="#" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
+                <a href="#" class="text-blue-700 font-bold transition-colors duration-300">Income Statement</a>
+                <a href="#" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
+                <a href="#" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
+                <a href="#" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
+                <a href="#" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
+                <a href="#" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+            </div>
+        </div>
+    </nav>
 
-        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10" role="alert">
-            <strong class="font-bold">Error!</strong>
-            <span class="block sm:inline" id="errorText"></span>
-        </div>
+    <!-- Main Content Area -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="flex flex-col items-center">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">AI - Income Statement</h1>
+            
+            <!-- Toggle buttons for Quarterly/Yearly views -->
+            <div class="flex justify-center mb-4 bg-gray-200 rounded-full p-1">
+                <button id="quarterly-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Quarterly</button>
+                <button id="yearly-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">Yearly</button>
+            </div>
 
-        <div id="incomeStatementContent" class="hidden">
-            <div class="flex justify-center mb-6 space-x-4">
-                <button id="toggleQuarterly" class="toggle-button active">Quarterly</button>
-                <button id="toggleYearly" class="toggle-button">Yearly</button>
-            </div>
+            <!-- Container for the financial data table -->
+            <div id="statement-container" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl">
+                <!-- The table content will be injected here by JavaScript -->
+            </div>
+        </div>
+    </main>
 
-            <!-- Quarterly Data Section -->
-            <div id="quarterlyData" class="bg-white p-6 rounded-xl shadow-md mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Quarterly Income Statement</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-lg data-table">
-                        <thead>
-                            <tr id="quarterlyHeaderRow">
-                                <th class="text-left">Metric</th> <!-- Keep Metric header left-aligned -->
-                                <!-- Quarterly dates will be inserted here -->
-                            </tr>
-                        </thead>
-                        <tbody id="quarterlyTableBody">
-                            <!-- Quarterly data will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <script>
+        // The backend data provided by the user.
+        const backendData = {
+            "Quarterly Income Statement Info": {
+                "Ebitda": ["-88.965M", "-84.462M", "-72.315M", "-69.467M"],
+                "Gross Profit": ["67.510M", "58.347M", "57.840M", "52.166M"],
+                "Net Income": ["-79.702M", "-80.201M", "-65.972M", "-62.827M"],
+                "Operating Income": ["-88.965M", "-87.585M", "-75.288M", "-72.586M"],
+                "Revenue": ["108.723M", "98.782M", "94.338M", "87.213M"],
+                "dates": ["2025-04-30", "2025-01-31", "2024-10-31", "2024-07-31"]
+            },
+            "Quarterly Ratios": {
+                "Net Profit Margin": [-73.31, -81.19, -69.93, -72.04],
+                "Price to Sales Ratio": [26.97, 41.38, 33.38, 38.33]
+            },
+            "Yearly Income Statement Info": {
+                "Ebitda": "-324.424M",
+                "Gross Profit": "235.863M",
+                "Net Income": "-288.702M",
+                "Operating Income": "-324.424M",
+                "Revenue": ["389.056M", "310.582M", "266.795M", "252.759M"]
+            },
+            "Yearly Ratios": {
+                "Net Profit Margin": -0.74,
+                "Price to Sales Ratio": 7.3
+            }
+        };
 
-            <!-- Yearly Data Section -->
-            <div id="yearlyData" class="hidden bg-white p-6 rounded-xl shadow-md mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Income Statement (Latest Year)</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-lg data-table">
-                        <thead>
-                            <tr id="yearlyHeaderRow">
-                                <th class="text-left">Metric</th> <!-- Keep Metric header left-aligned -->
-                            </tr>
-                        </thead>
-                        <tbody id="yearlyTableBody">
-                            <!-- Latest year's data will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
+        const statementContainer = document.getElementById('statement-container');
 
-    <script>
-        let stockSymbol = '';
-        let incomeStatementData = null; // Store fetched data globally
-        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+        // Function to render the quarterly income statement data.
+        function renderQuarterlyData() {
+            const info = backendData["Quarterly Income Statement Info"];
+            const ratios = backendData["Quarterly Ratios"];
+            
+            const metrics = [
+                { name: "Revenue", data: info["Revenue"] },
+                { name: "Gross Profit", data: info["Gross Profit"] },
+                { name: "Ebitda", data: info["Ebitda"] },
+                { name: "Operating Income", data: info["Operating Income"] },
+                { name: "Net Income", data: info["Net Income"] },
+                { name: "Net Profit Margin", data: ratios["Net Profit Margin"] },
+                { name: "Price to Sales Ratio", data: ratios["Price to Sales Ratio"] },
+            ];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock');
+            let html = `
+                <h2 class="text-xl font-bold text-gray-700 mb-6">Quarterly Income Statement</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-600 text-left">
+                                <th class="py-3 px-4 font-semibold">Metric</th>
+                                ${info.dates.map(date => `<th class="py-3 px-4 font-semibold">${date}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${metrics.map(metric => `
+                                <tr>
+                                    <td class="py-3 px-4 text-gray-800 font-medium">${metric.name}</td>
+                                    ${metric.data.map(value => `
+                                        <td class="py-3 px-4 text-gray-600">
+                                            ${value !== null && value !== undefined ? value : 'N/A'}
+                                        </td>
+                                    `).join('')}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            statementContainer.innerHTML = html;
+        }
 
-            if (!stockSymbol) {
-                showError('No stock symbol provided in the URL.');
-                return;
-            }
+        // Function to render the yearly income statement data.
+        function renderYearlyData() {
+            const info = backendData["Yearly Income Statement Info"];
+            const ratios = backendData["Yearly Ratios"];
 
-            document.getElementById('stockTitle').textContent = `${stockSymbol} - Income Statement`;
-            fetchIncomeStatement(stockSymbol);
-            setupNavigationButtons();
-            setupToggleButtons();
-        });
+            // Extract the latest year's revenue from the array.
+            const latestRevenue = info.Revenue && info.Revenue.length > 0 ? info.Revenue[0] : 'N/A';
 
-        function setupNavigationButtons() {
-            const navButtons = {
-                'navGeneral': 'general_info.html',
-                'navIncome': 'income_statement.html',
-                'navBalance': 'balance_sheet.html',
-                'navRatings': 'ratings.html',
-                'navEarnings': 'earnings.html',
-                'navInsider': 'insider_trades.html',
-                'navTargets': 'analyst_targets.html'
-            };
+            const metrics = [
+                { name: "Revenue", value: latestRevenue },
+                { name: "Gross Profit", value: info["Gross Profit"] },
+                { name: "Ebitda", value: info["Ebitda"] },
+                { name: "Operating Income", value: info["Operating Income"] },
+                { name: "Net Income", value: info["Net Income"] },
+                { name: "Net Profit Margin", value: ratios["Net Profit Margin"] },
+                { name: "Price to Sales Ratio", value: ratios["Price to Sales Ratio"] },
+            ];
+            
+            let html = `
+                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Income Statement (Latest Year)</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-600 text-left">
+                                <th class="py-3 px-4 font-semibold">Metric</th>
+                                <th class="py-3 px-4 font-semibold">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${metrics.map(metric => `
+                                <tr>
+                                    <td class="py-3 px-4 text-gray-800 font-medium">${metric.name}</td>
+                                    <td class="py-3 px-4 text-gray-600">
+                                        ${metric.value !== null && metric.value !== undefined ? metric.value : 'N/A'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            statementContainer.innerHTML = html;
+        }
 
-            for (const [id, page] of Object.entries(navButtons)) {
-                const button = document.getElementById(id);
-                if (button) {
-                    // Update the href directly
-                    button.href = `${page}?stock=${stockSymbol}`;
-                }
-            }
-            
-            // Set the active class for the current page
-            const currentPage = window.location.pathname.split('/').pop();
-            for (const [id, page] of Object.entries(navButtons)) {
-                if (page === currentPage) {
-                    document.getElementById(id).classList.add('active');
-                } else {
-                    document.getElementById(id).classList.remove('active');
-                }
-            }
-        }
+        // Get button elements
+        const quarterlyBtn = document.getElementById('quarterly-btn');
+        const yearlyBtn = document.getElementById('yearly-btn');
 
-        function setupToggleButtons() {
-            document.getElementById('toggleQuarterly').addEventListener('click', () => showData('quarterly'));
-            document.getElementById('toggleYearly').addEventListener('click', () => showData('yearly'));
-        }
+        // Add event listeners to the buttons to switch views
+        quarterlyBtn.addEventListener('click', () => {
+            yearlyBtn.classList.remove('active');
+            quarterlyBtn.classList.add('active');
+            renderQuarterlyData();
+        });
 
-        async function fetchIncomeStatement(symbol) {
-            showLoading(true);
-            try {
-                const response = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`);
-                
-                if (!response.ok) {
-                    const errorBody = await response.text(); 
-                    console.error('Backend responded with non-OK status:', response.status, response.statusText, errorBody);
-                    showError(`Failed to fetch income statement data. Server responded with status: ${response.status}.`);
-                    return; 
-                }
+        yearlyBtn.addEventListener('click', () => {
+            quarterlyBtn.classList.remove('active');
+            yearlyBtn.classList.add('active');
+            renderYearlyData();
+        });
 
-                const data = await response.json();
-
-                if (data.error) {
-                    showError(data.error);
-                } else {
-                    incomeStatementData = data; // Store the fetched data
-                    showData('quarterly'); // Show quarterly data by default
-                    showLoading(false);
-                    document.getElementById('incomeStatementContent').classList.remove('hidden');
-                }
-            } catch (error) {
-                console.error('Error fetching income statement (network or JSON parse error):', error);
-                if (error instanceof TypeError && error.message.includes('JSON')) {
-                    try {
-                        const responseClone = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`); 
-                        const rawText = await responseClone.text();
-                        console.error('Raw response text that caused JSON parsing error:', rawText);
-                        showError('Failed to parse income statement data. The server might be returning non-JSON content. Check console for raw response.');
-                    } catch (reFetchError) {
-                        console.error('Error re-fetching for raw text:', reFetchError);
-                        showError('A network error occurred while fetching income statement. Please check your internet connection or try again later.');
-                    }
-                } else {
-                    showError('A network error occurred while fetching income statement. Please check your internet connection or try again later.');
-                }
-            }
-        }
-
-        function showData(period) {
-            if (!incomeStatementData) return;
-
-            const quarterlySection = document.getElementById('quarterlyData');
-            const yearlySection = document.getElementById('yearlyData');
-            const toggleQuarterlyBtn = document.getElementById('toggleQuarterly');
-            const toggleYearlyBtn = document.getElementById('toggleYearly');
-
-            if (period === 'quarterly') {
-                quarterlySection.classList.remove('hidden');
-                yearlySection.classList.add('hidden');
-                toggleQuarterlyBtn.classList.add('active');
-                toggleYearlyBtn.classList.remove('active');
-                displayQuarterlyData(incomeStatementData);
-            } else {
-                yearlySection.classList.remove('hidden');
-                quarterlySection.classList.add('hidden');
-                toggleYearlyBtn.classList.add('active');
-                toggleQuarterlyBtn.classList.remove('active');
-                displayYearlyData(incomeStatementData);
-            }
-        }
-
-        function displayQuarterlyData(data) {
-            const quarterlyInfo = data['Quarterly Income Statement Info'];
-            const quarterlyRatios = data['Quarterly Ratios'];
-
-            if (!quarterlyInfo || !quarterlyInfo.dates || quarterlyInfo.dates.length === 0) {
-                document.getElementById('quarterlyData').innerHTML = '<p class="text-center text-gray-500 mt-4">No quarterly data available.</p>';
-                return;
-            }
-
-            const dates = quarterlyInfo.dates;
-            const headerRow = document.getElementById('quarterlyHeaderRow');
-            headerRow.innerHTML = '<th class="text-left">Metric</th>' + dates.map(date => `<th class="text-center">${date}</th>`).join('');
-
-            const tableBody = document.getElementById('quarterlyTableBody');
-            tableBody.innerHTML = '';
-            
-            // Function to create and append a table row
-            const appendRow = (metricName, values) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td class="text-left font-medium text-gray-900">${metricName}</td>` + values.map(value => `<td class="text-center">${value}</td>`).join('');
-                tableBody.appendChild(row);
-            };
-            
-            // List of Income Statement metrics in a desired order
-            const incomeMetrics = ['Revenue', 'Gross Profit', 'Ebitda', 'Operating Income', 'Net Income'];
-            const ratioMetrics = ['Net Profit Margin', 'Price to Sales Ratio'];
-
-            // Append income statement data
-            incomeMetrics.forEach(metric => {
-                if (quarterlyInfo[metric]) {
-                    appendRow(metric, quarterlyInfo[metric]);
-                }
-            });
-            
-            // Append a separator row
-            const separatorRow = document.createElement('tr');
-            separatorRow.innerHTML = `<td colspan="${dates.length + 1}" class="h-6"></td>`;
-            tableBody.appendChild(separatorRow);
-
-            // Append ratios
-            ratioMetrics.forEach(metric => {
-                if (quarterlyRatios[metric]) {
-                    // Ratios are numbers, format them to a percentage or decimal
-                    let formattedValues = quarterlyRatios[metric].map(val => formatNumber(val));
-                    appendRow(metric, formattedValues);
-                }
-            });
-        }
-
-        function displayYearlyData(data) {
-            const yearlyInfo = data['Yearly Income Statement Info'];
-            const yearlyRatios = data['Yearly Ratios'];
-
-            if (!yearlyInfo || Object.keys(yearlyInfo).length === 0) { 
-                document.getElementById('yearlyData').innerHTML = '<p class="text-center text-gray-500 mt-4">No yearly data available.</p>';
-                return;
-            }
-
-            const yearlyHeaderRow = document.getElementById('yearlyHeaderRow');
-            // The yearly header row will have only two columns: "Metric" and "Value"
-            yearlyHeaderRow.innerHTML = `<th class="text-left">Metric</th><th class="text-center">Value</th>`;
-
-            const yearlyTableBody = document.getElementById('yearlyTableBody');
-            yearlyTableBody.innerHTML = ''; 
-
-            const appendRow = (metricName, value) => {
-                const row = document.createElement('tr');
-                // Handle cases where value might be an array (like Revenue)
-                const formattedValue = Array.isArray(value) ? value.join(', ') : formatNumber(value);
-                row.innerHTML = `<td class="text-left font-medium text-gray-900">${metricName}</td><td class="text-center">${formattedValue || 'N/A'}</td>`;
-                yearlyTableBody.appendChild(row);
-            };
-
-            const incomeMetrics = ['Revenue', 'Gross Profit', 'Ebitda', 'Operating Income', 'Net Income'];
-            const ratioMetrics = ['Net Profit Margin', 'Price to Sales Ratio'];
-
-            // Append income statement data
-            incomeMetrics.forEach(metric => {
-                if (yearlyInfo[metric]) {
-                    appendRow(metric, yearlyInfo[metric]);
-                }
-            });
-
-            // Append a separator row
-            const separatorRow = document.createElement('tr');
-            separatorRow.innerHTML = `<td colspan="2" class="h-6"></td>`;
-            yearlyTableBody.appendChild(separatorRow);
-            
-            // Append ratios
-            ratioMetrics.forEach(metric => {
-                if (yearlyRatios[metric]) {
-                    appendRow(metric, yearlyRatios[metric]);
-                }
-            });
-        }
-
-        // Helper function to format numbers, assuming backend might send raw numbers or already shortened strings
-        function formatNumber(num) {
-            if (num === null || num === undefined || num === 'N/A' || num === 'TBA') return num; // Return N/A or TBA directly
-
-            // If it's already a string with B, M, K, T, assume it's pre-formatted by backend
-            if (typeof num === 'string' && num.match(/^[\d.]+[BMKT]?$/i)) {
-                return num; 
-            }
-            
-            // Otherwise, try to parse as a number and format
-            let value = Number(num); 
-
-            if (isNaN(value)) return 'N/A';
-
-            // Apply standard formatting for raw numbers
-            const absValue = Math.abs(value);
-            if (absValue >= 1.0e+9) {
-                return (value / 1.0e+9).toFixed(2) + "B";
-            }
-            if (absValue >= 1.0e+6) {
-                return (value / 1.0e+6).toFixed(2) + "M";
-            }
-            if (absValue >= 1.0e+3) {
-                return (value / 1.0e+3).toFixed(2) + "K";
-            }
-            return value.toFixed(2);
-        }
-
-        // These ratio formatting functions are not strictly needed for Income Statement
-        // but are kept for consistency if needed later.
-        function formatPercentageDirect(num) {
-            if (num === null || num === undefined) return 'N/A';
-            num = Number(num);
-            if (isNaN(num)) return 'N/A';
-            return num.toFixed(2) + '%';
-        }
-
-        function formatPercentageFromDecimal(num) {
-            if (num === null || num === undefined) return 'N/A';
-            num = Number(num);
-            if (isNaN(num)) return 'N/A';
-            return (num * 100).toFixed(2) + '%';
-        }
-
-        function formatNumberDirect(num) {
-            if (num === null || num === undefined) return 'N/A';
-            num = Number(num);
-            if (isNaN(num)) return 'N/A';
-            return num.toFixed(2);
-        }
-
-        function showLoading(show) {
-            document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
-            document.getElementById('incomeStatementContent').classList.toggle('hidden', show);
-            document.getElementById('errorMessage').classList.add('hidden');
-        }
-
-        function showError(message) {
-            document.getElementById('loadingIndicator').classList.add('hidden');
-            document.getElementById('incomeStatementContent').classList.add('hidden');
-            document.getElementById('errorText').textContent = message;
-            document.getElementById('errorMessage').classList.remove('hidden');
-        }
-    </script>
+        // Initially render the quarterly data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderQuarterlyData();
+        });
+    </script>
 </body>
 </html>
