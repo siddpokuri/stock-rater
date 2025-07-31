@@ -4,38 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Info - Ratings</title>
+    <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Custom font for a modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background */
-        }
-        /* New styles for the navigation bar */
-        .nav-link {
-            @apply px-4 py-2 font-semibold text-gray-600 transition duration-200 ease-in-out;
-            @apply border-b-2 border-transparent hover:text-gray-900 hover:border-gray-300;
-        }
-        .nav-link.active {
-            @apply text-blue-600 border-blue-600 font-bold;
+            background-color: #f8fafc; /* A very light gray background */
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <!-- Updated navigation bar with new styling -->
-    <header class="bg-white shadow-sm border-b border-gray-200 py-4 px-6 flex flex-wrap justify-center gap-6">
-        <a href="#" id="navGeneral" class="nav-link">General Info</a>
-        <a href="#" id="navIncome" class="nav-link">Income Statement</a>
-        <a href="#" id="navBalance" class="nav-link">Balance Sheet</a>
-        <a href="#" id="navRatings" class="nav-link active">Ratings</a>
-        <a href="#" id="navEarnings" class="nav-link">Earnings</a>
-        <a href="#" id="navInsider" class="nav-link">Insider Trades</a>
-        <a href="#" id="navTargets" class="nav-link">Analyst Targets</a>
-    </header>
+    <!-- Navigation Bar from general_info.html -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-center items-center">
+            <div class="flex flex-wrap justify-center space-x-4 md:space-x-8 text-gray-600 font-semibold">
+                <!-- Navigation items, with dynamic hrefs set by JavaScript -->
+                <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
+                <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
+                <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="text-blue-700 font-bold transition-colors duration-300">Ratings</a>
+                <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
+                <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
+                <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+            </div>
+        </div>
+    </nav>
 
     <main class="container mx-auto p-6">
-        <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
-        
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
             Fetching Ratings Data...
         </div>
@@ -45,10 +42,10 @@
             <span class="block sm:inline" id="errorText"></span>
         </div>
 
-        <div id="ratingsContent" class="hidden bg-white p-6 rounded-xl shadow-md mb-6">
+        <div id="ratingsContent" class="hidden bg-white p-6 rounded-xl shadow-md mb-6 max-w-md mx-auto">
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Stock Ratings</h2>
             
-            <div id="ratingDetails" class="max-w-md mx-auto divide-y divide-gray-200">
+            <div id="ratingDetails" class="divide-y divide-gray-200">
                 <!-- Individual ratings will be inserted here -->
             </div>
         </div>
@@ -62,37 +59,31 @@
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
 
+            const navLinks = [
+                { id: 'nav-general-info', file: 'general_info.html' },
+                { id: 'nav-income-statement', file: 'income_statement.html' },
+                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
+                { id: 'nav-ratings', file: 'ratings.html' },
+                { id: 'nav-earnings', file: 'earnings.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html' },
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
+            ];
+
             if (!stockSymbol) {
                 showError('No stock symbol provided in the URL.');
                 return;
             }
 
-            document.getElementById('stockTitle').textContent = `${stockSymbol} - Ratings`;
-            fetchRatings(stockSymbol);
-            setupNavigationButtons();
-        });
-
-        function setupNavigationButtons() {
-            const navButtons = {
-                'navGeneral': 'general_info.html',
-                'navIncome': 'income_statement.html',
-                'navBalance': 'balance_sheet.html',
-                'navRatings': 'ratings.html',
-                'navEarnings': 'earnings.html',
-                'navInsider': 'insider_trades.html',
-                'navTargets': 'analyst_targets.html'
-            };
-
-            for (const [id, page] of Object.entries(navButtons)) {
-                const button = document.getElementById(id);
-                if (button) {
-                    button.addEventListener('click', (event) => {
-                        event.preventDefault();
-                        window.location.href = `${page}?stock=${stockSymbol}`;
-                    });
+            // Update navigation bar hrefs
+            navLinks.forEach(link => {
+                const navElement = document.getElementById(link.id);
+                if (navElement) {
+                    navElement.href = `${link.file}?stock=${stockSymbol}`;
                 }
-            }
-        }
+            });
+            
+            fetchRatings(stockSymbol);
+        });
 
         // Helper function to get Tailwind CSS color class based on rating text
         function getRatingColorClass(ratingText) {
