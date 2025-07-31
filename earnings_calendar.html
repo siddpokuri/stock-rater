@@ -21,6 +21,7 @@
             @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 ease-in-out;
             @apply mb-4 sm:mb-0; /* Margin for small screens, none for larger */
         }
+        /* Applied the card styling here directly to .earnings-card */
         .earnings-card {
             @apply bg-white p-6 rounded-xl shadow-md flex flex-col space-y-2;
         }
@@ -51,14 +52,19 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Styling for the prominent date range display */
+        #dateRangeDisplay {
+            @apply text-xl md:text-2xl font-bold text-gray-700 text-center w-full mt-2 sm:mt-0; /* Larger, bold, centered */
+        }
     </style>
 </head>
 <body class="bg-gray-100">
     <header class="header-container">
         <a href="index.html" class="back-button">← Back to Home</a>
         <h1 class="text-3xl font-bold text-gray-800 text-center flex-grow sm:ml-4">Upcoming Earnings Calendar</h1>
+        <!-- Date range display moved and styled for prominence -->
         <div class="w-full sm:w-auto text-center sm:text-right mt-2 sm:mt-0">
-            <span id="dateRangeDisplay" class="text-gray-600 text-lg font-medium"></span>
+            <span id="dateRangeDisplay"></span>
         </div>
     </header>
 
@@ -90,7 +96,11 @@
             const toDate = sessionStorage.getItem('upcomingEarningsToDate');
 
             if (fromDate && toDate) {
-                dateRangeDisplay.textContent = `(${fromDate} to ${toDate})`;
+                // Formatting the date for display
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                const formattedFromDate = new Date(fromDate).toLocaleDateString(undefined, options);
+                const formattedToDate = new Date(toDate).toLocaleDateString(undefined, options);
+                dateRangeDisplay.textContent = `${formattedFromDate} to ${formattedToDate}`;
             }
 
             if (storedData) {
@@ -125,7 +135,8 @@
 
             data.forEach(entry => {
                 const card = document.createElement('div');
-                card.className = 'earnings-card';
+                // Ensure the earnings-card class has the desired styling
+                card.className = 'earnings-card bg-white p-6 rounded-xl shadow-md flex flex-col space-y-2'; 
                 card.innerHTML = `
                     <p><strong>Symbol:</strong> <span>${entry["Symbol"] || 'N/A'}</span></p>
                     <p><strong>Exchange:</strong> <span>${entry["Exchange Name"] || 'N/A'}</span></p>
