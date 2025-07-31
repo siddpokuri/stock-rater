@@ -4,159 +4,177 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Info - Insider Trades</title>
+    <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Custom font for a modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background */
+            background-color: #f8fafc; /* A very light gray background */
         }
-        .nav-button {
-            @apply px-4 py-2 rounded-lg font-semibold transition duration-200 ease-in-out;
-            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        /* Custom styles for the navigation links */
+        .nav-link {
+            transition: color 0.3s, font-weight 0.3s;
         }
-        .nav-button.active {
-            @apply bg-blue-600 text-white hover:bg-blue-700;
-        }
-        .data-table th, .data-table td {
-            @apply px-4 py-2 text-left;
-        }
-        .data-table th {
-            @apply bg-gray-50 text-gray-600 uppercase text-sm;
-        }
-        .data-table tr:nth-child(even) {
-            @apply bg-gray-50;
+        .nav-link.active {
+            color: #2563eb; /* A nice blue color */
+            font-weight: 700;
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4">
-        <a href="#" id="navGeneral" class="nav-button">General Info</a>
-        <a href="#" id="navIncome" class="nav-button">Income Statement</a>
-        <a href="#" id="navBalance" class="nav-button">Balance Sheet</a>
-        <a href="#" id="navRatings" class="nav-button">Ratings</a>
-        <a href="#" id="navEarnings" class="nav-button">Earnings</a>
-        <a href="#" id="navInsider" class="nav-button active">Insider Trades</a>
-        <a href="#" id="navTargets" class="nav-button">Analyst Targets</a>
-    </header>
+<body class="min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-center items-center">
+            <div class="flex space-x-8 text-gray-600 font-semibold">
+                <!-- Navigation items, with dynamic hrefs set by JavaScript -->
+                <a href="#" id="nav-general-info" class="nav-link hover:text-blue-600 transition-colors duration-300">General Info</a>
+                <a href="#" id="nav-income-statement" class="nav-link hover:text-blue-600 transition-colors duration-300">Income Statement</a>
+                <a href="#" id="nav-balance-sheet" class="nav-link hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="nav-link hover:text-blue-600 transition-colors duration-300">Ratings</a>
+                <a href="#" id="nav-earnings" class="nav-link hover:text-blue-600 transition-colors duration-300">Earnings</a>
+                <a href="#" id="nav-insider-trades" class="nav-link active hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
+                <a href="#" id="nav-analyst-targets" class="nav-link hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+            </div>
+        </div>
+    </nav>
 
     <main class="container mx-auto p-6">
-        <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
+        <!-- Main title for the page -->
+        <h1 id="stockTitle" class="text-3xl font-bold text-gray-800 mb-8 text-center"></h1>
         
+        <!-- Loading Indicator -->
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
-            Fetching Insider Trades Data...
+            <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-2">Fetching Insider Trades Data...</p>
         </div>
 
-        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10" role="alert">
+        <!-- Error Message -->
+        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10 text-center" role="alert">
             <strong class="font-bold">Error!</strong>
             <span class="block sm:inline" id="errorText"></span>
         </div>
 
-        <div id="insiderTradesContent" class="hidden">
-            <div class="bg-white p-6 rounded-xl shadow-md">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Insider Trades</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white border border-gray-200 rounded-lg data-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Reporter</th>
-                                <th>Role</th>
-                                <th>Shares</th>
-                                <th>Transaction Type</th>
-                            </tr>
-                        </thead>
-                        <tbody id="insiderTradesTableBody">
-                            <!-- Data will be inserted here by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
+        <!-- Container for the table data -->
+        <div id="insiderTradesContent" class="hidden bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl mx-auto">
+            <h2 class="text-xl font-bold text-gray-700 mb-6">Recent Insider Trades</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="py-3 px-4 font-semibold text-left text-gray-600">Date</th>
+                            <th class="py-3 px-4 font-semibold text-left text-gray-600">Reporter</th>
+                            <th class="py-3 px-4 font-semibold text-left text-gray-600">Role</th>
+                            <th class="py-3 px-4 font-semibold text-left text-gray-600">Shares</th>
+                            <th class="py-3 px-4 font-semibold text-left text-gray-600">Transaction Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="insiderTradesTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>
 
     <script>
         let stockSymbol = '';
-        const backendBaseUrl = 'https://stock-backend-0128.onrender.com'; // Your Render backend URL
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
+            
+            // Set up the navigation links
+            const navLinks = [
+                { id: 'nav-general-info', file: 'general_info.html' },
+                { id: 'nav-income-statement', file: 'income_statement.html' },
+                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
+                { id: 'nav-ratings', file: 'ratings.html' },
+                { id: 'nav-earnings', file: 'earnings.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html' },
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
+            ];
 
-            if (!stockSymbol) {
-                showError('No stock symbol provided in the URL.');
-                return;
+            if (stockSymbol) {
+                document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Insider Trades`;
+                fetchInsiderTrades(stockSymbol);
+                navLinks.forEach(link => {
+                    const navElement = document.getElementById(link.id);
+                    if (navElement) {
+                        navElement.href = `${link.file}?stock=${stockSymbol}`;
+                    }
+                });
+            } else {
+                showError('No stock symbol provided in the URL. Please return to the main page and select a stock.');
             }
-
-            document.getElementById('stockTitle').textContent = `${stockSymbol} - Insider Trades`;
-            fetchInsiderTrades(stockSymbol);
-            setupNavigationButtons();
         });
-
-        function setupNavigationButtons() {
-            const navButtons = {
-                'navGeneral': 'general_info.html',
-                'navIncome': 'income_statement.html',
-                'navBalance': 'balance_sheet.html',
-                'navRatings': 'ratings.html',
-                'navEarnings': 'earnings.html',
-                'navInsider': 'insider_trades.html',
-                'navTargets': 'analyst_targets.html'
-            };
-
-            for (const [id, page] of Object.entries(navButtons)) {
-                const button = document.getElementById(id);
-                if (button) {
-                    button.addEventListener('click', (event) => {
-                        event.preventDefault();
-                        window.location.href = `${page}?stock=${stockSymbol}`;
-                    });
-                }
-            }
-        }
 
         async function fetchInsiderTrades(symbol) {
             showLoading(true);
             try {
-                const response = await fetch(`${backendBaseUrl}/tab6?stock=${symbol}`);
+                // Implementing exponential backoff for the API call
+                let response = null;
+                let delay = 1000;
+                const maxRetries = 5;
+
+                for (let i = 0; i < maxRetries; i++) {
+                    response = await fetch(`${backendBaseUrl}/tab6?stock=${symbol}`);
+                    if (response.ok) {
+                        break;
+                    }
+                    if (response.status === 429) {
+                        console.warn(`API call failed with status 429. Retrying in ${delay}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    } else {
+                        throw new Error(`API call failed with status ${response.status}`);
+                    }
+                }
+                
+                if (!response || !response.ok) {
+                    throw new Error('Max retries reached, failed to fetch data.');
+                }
+                
                 const data = await response.json();
 
-                if (response.ok) {
-                    if (data.error) {
-                        showError(data.error);
-                    } else {
-                        displayInsiderTrades(data);
-                        showLoading(false);
-                    }
+                if (data.error) {
+                    showError(data.error);
                 } else {
-                    showError(data.error || 'Failed to fetch insider trades data from backend.');
+                    displayInsiderTrades(data);
                 }
             } catch (error) {
                 console.error('Error fetching insider trades:', error);
-                showError('A network error occurred while fetching insider trades. Please check your internet connection or try again later.');
+                showError(`A network error occurred while fetching data. ${error.message}`);
+            } finally {
+                showLoading(false);
             }
         }
 
         function displayInsiderTrades(data) {
-            const tab6Data = data; // Backend JSON is directly the content (a list of trades)
             const tableBody = document.getElementById('insiderTradesTableBody');
             tableBody.innerHTML = ''; // Clear previous content
 
-            if (tab6Data && Array.isArray(tab6Data) && tab6Data.length > 0) {
-                tab6Data.forEach(trade => {
+            if (data && Array.isArray(data) && data.length > 0) {
+                data.forEach(trade => {
                     const row = document.createElement('tr');
+                    // Add Tailwind classes for row and cells
                     row.innerHTML = `
-                        <td>${trade.Date || 'N/A'}</td>
-                        <td>${trade.Reporter || 'N/A'}</td>
-                        <td>${trade.Role || 'N/A'}</td>
-                        <td>${trade.Shares || 'N/A'}</td>
-                        <td>${trade['Transaction Type'] || 'N/A'}</td>
+                        <td class="py-3 px-4 text-gray-600">${trade.Date || 'N/A'}</td>
+                        <td class="py-3 px-4 text-gray-600">${trade.Reporter || 'N/A'}</td>
+                        <td class="py-3 px-4 text-gray-600">${trade.Role || 'N/A'}</td>
+                        <td class="py-3 px-4 text-gray-600">${trade.Shares || 'N/A'}</td>
+                        <td class="py-3 px-4 text-gray-600">${trade['Transaction Type'] || 'N/A'}</td>
                     `;
                     tableBody.appendChild(row);
                 });
             } else {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="5" class="text-center text-gray-500">No insider trades data available.</td>`;
+                row.innerHTML = `<td colspan="5" class="py-4 text-center text-gray-500">No insider trades data available.</td>`;
                 tableBody.appendChild(row);
             }
 
