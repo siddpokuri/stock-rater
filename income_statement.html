@@ -64,7 +64,6 @@
 <body class="bg-gray-100">
     <header class="header-container">
         <h1 class="text-3xl font-bold text-gray-800 text-center" id="incomeStatementTitle"></h1>
-        <!-- Back button link is now dynamic, using the 'stock' URL parameter to go back to general_info.html -->
         <a id="backButton" href="index.html" class="back-button">← Back to Home</a>
     </header>
 
@@ -100,13 +99,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const symbol = urlParams.get('stock'); // Get the stock symbol from the URL
+            const symbol = urlParams.get('stock'); 
             const pageTitle = document.getElementById('incomeStatementTitle');
             const backButton = document.getElementById('backButton');
             const quarterlyBtn = document.getElementById('quarterlyBtn');
             const yearlyBtn = document.getElementById('yearlyBtn');
 
-            // Set the back button's href dynamically
             if (symbol) {
                 backButton.href = `general_info.html?stock=${symbol}`;
             }
@@ -118,7 +116,6 @@
                 showError('No stock symbol found. Please go back to the home page and select a symbol.');
             }
 
-            // Event listeners for toggle buttons
             quarterlyBtn.addEventListener('click', () => {
                 quarterlyBtn.classList.add('active-toggle');
                 yearlyBtn.classList.remove('active-toggle');
@@ -134,19 +131,23 @@
 
         async function fetchAndRenderIncomeStatement(symbol, period) {
             showLoading(true);
-            showError(''); // Clear previous errors
+            showError('');
             try {
-                const response = await fetch(`/api/income-statement?symbol=${symbol}&period=${period}`);
+                // Corrected fetch call to use the /tab2 endpoint with the stock symbol in the URL
+                const response = await fetch(`/tab2?stock=${symbol}`);
                 const data = await response.json();
 
-                if (data.error) {
-                    showError(data.error);
+                if (response.ok) {
+                    if (period === 'quarterly') {
+                        renderTable(data["Quarterly Income Statement Info"], data["Quarterly Ratios"], period);
+                    } else if (period === 'yearly') {
+                        renderTable(data["Yearly Income Statement Info"], data["Yearly Ratios"], period);
+                    }
+                    document.getElementById('incomeStatementContent').classList.remove('hidden');
+                } else {
+                    showError(data.error || 'An unknown error occurred while fetching data.');
                     document.getElementById('incomeStatementContent').classList.add('hidden');
-                    return;
                 }
-
-                renderTable(data, period);
-                document.getElementById('incomeStatementContent').classList.remove('hidden');
             } catch (error) {
                 console.error('Failed to fetch income statement data:', error);
                 showError('Failed to load income statement data. Please try again.');
@@ -156,7 +157,7 @@
             }
         }
 
-        function renderTable(data, period) {
+        function renderTable(incomeData, ratioData, period) {
             const tableHeader = document.getElementById('tableHeader');
             const tableBody = document.getElementById('tableBody');
             const statementPeriodTitle = document.getElementById('statementPeriodTitle');
@@ -170,41 +171,77 @@
             };
             statementPeriodTitle.textContent = titleMap[period];
 
-            if (data.length === 0) {
+            if (!incomeData || !Object.keys(incomeData).length) {
                 tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No data available for this period.</td></tr>';
                 return;
             }
 
-            const headerRow = document.createElement('tr');
-            const metricHeader = document.createElement('th');
-            metricHeader.textContent = 'Metric';
-            headerRow.appendChild(metricHeader);
-            Object.keys(data[0]).forEach(key => {
-                if (key !== "Metric") {
+            let headerRow;
+            const dates = incomeData.dates;
+            
+            // For quarterly, the dates are an array. For yearly, the data is not.
+            if (period === 'quarterly' && dates && dates.length > 0) {
+                headerRow = document.createElement('tr');
+                let metricHeader = document.createElement('th');
+                metricHeader.textContent = 'Metric';
+                headerRow.appendChild(metricHeader);
+                dates.forEach(date => {
                     const th = document.createElement('th');
-                    th.textContent = key;
+                    th.textContent = date;
                     headerRow.appendChild(th);
-                }
-            });
-            tableHeader.appendChild(headerRow);
+                });
+                tableHeader.appendChild(headerRow);
+            } else if (period === 'yearly') {
+                headerRow = document.createElement('tr');
+                let metricHeader = document.createElement('th');
+                metricHeader.textContent = 'Metric';
+                let th = document.createElement('th');
+                th.textContent = 'Value';
+                headerRow.appendChild(metricHeader);
+                headerRow.appendChild(th);
+                tableHeader.appendChild(headerRow);
+            }
 
-            data.forEach(metric => {
+            function appendRow(key, values) {
                 const row = document.createElement('tr');
                 const metricCell = document.createElement('td');
-                metricCell.textContent = metric["Metric"];
+                metricCell.textContent = key;
                 metricCell.classList.add('font-medium', 'text-gray-900');
                 row.appendChild(metricCell);
-
-                Object.keys(metric).forEach(key => {
-                    if (key !== "Metric") {
+                if (Array.isArray(values)) {
+                    values.forEach(value => {
                         const cell = document.createElement('td');
-                        cell.textContent = metric[key];
+                        cell.textContent = value;
                         row.appendChild(cell);
-                    }
-                });
+                    });
+                } else {
+                    const cell = document.createElement('td');
+                    cell.textContent = values;
+                    row.appendChild(cell);
+                }
                 tableBody.appendChild(row);
-            });
+            }
+
+            // Append income statement rows
+            for (const key in incomeData) {
+                if (key !== "dates") {
+                    appendRow(key, incomeData[key]);
+                }
+            }
+
+            // Append a separator row
+            const separatorRow = document.createElement('tr');
+            separatorRow.innerHTML = `<td colspan="${period === 'quarterly' ? dates.length + 1 : 2}" class="h-6"></td>`;
+            tableBody.appendChild(separatorRow);
+
+            // Append ratios
+            if (ratioData) {
+                for (const key in ratioData) {
+                    appendRow(key, ratioData[key]);
+                }
+            }
         }
+
 
         function showLoading(show) {
             document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
