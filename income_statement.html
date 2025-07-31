@@ -122,16 +122,16 @@
                     <table class="min-w-full table-auto">
                         <thead>
                             <tr class="bg-gray-50 text-gray-600 text-left">
-                                <th class="py-3 px-4 font-semibold">Metric</th>
-                                ${info.dates.map(date => `<th class="py-3 px-4 font-semibold">${date}</th>`).join('')}
+                                <th class="py-3 px-4 font-semibold text-left">Metric</th>
+                                ${info.dates.map(date => `<th class="py-3 px-4 font-semibold text-right">${date}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${metrics.map(metric => `
                                 <tr>
-                                    <td class="py-3 px-4 text-gray-800 font-medium">${metric.name}</td>
+                                    <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric.name}</td>
                                     ${metric.data.map(value => `
-                                        <td class="py-3 px-4 text-gray-600">
+                                        <td class="py-3 px-4 text-gray-600 text-right">
                                             ${value !== null && value !== undefined ? value : 'N/A'}
                                         </td>
                                     `).join('')}
@@ -148,6 +148,7 @@
         function renderYearlyData(data) {
             const info = data["Yearly Income Statement Info"];
             const ratios = data["Yearly Ratios"];
+            const latestYear = new Date().getFullYear();
 
             // Extract the latest year's revenue from the array.
             const latestRevenue = info.Revenue && info.Revenue.length > 0 ? info.Revenue[0] : 'N/A';
@@ -167,16 +168,16 @@
                 <div class="overflow-x-auto">
                     <table class="min-w-full table-auto">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-600 text-left">
-                                <th class="py-3 px-4 font-semibold">Metric</th>
-                                <th class="py-3 px-4 font-semibold">Value</th>
+                            <tr class="bg-gray-50 text-gray-600">
+                                <th class="py-3 px-4 font-semibold text-left">Metric</th>
+                                <th class="py-3 px-4 font-semibold text-right">${latestYear}</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${metrics.map(metric => `
                                 <tr>
-                                    <td class="py-3 px-4 text-gray-800 font-medium">${metric.name}</td>
-                                    <td class="py-3 px-4 text-gray-600">
+                                    <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric.name}</td>
+                                    <td class="py-3 px-4 text-gray-600 text-right">
                                         ${metric.value !== null && metric.value !== undefined ? metric.value : 'N/A'}
                                     </td>
                                 </tr>
