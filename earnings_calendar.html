@@ -15,13 +15,12 @@
             flex-direction: column;
         }
         .header-container {
-            @apply bg-white shadow-md py-4 px-6 flex flex-col sm:flex-row items-center justify-between;
+            @apply bg-white shadow-md py-4 px-6 flex flex-col items-center; /* Changed to flex-col for stacking */
         }
         .back-button {
             @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 ease-in-out;
-            @apply mb-4 sm:mb-0; /* Margin for small screens, none for larger */
+            @apply mt-4; /* Add top margin to separate from title */
         }
-        /* Applied the card styling here directly to .earnings-card */
         .earnings-card {
             @apply bg-white p-6 rounded-xl shadow-md flex flex-col space-y-2;
         }
@@ -52,20 +51,14 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Styling for the prominent date range display */
-        #dateRangeDisplay {
-            @apply text-xl md:text-2xl font-bold text-gray-700 text-center w-full mt-2 sm:mt-0; /* Larger, bold, centered */
-        }
+        /* Removed #dateRangeDisplay styling as it's being removed from HTML */
     </style>
 </head>
 <body class="bg-gray-100">
     <header class="header-container">
+        <h1 class="text-3xl font-bold text-gray-800 text-center">Upcoming Earnings Calendar</h1>
+        <!-- Back button moved directly below the title -->
         <a href="index.html" class="back-button">← Back to Home</a>
-        <h1 class="text-3xl font-bold text-gray-800 text-center flex-grow sm:ml-4">Upcoming Earnings Calendar</h1>
-        <!-- Date range display moved and styled for prominence -->
-        <div class="w-full sm:w-auto text-center sm:text-right mt-2 sm:mt-0">
-            <span id="dateRangeDisplay"></span>
-        </div>
     </header>
 
     <main class="container mx-auto p-6 flex-grow">
@@ -88,20 +81,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             const calendarContentDiv = document.getElementById('calendarContent');
             const noCalendarDataMessage = document.getElementById('noCalendarDataMessage');
-            const dateRangeDisplay = document.getElementById('dateRangeDisplay');
+            // Removed dateRangeDisplay element reference
 
             // Retrieve data from sessionStorage
             const storedData = sessionStorage.getItem('upcomingEarningsData');
-            const fromDate = sessionStorage.getItem('upcomingEarningsFromDate');
-            const toDate = sessionStorage.getItem('upcomingEarningsToDate');
-
-            if (fromDate && toDate) {
-                // Formatting the date for display
-                const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                const formattedFromDate = new Date(fromDate).toLocaleDateString(undefined, options);
-                const formattedToDate = new Date(toDate).toLocaleDateString(undefined, options);
-                dateRangeDisplay.textContent = `${formattedFromDate} to ${formattedToDate}`;
-            }
+            const fromDate = sessionStorage.getItem('upcomingEarningsFromDate'); // Still retrieve for no data message
+            const toDate = sessionStorage.getItem('upcomingEarningsToDate');     // Still retrieve for no data message
 
             if (storedData) {
                 const data = JSON.parse(storedData);
@@ -135,7 +120,6 @@
 
             data.forEach(entry => {
                 const card = document.createElement('div');
-                // Ensure the earnings-card class has the desired styling
                 card.className = 'earnings-card bg-white p-6 rounded-xl shadow-md flex flex-col space-y-2'; 
                 card.innerHTML = `
                     <p><strong>Symbol:</strong> <span>${entry["Symbol"] || 'N/A'}</span></p>
