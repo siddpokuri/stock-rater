@@ -4,19 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Info - General</title>
+    <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        /* Custom font for a modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background */
+            background-color: #f8fafc; /* A very light gray background */
         }
-        .nav-button {
-            @apply px-4 py-2 rounded-lg font-semibold transition duration-200 ease-in-out;
-            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        /* Custom styles for the toggle buttons (retained for consistency with other pages, though not used here) */
+        .toggle-button {
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
         }
-        .nav-button.active {
-            @apply bg-blue-600 text-white hover:bg-blue-700;
+        .toggle-button.active {
+            background-color: white;
+            color: #2563eb; /* A nice blue color */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         /* Chart container styling */
         .chart-container {
@@ -43,32 +47,31 @@
         }
         /* Styling for the new chart section title (Company Name - Exchange: Symbol) */
         #chartSectionTitle {
-            @apply text-2xl font-bold text-gray-800 mb-4 text-center; /* Keep existing H2 styling, but JS will update content */
+            @apply text-2xl font-bold text-gray-800 mb-4 text-center;
         }
         #currentPriceDisplay {
-            @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4; /* Styling for price above chart */
-        }
-        /* Ensure header is on top if needed */
-        header {
-            position: relative;
-            z-index: 20; /* Higher than mainPageTitle if they overlap, though they shouldn't */
+            @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4;
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4 relative">
-        <!-- Navigation buttons remain here -->
-        <a href="#" id="navGeneral" class="nav-button active">General Info</a>
-        <a href="#" id="navIncome" class="nav-button">Income Statement</a>
-        <a href="#" id="navBalance" class="nav-button">Balance Sheet</a>
-        <a href="#" id="navRatings" class="nav-button">Ratings</a>
-        <a href="#" id="navEarnings" class="nav-button">Earnings</a>
-        <a href="#" id="navInsider" class="nav-button">Insider Trades</a>
-        <a href="#" id="navTargets" class="nav-button">Analyst Targets</a>
-    </header>
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-center items-center">
+            <div class="flex space-x-8 text-gray-600 font-semibold">
+                <!-- Navigation items, with dynamic hrefs set by JavaScript -->
+                <a href="#" id="nav-general-info" class="text-blue-700 font-bold transition-colors duration-300">General Info</a>
+                <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
+                <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
+                <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
+                <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
+                <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+            </div>
+        </div>
+    </nav>
 
     <main class="container mx-auto p-6">
-        
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
             Fetching General Info and Chart Data...
         </div>
@@ -91,7 +94,7 @@
                 <!-- Chart Section -->
                 <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
                     <!-- This h2 will now display Company Name - (Exchange: Symbol) -->
-                    <h2 id="chartSectionTitle" class="text-2xl font-bold text-gray-800 mb-4 text-center"></h2> 
+                    <h2 id="chartSectionTitle" class="text-2xl font-bold text-gray-800 mb-4 text-center"></h2>
                     <!-- Current Price Display -->
                     <div id="currentPriceDisplay" class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
                         Price: N/A
@@ -111,7 +114,7 @@
                             1 Year
                         </button>
                     </div>
-                    <div class="chart-container"> 
+                    <div class="chart-container">
                         <canvas id="priceChart"></canvas>
                         <p id="noChartDataMessage" class="no-chart-data-message hidden">No chart data available for this period.</p>
                     </div>
@@ -141,36 +144,32 @@
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
 
+            // Set the navigation bar links
+            const navLinks = [
+                { id: 'nav-general-info', file: 'general_info.html' },
+                { id: 'nav-income-statement', file: 'income_statement.html' },
+                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
+                { id: 'nav-ratings', file: 'ratings.html' },
+                { id: 'nav-earnings', file: 'earnings.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html' },
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
+            ];
+
             if (!stockSymbol) {
                 showError('No stock symbol provided in the URL.');
                 return;
             }
+
+            // Update navigation bar hrefs
+            navLinks.forEach(link => {
+                const navElement = document.getElementById(link.id);
+                if (navElement) {
+                    navElement.href = `${link.file}?stock=${stockSymbol}`;
+                }
+            });
             
             fetchGeneralInfo(stockSymbol);
-            setupNavigationButtons();
         });
-
-        function setupNavigationButtons() {
-            const navButtons = {
-                'navGeneral': 'general_info.html',
-                'navIncome': 'income_statement.html',
-                'navBalance': 'balance_sheet.html',
-                'navRatings': 'ratings.html',
-                'navEarnings': 'earnings.html',
-                'navInsider': 'insider_trades.html',
-                'navTargets': 'analyst_targets.html'
-            };
-
-            for (const [id, page] of Object.entries(navButtons)) {
-                const button = document.getElementById(id);
-                if (button) {
-                    button.addEventListener('click', (event) => {
-                        event.preventDefault();
-                        window.location.href = `${page}?stock=${stockSymbol}`;
-                    });
-                }
-            }
-        }
 
         async function fetchGeneralInfo(symbol) {
             showLoading(true);
@@ -211,19 +210,14 @@
 
             if (!generalData || Object.keys(generalData).length === 0) {
                 generalInfoDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No general info data available.</p>';
-                // Set chart section title even if no data
-                document.getElementById('chartSectionTitle').textContent = `No Data Available for ${stockSymbol}`; // Adjusted message
+                document.getElementById('chartSectionTitle').textContent = `No Data Available for ${stockSymbol}`;
             } else {
                 const profileInfo = generalData["Profile Info"] || {};
-                
-                // Update chart section title: Company Name - (Exchange: Symbol)
                 const chartSectionTitle = document.getElementById('chartSectionTitle');
                 const companyName = profileInfo["Company Name"] || 'N/A';
-                const exchangeName = profileInfo["Exchange Name"] || 'N/A'; // Get exchange name
+                const exchangeName = profileInfo["Exchange Name"] || 'N/A';
                 chartSectionTitle.textContent = `${companyName} - (${exchangeName}: ${stockSymbol})`;
 
-
-                // Update current price display above the chart
                 const currentPriceDisplay = document.getElementById('currentPriceDisplay');
                 currentPriceDisplay.textContent = `Price: ${formatGeneralInfoValue(profileInfo["Price"], "Price")}`;
 
@@ -236,25 +230,23 @@
                     { label: "Industry", value: profileInfo["Industry"] },
                     { label: "Sector", value: profileInfo["Sector"] },
                     { label: "Country", value: profileInfo["Country"] },
-                    { label: "Exchange Name", value: profileInfo["Exchange Name"] } // Added to general info table
+                    { label: "Exchange Name", value: profileInfo["Exchange Name"] }
                 ];
 
                 infoItems.forEach(item => {
                     const row = document.createElement('div');
                     row.className = 'flex justify-between items-center py-2';
                     row.innerHTML = `
-                        <strong class="text-gray-700">${item.label}:</strong> 
+                        <strong class="text-gray-700">${item.label}:</strong>
                         <span class="text-gray-800">${formatGeneralInfoValue(item.value, item.label)}</span>
                     `;
                     generalInfoDetailsDiv.appendChild(row);
                 });
             }
 
-            // Render initial chart (1 Day)
             renderPriceChart('1D');
-            setActiveChartButton('chartBtn1D'); // Set initial active button
+            setActiveChartButton('chartBtn1D');
 
-            // Setup chart period buttons
             document.getElementById('chartBtn1D').onclick = () => { renderPriceChart('1D'); setActiveChartButton('chartBtn1D'); };
             document.getElementById('chartBtn5D').onclick = () => { renderPriceChart('5D'); setActiveChartButton('chartBtn5D'); };
             document.getElementById('chartBtn1M').onclick = () => { renderPriceChart('1M'); setActiveChartButton('chartBtn1M'); };
@@ -266,13 +258,12 @@
                 return 'N/A';
             }
             if (label === "Market Cap") {
-                return value; // Already formatted by backend
+                return value;
             }
-            // For Price, PE Ratio, EPS, Quarterly Dividend, Beta - format to 2 decimal places if number
             if (typeof value === 'number' && (label === "Price" || label === "PE Ratio" || label === "EPS" || label === "Quarterly Dividend" || label === "Beta")) {
                 return value.toFixed(2);
             }
-            return value; 
+            return value;
         }
 
         function setActiveChartButton(activeBtnId) {
@@ -285,7 +276,7 @@
                     button.classList.add('bg-gray-300', 'text-gray-800', 'hover:bg-gray-400');
                 }
             });
-            currentChartPeriod = activeBtnId.replace('chartBtn', ''); 
+            currentChartPeriod = activeBtnId.replace('chartBtn', '');
         }
 
         function renderPriceChart(period) {
@@ -293,37 +284,33 @@
             const noChartDataMessageElement = document.getElementById('noChartDataMessage');
             let ctx = null;
 
-            // Destroy previous chart instance if it exists
             if (priceChartInstance) {
                 priceChartInstance.destroy();
-                priceChartInstance = null; 
+                priceChartInstance = null;
             }
 
-            // Ensure the canvas element exists and is visible
             let priceChartCanvas = document.getElementById('priceChart');
             if (!priceChartCanvas) {
                 chartContainerDiv.innerHTML = '<canvas id="priceChart"></canvas>';
                 priceChartCanvas = document.getElementById('priceChart');
             }
-            priceChartCanvas.style.display = 'block'; 
-            noChartDataMessageElement.classList.add('hidden'); 
+            priceChartCanvas.style.display = 'block';
+            noChartDataMessageElement.classList.add('hidden');
 
             ctx = priceChartCanvas.getContext('2d');
 
-            const chartDataForPeriod = generalData[period]; 
+            const chartDataForPeriod = generalData[period];
 
-            // Handle cases where data for a period is "N/A" or empty
             if (!chartDataForPeriod || chartDataForPeriod === "N/A" || chartDataForPeriod.length === 0) {
-                priceChartCanvas.style.display = 'none'; 
-                noChartDataMessageElement.classList.remove('hidden'); 
+                priceChartCanvas.style.display = 'none';
+                noChartDataMessageElement.classList.remove('hidden');
                 document.getElementById('chartPercentageChange').textContent = 'Change: N/A';
                 document.getElementById('chartPercentageChange').className = 'text-xl md:text-2xl font-semibold text-gray-800';
                 document.getElementById('chartVolume').textContent = 'Volume: N/A';
-                document.getElementById('chartVolume').classList.add('hidden'); 
+                document.getElementById('chartVolume').classList.add('hidden');
                 return;
             }
 
-            // Determine keys for date and price based on period
             let dateKey = 'datetime';
             let priceKey = 'close';
             if (period === '1Y') {
@@ -334,7 +321,6 @@
             const labels = chartDataForPeriod.map(d => d[dateKey]);
             const prices = chartDataForPeriod.map(d => parseFloat(d[priceKey]));
 
-            // Calculate percentage change
             let percentageChange = 'N/A';
             let changeColorClass = 'text-gray-800';
             if (prices.length > 1) {
@@ -353,14 +339,13 @@
             document.getElementById('chartPercentageChange').textContent = `Change: ${percentageChange}`;
             document.getElementById('chartPercentageChange').className = `text-xl md:text-2xl font-semibold ${changeColorClass}`;
 
-            // Display Volume (only for 1D, as per backend structure)
             const chartVolumeElement = document.getElementById('chartVolume');
             if (period === '1D' && generalData["Volume (last trading day)"] !== undefined && generalData["Volume (last trading day)"] !== null) {
                 chartVolumeElement.textContent = `Volume: ${formatGeneralInfoValue(generalData["Volume (last trading day)"], "Volume")}`;
                 chartVolumeElement.classList.remove('hidden');
             } else {
                 chartVolumeElement.textContent = 'Volume: N/A';
-                chartVolumeElement.classList.add('hidden'); 
+                chartVolumeElement.classList.add('hidden');
             }
 
             priceChartInstance = new Chart(ctx, {
@@ -370,19 +355,19 @@
                     datasets: [{
                         label: 'Price',
                         data: prices,
-                        borderColor: 'rgb(75, 192, 192)', 
+                        borderColor: 'rgb(75, 192, 192)',
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         fill: true,
                         tension: 0.1,
-                        pointRadius: 0 
+                        pointRadius: 0
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, 
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false 
+                            display: false
                         },
                         tooltip: {
                             mode: 'index',
@@ -394,30 +379,30 @@
                             ticks: {
                                 maxRotation: 45,
                                 minRotation: 45,
-                                color: '#4b5563', 
-                                autoSkip: true, 
-                                maxTicksLimit: 10, 
+                                color: '#4b5563',
+                                autoSkip: true,
+                                maxTicksLimit: 10,
                                 callback: function(value, index, ticks) {
                                     const datetimeStr = this.getLabelForValue(value);
                                     if (period === '1D') {
-                                        return datetimeStr.substring(11, 16); // Show time for 1D
-                                    } else if (period === '1M' || period === '1Y' || period === '5D') { 
-                                        return datetimeStr.substring(0, 10); // Show date for 5D, 1M, 1Y
+                                        return datetimeStr.substring(11, 16);
+                                    } else if (period === '1M' || period === '1Y' || period === '5D') {
+                                        return datetimeStr.substring(0, 10);
                                     }
-                                    return datetimeStr; 
+                                    return datetimeStr;
                                 }
                             },
                             grid: {
-                                display: false 
+                                display: false
                             }
                         },
                         y: {
                             beginAtZero: false,
                             ticks: {
-                                color: '#4b5563' 
+                                color: '#4b5563'
                             },
                             grid: {
-                                color: '#e5e7eb' 
+                                color: '#e5e7eb'
                             }
                         }
                     }
