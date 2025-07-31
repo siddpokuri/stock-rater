@@ -64,7 +64,8 @@
 <body class="bg-gray-100">
     <header class="header-container">
         <h1 class="text-3xl font-bold text-gray-800 text-center" id="incomeStatementTitle"></h1>
-        <a href="index.html" class="back-button">← Back to Home</a>
+        <!-- Back button link is now dynamic, using the 'stock' URL parameter to go back to general_info.html -->
+        <a id="backButton" href="index.html" class="back-button">← Back to Home</a>
     </header>
 
     <main class="container mx-auto p-6 flex-grow">
@@ -98,13 +99,17 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const symbol = sessionStorage.getItem('selectedSymbol');
+            const urlParams = new URLSearchParams(window.location.search);
+            const symbol = urlParams.get('stock'); // Get the stock symbol from the URL
             const pageTitle = document.getElementById('incomeStatementTitle');
+            const backButton = document.getElementById('backButton');
             const quarterlyBtn = document.getElementById('quarterlyBtn');
             const yearlyBtn = document.getElementById('yearlyBtn');
 
-            // Log the symbol to the console for debugging
-            console.log('Symbol retrieved from sessionStorage:', symbol);
+            // Set the back button's href dynamically
+            if (symbol) {
+                backButton.href = `general_info.html?stock=${symbol}`;
+            }
 
             if (symbol && symbol.trim() !== '') {
                 pageTitle.textContent = `${symbol} - Income Statement`;
