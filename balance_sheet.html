@@ -122,17 +122,17 @@
                 <div class="overflow-x-auto">
                     <table class="min-w-full table-auto">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-600 text-left">
-                                <th class="py-3 px-4 font-semibold">Metric</th>
-                                ${quarterlyInfo.dates.map(date => `<th class="py-3 px-4 font-semibold">${date}</th>`).join('')}
+                            <tr class="bg-gray-50 text-gray-600">
+                                <th class="py-3 px-4 font-semibold text-left">Metric</th>
+                                ${quarterlyInfo.dates.map(date => `<th class="py-3 px-4 font-semibold text-right">${date}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${metrics.map(metric => `
                                 <tr>
-                                    <td class="py-3 px-4 text-gray-800 font-medium">${metric}</td>
+                                    <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric}</td>
                                     ${quarterlyInfo[metric].map(value => `
-                                        <td class="py-3 px-4 text-gray-600 text-center">
+                                        <td class="py-3 px-4 text-gray-600 text-right">
                                             ${value !== null && value !== undefined ? formatNumber(value) : 'N/A'}
                                         </td>
                                     `).join('')}
@@ -166,16 +166,16 @@
                 <div class="overflow-x-auto">
                     <table class="min-w-full table-auto">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-600 text-left">
-                                <th class="py-3 px-4 font-semibold">Metric</th>
-                                <th class="py-3 px-4 font-semibold">${latestYear}</th>
+                            <tr class="bg-gray-50 text-gray-600">
+                                <th class="py-3 px-4 font-semibold text-left">Metric</th>
+                                <th class="py-3 px-4 font-semibold text-right">${latestYear}</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${metrics.map(metric => `
                                 <tr>
-                                    <td class="py-3 px-4 text-gray-800 font-medium">${metric}</td>
-                                    <td class="py-3 px-4 text-gray-600 text-center">
+                                    <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric}</td>
+                                    <td class="py-3 px-4 text-gray-600 text-right">
                                         ${yearlyInfo[metric] !== null && yearlyInfo[metric] !== undefined ? formatNumber(yearlyInfo[metric]) : 'N/A'}
                                     </td>
                                 </tr>
