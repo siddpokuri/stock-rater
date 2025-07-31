@@ -166,7 +166,7 @@
         async function fetchIncomeStatement(symbol) {
             showLoading(true);
             try {
-                const response = await fetch(`${backendBaseUrl}/tab3?stock=${symbol}`);
+                const response = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`);
                 
                 if (!response.ok) {
                     const errorBody = await response.text(); 
@@ -189,7 +189,7 @@
                 console.error('Error fetching income statement (network or JSON parse error):', error);
                 if (error instanceof TypeError && error.message.includes('JSON')) {
                     try {
-                        const responseClone = await fetch(`${backendBaseUrl}/tab3?stock=${symbol}`); 
+                        const responseClone = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`); 
                         const rawText = await responseClone.text();
                         console.error('Raw response text that caused JSON parsing error:', rawText);
                         showError('Failed to parse income statement data. The server might be returning non-JSON content. Check console for raw response.');
