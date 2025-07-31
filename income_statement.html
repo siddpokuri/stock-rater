@@ -1,351 +1,397 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Info - Income Statement</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background */
-        }
-        .nav-button {
-            @apply px-4 py-2 rounded-lg font-semibold transition duration-200 ease-in-out;
-            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
-        }
-        .nav-button.active {
-            @apply bg-blue-600 text-white hover:bg-blue-700;
-        }
-        .toggle-button {
-            @apply px-6 py-3 rounded-lg font-semibold text-lg transition duration-200 ease-in-out;
-            @apply bg-gray-300 text-gray-800 hover:bg-gray-400;
-        }
-        .toggle-button.active {
-            @apply bg-green-600 text-white hover:bg-green-700;
-        }
-        /* Adjusted table cell and header styling */
-        .data-table th, .data-table td {
-            @apply px-4 py-2; /* Keep padding */
-        }
-        .data-table th {
-            @apply bg-gray-50 text-gray-600 uppercase text-sm text-center; /* Align headers center */
-        }
-        .data-table td {
-            @apply text-center; /* Ensure data cells are centered */
-        }
-        .data-table {
-            @apply border-none; /* Remove main table border */
-        }
-        .data-table thead {
-            @apply border-b border-gray-300; /* Keep a bottom border for header row */
-        }
-        .data-table tbody {
-            @apply divide-y divide-gray-200; /* Add horizontal dividers for rows */
-        }
-        .data-table tr:nth-child(even) {
-            @apply bg-gray-50;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Info - Income Statement</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        .nav-button {
+            @apply px-4 py-2 rounded-lg font-semibold transition duration-200 ease-in-out;
+            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        }
+        .nav-button.active {
+            @apply bg-blue-600 text-white hover:bg-blue-700;
+        }
+        .toggle-button {
+            @apply px-6 py-3 rounded-lg font-semibold text-lg transition duration-200 ease-in-out;
+            @apply bg-gray-300 text-gray-800 hover:bg-gray-400;
+        }
+        .toggle-button.active {
+            @apply bg-green-600 text-white hover:bg-green-700;
+        }
+        /* Adjusted table cell and header styling */
+        .data-table th, .data-table td {
+            @apply px-4 py-2; /* Keep padding */
+        }
+        .data-table th {
+            @apply bg-gray-50 text-gray-600 uppercase text-sm text-center; /* Align headers center */
+        }
+        .data-table td {
+            @apply text-center; /* Ensure data cells are centered */
+        }
+        .data-table {
+            @apply border-none; /* Remove main table border */
+        }
+        .data-table thead {
+            @apply border-b border-gray-300; /* Keep a bottom border for header row */
+        }
+        .data-table tbody {
+            @apply divide-y divide-gray-200; /* Add horizontal dividers for rows */
+        }
+        .data-table tr:nth-child(even) {
+            @apply bg-gray-50;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4">
-        <a href="#" id="navGeneral" class="nav-button">General Info</a>
-        <a href="#" id="navIncome" class="nav-button">Income Statement</a>
-        <a href="#" id="navBalance" class="nav-button active">Balance Sheet</a>
-        <a href="#" id="navRatings" class="nav-button">Ratings</a>
-        <a href="#" id="navEarnings" class="nav-button">Earnings</a>
-        <a href="#" id="navInsider" class="nav-button">Insider Trades</a>
-        <a href="#" id="navTargets" class="nav-button">Analyst Targets</a>
-    </header>
+    <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4">
+        <a href="#" id="navGeneral" class="nav-button">General Info</a>
+        <a href="#" id="navIncome" class="nav-button">Income Statement</a>
+        <a href="#" id="navBalance" class="nav-button active">Balance Sheet</a>
+        <a href="#" id="navRatings" class="nav-button">Ratings</a>
+        <a href="#" id="navEarnings" class="nav-button">Earnings</a>
+        <a href="#" id="navInsider" class="nav-button">Insider Trades</a>
+        <a href="#" id="navTargets" class="nav-button">Analyst Targets</a>
+    </header>
 
-    <main class="container mx-auto p-6">
-        <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
-        
-        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
-            Fetching Income Statement Data...
-        </div>
+    <main class="container mx-auto p-6">
+        <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
+        
+        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
+            Fetching Income Statement Data...
+        </div>
 
-        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10" role="alert">
-            <strong class="font-bold">Error!</strong>
-            <span class="block sm:inline" id="errorText"></span>
-        </div>
+        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline" id="errorText"></span>
+        </div>
 
-        <div id="incomeStatementContent" class="hidden">
-            <div class="flex justify-center mb-6 space-x-4">
-                <button id="toggleQuarterly" class="toggle-button active">Quarterly</button>
-                <button id="toggleYearly" class="toggle-button">Yearly</button>
-            </div>
+        <div id="incomeStatementContent" class="hidden">
+            <div class="flex justify-center mb-6 space-x-4">
+                <button id="toggleQuarterly" class="toggle-button active">Quarterly</button>
+                <button id="toggleYearly" class="toggle-button">Yearly</button>
+            </div>
 
-            <!-- Quarterly Data Section -->
-            <div id="quarterlyData" class="bg-white p-6 rounded-xl shadow-md mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Quarterly Income Statement</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-lg data-table">
-                        <thead>
-                            <tr id="quarterlyHeaderRow">
-                                <th class="text-left">Metric</th> <!-- Keep Metric header left-aligned -->
-                                <!-- Quarterly dates will be inserted here -->
-                            </tr>
-                        </thead>
-                        <tbody id="quarterlyTableBody">
-                            <!-- Quarterly data will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- Quarterly Data Section -->
+            <div id="quarterlyData" class="bg-white p-6 rounded-xl shadow-md mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Quarterly Income Statement</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg data-table">
+                        <thead>
+                            <tr id="quarterlyHeaderRow">
+                                <th class="text-left">Metric</th> <!-- Keep Metric header left-aligned -->
+                                <!-- Quarterly dates will be inserted here -->
+                            </tr>
+                        </thead>
+                        <tbody id="quarterlyTableBody">
+                            <!-- Quarterly data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-            <!-- Yearly Data Section -->
-            <div id="yearlyData" class="hidden bg-white p-6 rounded-xl shadow-md mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Income Statement (Latest Year)</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-lg data-table">
-                        <thead>
-                            <tr id="yearlyHeaderRow">
-                                <th class="text-left">Metric</th> <!-- Keep Metric header left-aligned -->
-                                <!-- Yearly date (e.g., 2025) will be inserted here -->
-                            </tr>
-                        </thead>
-                        <tbody id="yearlyTableBody">
-                            <!-- Latest year's data will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
+            <!-- Yearly Data Section -->
+            <div id="yearlyData" class="hidden bg-white p-6 rounded-xl shadow-md mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Yearly Income Statement (Latest Year)</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg data-table">
+                        <thead>
+                            <tr id="yearlyHeaderRow">
+                                <th class="text-left">Metric</th> <!-- Keep Metric header left-aligned -->
+                            </tr>
+                        </thead>
+                        <tbody id="yearlyTableBody">
+                            <!-- Latest year's data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    <script>
-        let stockSymbol = '';
-        let incomeStatementData = null; // Store fetched data globally
-        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+    <script>
+        let stockSymbol = '';
+        let incomeStatementData = null; // Store fetched data globally
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock');
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            stockSymbol = urlParams.get('stock');
 
-            if (!stockSymbol) {
-                showError('No stock symbol provided in the URL.');
-                return;
-            }
+            if (!stockSymbol) {
+                showError('No stock symbol provided in the URL.');
+                return;
+            }
 
-            document.getElementById('stockTitle').textContent = `${stockSymbol} - Income Statement`;
-            fetchIncomeStatement(stockSymbol);
-            setupNavigationButtons();
-            setupToggleButtons();
-        });
+            document.getElementById('stockTitle').textContent = `${stockSymbol} - Income Statement`;
+            fetchIncomeStatement(stockSymbol);
+            setupNavigationButtons();
+            setupToggleButtons();
+        });
 
-        function setupNavigationButtons() {
-            const navButtons = {
-                'navGeneral': 'general_info.html',
-                'navIncome': 'income_statement.html',
-                'navBalance': 'balance_sheet.html',
-                'navRatings': 'ratings.html',
-                'navEarnings': 'earnings.html',
-                'navInsider': 'insider_trades.html',
-                'navTargets': 'analyst_targets.html'
-            };
+        function setupNavigationButtons() {
+            const navButtons = {
+                'navGeneral': 'general_info.html',
+                'navIncome': 'income_statement.html',
+                'navBalance': 'balance_sheet.html',
+                'navRatings': 'ratings.html',
+                'navEarnings': 'earnings.html',
+                'navInsider': 'insider_trades.html',
+                'navTargets': 'analyst_targets.html'
+            };
 
-            for (const [id, page] of Object.entries(navButtons)) {
-                const button = document.getElementById(id);
-                if (button) {
-                    button.addEventListener('click', (event) => {
-                        event.preventDefault();
-                        window.location.href = `${page}?stock=${stockSymbol}`;
-                    });
-                }
-            }
-        }
+            for (const [id, page] of Object.entries(navButtons)) {
+                const button = document.getElementById(id);
+                if (button) {
+                    // Update the href directly
+                    button.href = `${page}?stock=${stockSymbol}`;
+                }
+            }
+            
+            // Set the active class for the current page
+            const currentPage = window.location.pathname.split('/').pop();
+            for (const [id, page] of Object.entries(navButtons)) {
+                if (page === currentPage) {
+                    document.getElementById(id).classList.add('active');
+                } else {
+                    document.getElementById(id).classList.remove('active');
+                }
+            }
+        }
 
-        function setupToggleButtons() {
-            document.getElementById('toggleQuarterly').addEventListener('click', () => showData('quarterly'));
-            document.getElementById('toggleYearly').addEventListener('click', () => showData('yearly'));
-        }
+        function setupToggleButtons() {
+            document.getElementById('toggleQuarterly').addEventListener('click', () => showData('quarterly'));
+            document.getElementById('toggleYearly').addEventListener('click', () => showData('yearly'));
+        }
 
-        async function fetchIncomeStatement(symbol) {
-            showLoading(true);
-            try {
-                const response = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`);
-                
-                if (!response.ok) {
-                    const errorBody = await response.text(); 
-                    console.error('Backend responded with non-OK status:', response.status, response.statusText, errorBody);
-                    showError(`Failed to fetch income statement data. Server responded with status: ${response.status}.`);
-                    return; 
-                }
+        async function fetchIncomeStatement(symbol) {
+            showLoading(true);
+            try {
+                const response = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`);
+                
+                if (!response.ok) {
+                    const errorBody = await response.text(); 
+                    console.error('Backend responded with non-OK status:', response.status, response.statusText, errorBody);
+                    showError(`Failed to fetch income statement data. Server responded with status: ${response.status}.`);
+                    return; 
+                }
 
-                const data = await response.json();
+                const data = await response.json();
 
-                if (data.error) {
-                    showError(data.error);
-                } else {
-                    incomeStatementData = data; // Store the fetched data
-                    showData('quarterly'); // Show quarterly data by default
-                    showLoading(false);
-                    document.getElementById('incomeStatementContent').classList.remove('hidden');
-                }
-            } catch (error) {
-                console.error('Error fetching income statement (network or JSON parse error):', error);
-                if (error instanceof TypeError && error.message.includes('JSON')) {
-                    try {
-                        const responseClone = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`); 
-                        const rawText = await responseClone.text();
-                        console.error('Raw response text that caused JSON parsing error:', rawText);
-                        showError('Failed to parse income statement data. The server might be returning non-JSON content. Check console for raw response.');
-                    } catch (reFetchError) {
-                        console.error('Error re-fetching for raw text:', reFetchError);
-                        showError('A network error occurred while fetching income statement. Please check your internet connection or try again later.');
-                    }
-                } else {
-                    showError('A network error occurred while fetching income statement. Please check your internet connection or try again later.');
-                }
-            }
-        }
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    incomeStatementData = data; // Store the fetched data
+                    showData('quarterly'); // Show quarterly data by default
+                    showLoading(false);
+                    document.getElementById('incomeStatementContent').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error fetching income statement (network or JSON parse error):', error);
+                if (error instanceof TypeError && error.message.includes('JSON')) {
+                    try {
+                        const responseClone = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`); 
+                        const rawText = await responseClone.text();
+                        console.error('Raw response text that caused JSON parsing error:', rawText);
+                        showError('Failed to parse income statement data. The server might be returning non-JSON content. Check console for raw response.');
+                    } catch (reFetchError) {
+                        console.error('Error re-fetching for raw text:', reFetchError);
+                        showError('A network error occurred while fetching income statement. Please check your internet connection or try again later.');
+                    }
+                } else {
+                    showError('A network error occurred while fetching income statement. Please check your internet connection or try again later.');
+                }
+            }
+        }
 
-        function showData(period) {
-            if (!incomeStatementData) return;
+        function showData(period) {
+            if (!incomeStatementData) return;
 
-            const quarterlySection = document.getElementById('quarterlyData');
-            const yearlySection = document.getElementById('yearlyData');
-            const toggleQuarterlyBtn = document.getElementById('toggleQuarterly');
-            const toggleYearlyBtn = document.getElementById('toggleYearly');
+            const quarterlySection = document.getElementById('quarterlyData');
+            const yearlySection = document.getElementById('yearlyData');
+            const toggleQuarterlyBtn = document.getElementById('toggleQuarterly');
+            const toggleYearlyBtn = document.getElementById('toggleYearly');
 
-            if (period === 'quarterly') {
-                quarterlySection.classList.remove('hidden');
-                yearlySection.classList.add('hidden');
-                toggleQuarterlyBtn.classList.add('active');
-                toggleYearlyBtn.classList.remove('active');
-                displayQuarterlyData(incomeStatementData);
-            } else {
-                yearlySection.classList.remove('hidden');
-                quarterlySection.classList.add('hidden');
-                toggleYearlyBtn.classList.add('active');
-                toggleQuarterlyBtn.classList.remove('active');
-                displayYearlyData(incomeStatementData);
-            }
-        }
+            if (period === 'quarterly') {
+                quarterlySection.classList.remove('hidden');
+                yearlySection.classList.add('hidden');
+                toggleQuarterlyBtn.classList.add('active');
+                toggleYearlyBtn.classList.remove('active');
+                displayQuarterlyData(incomeStatementData);
+            } else {
+                yearlySection.classList.remove('hidden');
+                quarterlySection.classList.add('hidden');
+                toggleYearlyBtn.classList.add('active');
+                toggleQuarterlyBtn.classList.remove('active');
+                displayYearlyData(incomeStatementData);
+            }
+        }
 
-        function displayQuarterlyData(data) {
-            const quarterlyInfo = data['Quarterly Income Statement Info'];
+        function displayQuarterlyData(data) {
+            const quarterlyInfo = data['Quarterly Income Statement Info'];
+            const quarterlyRatios = data['Quarterly Ratios'];
 
-            if (!quarterlyInfo || !quarterlyInfo.dates || quarterlyInfo.dates.length === 0) {
-                document.getElementById('quarterlyData').innerHTML = '<p class="text-center text-gray-500 mt-4">No quarterly data available.</p>';
-                return;
-            }
+            if (!quarterlyInfo || !quarterlyInfo.dates || quarterlyInfo.dates.length === 0) {
+                document.getElementById('quarterlyData').innerHTML = '<p class="text-center text-gray-500 mt-4">No quarterly data available.</p>';
+                return;
+            }
 
-            const dates = quarterlyInfo.dates;
-            const headerRow = document.getElementById('quarterlyHeaderRow');
-            headerRow.innerHTML = '<th class="text-left">Metric</th>' + dates.map(date => `<th class="text-center">${date}</th>`).join('');
+            const dates = quarterlyInfo.dates;
+            const headerRow = document.getElementById('quarterlyHeaderRow');
+            headerRow.innerHTML = '<th class="text-left">Metric</th>' + dates.map(date => `<th class="text-center">${date}</th>`).join('');
 
-            const tableBody = document.getElementById('quarterlyTableBody');
-            tableBody.innerHTML = ''; 
+            const tableBody = document.getElementById('quarterlyTableBody');
+            tableBody.innerHTML = '';
+            
+            // Function to create and append a table row
+            const appendRow = (metricName, values) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="text-left font-medium text-gray-900">${metricName}</td>` + values.map(value => `<td class="text-center">${value}</td>`).join('');
+                tableBody.appendChild(row);
+            };
+            
+            // List of Income Statement metrics in a desired order
+            const incomeMetrics = ['Revenue', 'Gross Profit', 'Ebitda', 'Operating Income', 'Net Income'];
+            const ratioMetrics = ['Net Profit Margin', 'Price to Sales Ratio'];
 
-            const metrics = [
-                'Cash/Cash Equivalents', 'Short Term Investments', 'Total Current Assets', 'Total Assets',
-                'Short Term Debt', 'Long Term Debt', 'Total Debt', 'Net Debt', 'Total Liabilities', "Total Stockholders' Equity"
-            ];
+            // Append income statement data
+            incomeMetrics.forEach(metric => {
+                if (quarterlyInfo[metric]) {
+                    appendRow(metric, quarterlyInfo[metric]);
+                }
+            });
+            
+            // Append a separator row
+            const separatorRow = document.createElement('tr');
+            separatorRow.innerHTML = `<td colspan="${dates.length + 1}" class="h-6"></td>`;
+            tableBody.appendChild(separatorRow);
 
-            metrics.forEach(metric => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td class="text-left">${metric}</td>` + dates.map((_, i) => `<td class="text-center">${formatNumber(quarterlyInfo[metric]?.[i]) || 'N/A'}</td>`).join('');
-                tableBody.appendChild(row);
-            });
-        }
+            // Append ratios
+            ratioMetrics.forEach(metric => {
+                if (quarterlyRatios[metric]) {
+                    // Ratios are numbers, format them to a percentage or decimal
+                    let formattedValues = quarterlyRatios[metric].map(val => formatNumber(val));
+                    appendRow(metric, formattedValues);
+                }
+            });
+        }
 
-        function displayYearlyData(data) {
-            const yearlyInfo = data['Yearly Income Statement Info'];
+        function displayYearlyData(data) {
+            const yearlyInfo = data['Yearly Income Statement Info'];
+            const yearlyRatios = data['Yearly Ratios'];
 
-            if (!yearlyInfo || Object.keys(yearlyInfo).length === 0) { 
-                document.getElementById('yearlyData').innerHTML = '<p class="text-center text-gray-500 mt-4">No yearly data available.</p>';
-                return;
-            }
+            if (!yearlyInfo || Object.keys(yearlyInfo).length === 0) { 
+                document.getElementById('yearlyData').innerHTML = '<p class="text-center text-gray-500 mt-4">No yearly data available.</p>';
+                return;
+            }
 
-            const currentYear = new Date().getFullYear();
-            const latestYear = currentYear; 
+            const yearlyHeaderRow = document.getElementById('yearlyHeaderRow');
+            // The yearly header row will have only two columns: "Metric" and "Value"
+            yearlyHeaderRow.innerHTML = `<th class="text-left">Metric</th><th class="text-center">Value</th>`;
 
-            const yearlyHeaderRow = document.getElementById('yearlyHeaderRow');
-            yearlyHeaderRow.innerHTML = `<th class="text-left">Metric</th><th class="text-center">${latestYear}</th>`;
+            const yearlyTableBody = document.getElementById('yearlyTableBody');
+            yearlyTableBody.innerHTML = ''; 
 
-            const yearlyTableBody = document.getElementById('yearlyTableBody');
-            yearlyTableBody.innerHTML = ''; 
+            const appendRow = (metricName, value) => {
+                const row = document.createElement('tr');
+                // Handle cases where value might be an array (like Revenue)
+                const formattedValue = Array.isArray(value) ? value.join(', ') : formatNumber(value);
+                row.innerHTML = `<td class="text-left font-medium text-gray-900">${metricName}</td><td class="text-center">${formattedValue || 'N/A'}</td>`;
+                yearlyTableBody.appendChild(row);
+            };
 
-            const metrics = [
-                'Cash/Cash Equivalents', 'Short Term Investments', 'Total Current Assets', 'Total Assets',
-                'Short Term Debt', 'Long Term Debt', 'Total Debt', 'Net Debt', 'Total Liabilities', "Total Stockholders' Equity"
-            ];
+            const incomeMetrics = ['Revenue', 'Gross Profit', 'Ebitda', 'Operating Income', 'Net Income'];
+            const ratioMetrics = ['Net Profit Margin', 'Price to Sales Ratio'];
 
-            metrics.forEach(metric => {
-                const row = document.createElement('tr');
-                const value = yearlyInfo[metric]; // Yearly values are direct, not arrays
-                row.innerHTML = `<td class="text-left">${metric}</td><td class="text-center">${formatNumber(value) || 'N/A'}</td>`;
-                yearlyTableBody.appendChild(row);
-            });
-        }
+            // Append income statement data
+            incomeMetrics.forEach(metric => {
+                if (yearlyInfo[metric]) {
+                    appendRow(metric, yearlyInfo[metric]);
+                }
+            });
 
-        // Helper function to format numbers, assuming backend might send raw numbers or already shortened strings
-        function formatNumber(num) {
-            if (num === null || num === undefined || num === 'N/A' || num === 'TBA') return num; // Return N/A or TBA directly
+            // Append a separator row
+            const separatorRow = document.createElement('tr');
+            separatorRow.innerHTML = `<td colspan="2" class="h-6"></td>`;
+            yearlyTableBody.appendChild(separatorRow);
+            
+            // Append ratios
+            ratioMetrics.forEach(metric => {
+                if (yearlyRatios[metric]) {
+                    appendRow(metric, yearlyRatios[metric]);
+                }
+            });
+        }
 
-            // If it's already a string with B, M, K, T, assume it's pre-formatted by backend
-            if (typeof num === 'string' && num.match(/^[\d.]+[BMKT]?$/i)) {
-                return num; 
-            }
-            
-            // Otherwise, try to parse as a number and format
-            let value = Number(num); 
+        // Helper function to format numbers, assuming backend might send raw numbers or already shortened strings
+        function formatNumber(num) {
+            if (num === null || num === undefined || num === 'N/A' || num === 'TBA') return num; // Return N/A or TBA directly
 
-            if (isNaN(value)) return 'N/A';
+            // If it's already a string with B, M, K, T, assume it's pre-formatted by backend
+            if (typeof num === 'string' && num.match(/^[\d.]+[BMKT]?$/i)) {
+                return num; 
+            }
+            
+            // Otherwise, try to parse as a number and format
+            let value = Number(num); 
 
-            // Apply standard formatting for raw numbers
-            const absValue = Math.abs(value);
-            if (absValue >= 1.0e+9) {
-                return (value / 1.0e+9).toFixed(2) + "B";
-            }
-            if (absValue >= 1.0e+6) {
-                return (value / 1.0e+6).toFixed(2) + "M";
-            }
-            if (absValue >= 1.0e+3) {
-                return (value / 1.0e+3).toFixed(2) + "K";
-            }
-            return value.toFixed(2);
-        }
+            if (isNaN(value)) return 'N/A';
 
-        // These ratio formatting functions are not strictly needed for Income Statement
-        // but are kept for consistency if needed later.
-        function formatPercentageDirect(num) {
-            if (num === null || num === undefined) return 'N/A';
-            num = Number(num);
-            if (isNaN(num)) return 'N/A';
-            return num.toFixed(2) + '%';
-        }
+            // Apply standard formatting for raw numbers
+            const absValue = Math.abs(value);
+            if (absValue >= 1.0e+9) {
+                return (value / 1.0e+9).toFixed(2) + "B";
+            }
+            if (absValue >= 1.0e+6) {
+                return (value / 1.0e+6).toFixed(2) + "M";
+            }
+            if (absValue >= 1.0e+3) {
+                return (value / 1.0e+3).toFixed(2) + "K";
+            }
+            return value.toFixed(2);
+        }
 
-        function formatPercentageFromDecimal(num) {
-            if (num === null || num === undefined) return 'N/A';
-            num = Number(num);
-            if (isNaN(num)) return 'N/A';
-            return (num * 100).toFixed(2) + '%';
-        }
+        // These ratio formatting functions are not strictly needed for Income Statement
+        // but are kept for consistency if needed later.
+        function formatPercentageDirect(num) {
+            if (num === null || num === undefined) return 'N/A';
+            num = Number(num);
+            if (isNaN(num)) return 'N/A';
+            return num.toFixed(2) + '%';
+        }
 
-        function formatNumberDirect(num) {
-            if (num === null || num === undefined) return 'N/A';
-            num = Number(num);
-            if (isNaN(num)) return 'N/A';
-            return num.toFixed(2);
-        }
+        function formatPercentageFromDecimal(num) {
+            if (num === null || num === undefined) return 'N/A';
+            num = Number(num);
+            if (isNaN(num)) return 'N/A';
+            return (num * 100).toFixed(2) + '%';
+        }
 
-        function showLoading(show) {
-            document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
-            document.getElementById('incomeStatementContent').classList.toggle('hidden', show);
-            document.getElementById('errorMessage').classList.add('hidden');
-        }
+        function formatNumberDirect(num) {
+            if (num === null || num === undefined) return 'N/A';
+            num = Number(num);
+            if (isNaN(num)) return 'N/A';
+            return num.toFixed(2);
+        }
 
-        function showError(message) {
-            document.getElementById('loadingIndicator').classList.add('hidden');
-            document.getElementById('incomeStatementContent').classList.add('hidden');
-            document.getElementById('errorText').textContent = message;
-            document.getElementById('errorMessage').classList.remove('hidden');
-        }
-    </script>
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
+            document.getElementById('incomeStatementContent').classList.toggle('hidden', show);
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('incomeStatementContent').classList.add('hidden');
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
