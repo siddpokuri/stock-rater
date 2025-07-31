@@ -27,15 +27,16 @@
     <!-- Navigation Bar -->
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
-            <div class="flex space-x-8 text-gray-600 font-semibold">
-                <!-- Navigation items, with dynamic hrefs set by JavaScript -->
-                <a href="#" id="nav-general-info" class="nav-link hover:text-blue-600 transition-colors duration-300">General Info</a>
-                <a href="#" id="nav-income-statement" class="nav-link hover:text-blue-600 transition-colors duration-300">Income Statement</a>
-                <a href="#" id="nav-balance-sheet" class="nav-link hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
-                <a href="#" id="nav-ratings" class="nav-link hover:text-blue-600 transition-colors duration-300">Ratings</a>
-                <a href="#" id="nav-earnings" class="nav-link hover:text-blue-600 transition-colors duration-300">Earnings</a>
+            <div class="flex space-x-8 font-semibold">
+                <!-- The new "Home" button is added here with green letters -->
+                <a href="index.html" id="nav-home" class="nav-link text-green-600 hover:text-blue-600 transition-colors duration-300">Home</a>
+                <a href="#" id="nav-general-info" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">General Info</a>
+                <a href="#" id="nav-income-statement" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Income Statement</a>
+                <a href="#" id="nav-balance-sheet" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Ratings</a>
+                <a href="#" id="nav-earnings" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="nav-link active hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
-                <a href="#" id="nav-analyst-targets" class="nav-link hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+                <a href="#" id="nav-analyst-targets" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
             </div>
         </div>
     </nav>
@@ -91,6 +92,7 @@
             
             // Set up the navigation links
             const navLinks = [
+                { id: 'nav-home', file: 'index.html' },
                 { id: 'nav-general-info', file: 'general_info.html' },
                 { id: 'nav-income-statement', file: 'income_statement.html' },
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
@@ -106,6 +108,12 @@
                 navLinks.forEach(link => {
                     const navElement = document.getElementById(link.id);
                     if (navElement) {
+                        // Check if the link is not the active one before changing its color to gray
+                        if (link.id !== 'nav-insider-trades') {
+                            navElement.classList.add('text-gray-600');
+                        } else {
+                            navElement.classList.remove('text-gray-600');
+                        }
                         navElement.href = `${link.file}?stock=${stockSymbol}`;
                     }
                 });
