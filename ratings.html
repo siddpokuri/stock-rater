@@ -11,24 +11,26 @@
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6; /* Light gray background */
         }
-        .nav-button {
-            @apply px-4 py-2 rounded-lg font-semibold transition duration-200 ease-in-out;
-            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        /* New styles for the navigation bar */
+        .nav-link {
+            @apply px-4 py-2 font-semibold text-gray-600 transition duration-200 ease-in-out;
+            @apply border-b-2 border-transparent hover:text-gray-900 hover:border-gray-300;
         }
-        .nav-button.active {
-            @apply bg-blue-600 text-white hover:bg-blue-700;
+        .nav-link.active {
+            @apply text-blue-600 border-blue-600 font-bold;
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4">
-        <a href="#" id="navGeneral" class="nav-button">General Info</a>
-        <a href="#" id="navIncome" class="nav-button">Income Statement</a>
-        <a href="#" id="navBalance" class="nav-button">Balance Sheet</a>
-        <a href="#" id="navRatings" class="nav-button active">Ratings</a>
-        <a href="#" id="navEarnings" class="nav-button">Earnings</a>
-        <a href="#" id="navInsider" class="nav-button">Insider Trades</a>
-        <a href="#" id="navTargets" class="nav-button">Analyst Targets</a>
+    <!-- Updated navigation bar with new styling -->
+    <header class="bg-white shadow-sm border-b border-gray-200 py-4 px-6 flex flex-wrap justify-center gap-6">
+        <a href="#" id="navGeneral" class="nav-link">General Info</a>
+        <a href="#" id="navIncome" class="nav-link">Income Statement</a>
+        <a href="#" id="navBalance" class="nav-link">Balance Sheet</a>
+        <a href="#" id="navRatings" class="nav-link active">Ratings</a>
+        <a href="#" id="navEarnings" class="nav-link">Earnings</a>
+        <a href="#" id="navInsider" class="nav-link">Insider Trades</a>
+        <a href="#" id="navTargets" class="nav-link">Analyst Targets</a>
     </header>
 
     <main class="container mx-auto p-6">
