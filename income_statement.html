@@ -21,9 +21,11 @@
         .header-container h1 {
             @apply mb-4;
         }
-        .back-button {
-            @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 ease-in-out;
-            @apply w-auto;
+        .nav-link {
+            @apply px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition duration-200 ease-in-out font-medium;
+        }
+        .nav-link.active {
+            @apply text-blue-600 border-b-2 border-blue-600;
         }
         .financial-card {
             @apply bg-white rounded-xl shadow-md p-6 mt-6;
@@ -57,14 +59,24 @@
         }
         /* Style for the active toggle button */
         .active-toggle {
-            @apply bg-gray-200;
+            @apply bg-green-100;
         }
     </style>
 </head>
 <body class="bg-gray-100">
-    <header class="header-container">
-        <h1 class="text-3xl font-bold text-gray-800 text-center" id="incomeStatementTitle"></h1>
-        <a id="backButton" href="index.html" class="back-button">← Back to Home</a>
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-4">
+            <h1 class="text-3xl font-bold text-gray-800 text-center mb-4" id="incomeStatementTitle"></h1>
+            <nav class="flex flex-wrap justify-center space-x-2 sm:space-x-4">
+                <a href="general_info.html" id="generalInfoLink" class="nav-link">General Info</a>
+                <a href="income_statement.html" id="incomeStatementLink" class="nav-link active">Income Statement</a>
+                <a href="balance_sheet.html" id="balanceSheetLink" class="nav-link">Balance Sheet</a>
+                <a href="ratings.html" id="ratingsLink" class="nav-link">Ratings</a>
+                <a href="earnings.html" id="earningsLink" class="nav-link">Earnings</a>
+                <a href="insider_trades.html" id="insiderTradesLink" class="nav-link">Insider Trades</a>
+                <a href="analyst_targets.html" id="analystTargetsLink" class="nav-link">Analyst Targets</a>
+            </nav>
+        </div>
     </header>
 
     <main class="container mx-auto p-6 flex-grow">
@@ -79,13 +91,12 @@
 
         <div id="incomeStatementContent" class="hidden">
             <div class="flex justify-center my-6 space-x-2">
-                <!-- Toggle Buttons with new styling -->
                 <button id="quarterlyBtn" class="py-2 px-4 rounded-lg bg-white shadow-md border border-gray-200 hover:bg-gray-50 transition-colors duration-200 active-toggle">Quarterly</button>
                 <button id="yearlyBtn" class="py-2 px-4 rounded-lg bg-white shadow-md border border-gray-200 hover:bg-gray-50 transition-colors duration-200">Yearly</button>
             </div>
 
             <div class="financial-card">
-                <h2 class="text-xl font-bold text-gray-800" id="statementPeriodTitle"></h2>
+                <h2 class="text-xl font-bold text-gray-800 mb-4" id="statementPeriodTitle"></h2>
                 <div class="overflow-x-auto">
                     <table class="financial-table">
                         <thead id="tableHeader"></thead>
@@ -103,18 +114,22 @@
             const urlParams = new URLSearchParams(window.location.search);
             const symbol = urlParams.get('stock'); 
             const pageTitle = document.getElementById('incomeStatementTitle');
-            const backButton = document.getElementById('backButton');
+            const navLinks = document.querySelectorAll('.nav-link');
             const quarterlyBtn = document.getElementById('quarterlyBtn');
             const yearlyBtn = document.getElementById('yearlyBtn');
 
             if (symbol) {
-                backButton.href = `general_info.html?stock=${symbol}`;
-            }
-
-            if (symbol && symbol.trim() !== '') {
                 pageTitle.textContent = `${symbol} - Income Statement`;
+                // Set nav links dynamically
+                navLinks.forEach(link => {
+                    const originalHref = link.getAttribute('href');
+                    if (originalHref.includes('.html')) {
+                        link.href = `${originalHref}?stock=${symbol}`;
+                    }
+                });
                 fetchAndRenderIncomeStatement(symbol, 'quarterly');
             } else {
+                pageTitle.textContent = "Income Statement";
                 showError('No stock symbol found. Please go back to the home page and select a symbol.');
             }
 
@@ -135,7 +150,6 @@
             showLoading(true);
             showError('');
             try {
-                // Corrected fetch call with the full backend URL
                 const response = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`);
                 const data = await response.json();
 
