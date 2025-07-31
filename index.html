@@ -3,87 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Info App</title>
+    <title>Stock Info Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background */
+            background-color: #f3f4f6;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             min-height: 100vh;
-            margin: 0;
+        }
+        .container {
+            flex-grow: 1;
         }
         .card {
-            @apply bg-white p-8 rounded-xl shadow-lg w-full max-w-md;
+            @apply bg-white p-6 rounded-xl shadow-md;
         }
         .input-field {
             @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500;
         }
-        .button-primary {
-            @apply w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200 ease-in-out;
-        }
-        .error-message {
-            @apply text-red-600 text-sm mt-2;
+        .action-button {
+            @apply bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 ease-in-out;
         }
     </style>
 </head>
-<body>
-    <div class="card">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Stock Information</h1>
-        <div class="mb-4">
-            <label for="stockSymbol" class="block text-gray-700 text-sm font-semibold mb-2">Enter Stock Symbol:</label>
-            <input type="text" id="stockSymbol" class="input-field" placeholder="e.g., GOOG, AAPL, MSFT">
-            <p id="symbolError" class="error-message hidden">Please enter a valid stock symbol.</p>
+<body class="bg-gray-100">
+    <header class="bg-white shadow-md py-4 px-6 text-center">
+        <h1 class="text-3xl font-bold text-gray-800">Stock Info Hub</h1>
+    </header>
+
+    <main class="container mx-auto p-6 flex flex-col items-center justify-center">
+        <!-- Stock Search Section (Existing or placeholder) -->
+        <div class="card w-full max-w-md mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Search Stock by Symbol</h2>
+            <div class="flex flex-col gap-4">
+                <input type="text" id="stockSymbolInput" placeholder="e.g., AAPL, GOOG" class="input-field">
+                <button id="searchStockBtn" class="action-button">View Stock Info</button>
+            </div>
         </div>
-        <button id="viewStockInfo" class="button-primary">View Stock Info</button>
-    </div>
+
+        <!-- New: Upcoming Earnings Calendar Section -->
+        <div class="card w-full max-w-md">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Upcoming Earnings Calendar</h2>
+            <div class="flex flex-col gap-4">
+                <label for="fromDate" class="text-gray-700 font-medium">From Date:</label>
+                <input type="date" id="fromDate" class="input-field">
+
+                <label for="toDate" class="text-gray-700 font-medium">To Date:</label>
+                <input type="date" id="toDate" class="input-field">
+                
+                <button id="viewCalendarBtn" class="action-button mt-2">View Earnings Calendar</button>
+            </div>
+        </div>
+    </main>
 
     <script>
-        const stockSymbolInput = document.getElementById('stockSymbol');
-        const viewStockInfoButton = document.getElementById('viewStockInfo');
-        const symbolError = document.getElementById('symbolError');
-        const backendBaseUrl = 'https://stock-backend-0128.onrender.com'; // Your Render backend URL
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set default dates for the calendar input fields
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1); // Start from tomorrow
 
-        viewStockInfoButton.addEventListener('click', async () => {
-            const symbol = stockSymbolInput.value.trim().toUpperCase();
-            if (!symbol) {
-                symbolError.classList.remove('hidden');
-                return;
-            } else {
-                symbolError.classList.add('hidden');
-            }
+            const sixtyDaysFromTomorrow = new Date(tomorrow);
+            sixtyDaysFromTomorrow.setDate(tomorrow.getDate() + 60); // End 60 days from tomorrow
 
-            // Optional: Add a loading indicator here if validation takes time
-            viewStockInfoButton.textContent = 'Checking Symbol...';
-            viewStockInfoButton.disabled = true;
+            document.getElementById('fromDate').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('toDate').value = sixtyDaysFromTomorrow.toISOString().split('T')[0];
 
-            try {
-                const response = await fetch(`${backendBaseUrl}/check?stock=${symbol}`);
-                const data = await response.json();
-
-                if (response.ok && data['valid?'] === 1) {
+            // Stock Search Button Logic
+            document.getElementById('searchStockBtn').addEventListener('click', () => {
+                const symbol = document.getElementById('stockSymbolInput').value.trim().toUpperCase();
+                if (symbol) {
                     window.location.href = `general_info.html?stock=${symbol}`;
                 } else {
-                    symbolError.textContent = data.error || 'Invalid stock symbol. Please try again.';
-                    symbolError.classList.remove('hidden');
+                    alert('Please enter a stock symbol.'); // Using alert for simple validation feedback
                 }
-            } catch (error) {
-                console.error('Error validating stock symbol:', error);
-                symbolError.textContent = 'Could not connect to the validation service. Please try again later.';
-                symbolError.classList.remove('hidden');
-            } finally {
-                viewStockInfoButton.textContent = 'View Stock Info';
-                viewStockInfoButton.disabled = false;
-            }
-        });
+            });
 
-        stockSymbolInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                viewStockInfoButton.click();
-            }
+            // Upcoming Earnings Calendar Button Logic
+            document.getElementById('viewCalendarBtn').addEventListener('click', () => {
+                const fromDate = document.getElementById('fromDate').value;
+                const toDate = document.getElementById('toDate').value;
+
+                if (!fromDate || !toDate) {
+                    alert('Please select both a "From Date" and a "To Date".');
+                    return;
+                }
+
+                // Construct the URL for earnings_calendar.html with date parameters
+                window.location.href = `earnings_calendar.html?from_date=${fromDate}&to_date=${toDate}`;
+            });
         });
     </script>
 </body>
