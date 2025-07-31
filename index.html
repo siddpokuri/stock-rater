@@ -4,96 +4,113 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Info Hub</title>
+    <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Custom font for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Define a custom color palette */
+        :root {
+            --bg-gray: #f3f4f6;
+            --card-bg: #ffffff;
+            --blue-accent: #2563eb;
+            --green-accent: #10b981;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            background-color: var(--bg-gray);
         }
-        .container {
-            flex-grow: 1;
-        }
-        .card {
-            @apply bg-white p-6 rounded-xl shadow-md;
-        }
-        .input-field {
-            @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500;
-        }
-        .action-button {
-            @apply bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 ease-in-out;
-        }
-        .error-message {
-            @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 mb-4;
-        }
-        .loading-spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #3b82f6; /* Tailwind blue-500 */
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 8px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
-<body class="bg-gray-100">
-    <header class="bg-white shadow-md py-4 px-6 text-center">
-        <h1 class="text-3xl font-bold text-gray-800">Stock Info Hub</h1>
-    </header>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6">
 
-    <main class="container mx-auto p-6 flex flex-col items-center justify-center">
-        <!-- Stock Search Section -->
-        <div class="card w-full max-w-md mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Search Stock by Symbol</h2>
-            <div class="flex flex-col gap-4">
-                <input type="text" id="stockSymbolInput" placeholder="e.g., AAPL, GOOG" class="input-field">
-                <button id="searchStockBtn" class="action-button">View Stock Info</button>
-            </div>
-        </div>
+    <!-- Main Container -->
+    <div class="w-full max-w-6xl mx-auto flex flex-col items-center gap-12">
 
-        <!-- Upcoming Earnings Calendar Section -->
-        <div class="card w-full max-w-md">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Upcoming Earnings Calendar</h2>
-            <div class="flex flex-col gap-4">
-                <label for="fromDate" class="text-gray-700 font-medium">From Date:</label>
-                <input type="date" id="fromDate" class="input-field">
+        <!-- Header Section with a subtle gradient and shadow -->
+        <header class="w-full text-center py-8 rounded-2xl bg-gradient-to-r from-gray-50 to-gray-200 card-shadow">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 mb-2">Stock Info Hub</h1>
+        </header>
 
-                <label for="toDate" class="text-gray-700 font-medium">To Date:</label>
-                <input type="date" id="toDate" class="input-field">
-                
-                <div id="calendarLoadingIndicator" class="hidden text-center mt-4">
-                    <div class="loading-spinner"></div> Loading...
+        <!-- Main Content Grid -->
+        <main class="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+
+            <!-- Stock Search Section -->
+            <div class="bg-white p-8 rounded-2xl card-shadow flex flex-col items-center text-center">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Search Stock by Symbol</h2>
+                <div class="flex flex-col gap-6 w-full max-w-sm">
+                    <input type="text" id="stockSymbolInput" placeholder="e.g., AAPL, GOOG" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                    <button id="searchStockBtn" class="w-full bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105">View Stock Info</button>
                 </div>
-                <div id="calendarErrorMessage" class="error-message hidden">
-                    <span id="calendarErrorText"></span>
+                <!-- Custom Message Box for validation errors -->
+                <div id="validationMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-6 transition-all duration-300 transform scale-95" role="alert">
+                    <span id="validationText"></span>
                 </div>
-
-                <button id="viewCalendarBtn" class="action-button mt-2">View Earnings Calendar</button>
             </div>
-        </div>
-    </main>
+
+            <!-- Upcoming Earnings Calendar Section -->
+            <div class="bg-white p-8 rounded-2xl card-shadow flex flex-col items-center text-center">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Upcoming Earnings Calendar</h2>
+                <div class="flex flex-col gap-6 w-full max-w-sm">
+                    <div class="flex flex-col text-left">
+                        <label for="fromDate" class="text-gray-700 font-medium mb-1">From Date:</label>
+                        <input type="date" id="fromDate" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
+                    </div>
+                    <div class="flex flex-col text-left">
+                        <label for="toDate" class="text-gray-700 font-medium mb-1">To Date:</label>
+                        <input type="date" id="toDate" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
+                    </div>
+                    
+                    <!-- Loading Indicator for Calendar -->
+                    <div id="calendarLoadingIndicator" class="hidden flex items-center justify-center text-gray-600 font-medium mt-4">
+                        <svg class="animate-spin h-6 w-6 text-green-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Loading...</span>
+                    </div>
+
+                    <!-- Error Message for Calendar -->
+                    <div id="calendarErrorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4" role="alert">
+                        <span id="calendarErrorText"></span>
+                    </div>
+
+                    <button id="viewCalendarBtn" class="w-full bg-green-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 mt-2">View Earnings Calendar</button>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <script>
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+
+        // Custom function to show a styled message instead of alert()
+        function showMessage(message, type, targetElementId) {
+            const messageBox = document.getElementById(targetElementId);
+            const messageText = messageBox.querySelector('span');
+
+            messageText.textContent = message;
+            messageBox.className = `bg-${type}-100 border border-${type}-400 text-${type}-700 px-4 py-3 rounded-xl relative mt-6 transition-all duration-300 transform scale-100`;
+            messageBox.classList.remove('hidden');
+
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000); // Hide after 5 seconds
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             // Set default dates for the calendar input fields
             const today = new Date();
             const tomorrow = new Date(today);
-            tomorrow.setDate(today.getDate() + 1); // Start from tomorrow
+            tomorrow.setDate(today.getDate() + 1);
 
             const sixtyDaysFromTomorrow = new Date(tomorrow);
-            sixtyDaysFromTomorrow.setDate(tomorrow.getDate() + 60); // End 60 days from tomorrow
+            sixtyDaysFromTomorrow.setDate(tomorrow.getDate() + 60);
 
             document.getElementById('fromDate').value = tomorrow.toISOString().split('T')[0];
             document.getElementById('toDate').value = sixtyDaysFromTomorrow.toISOString().split('T')[0];
@@ -104,7 +121,7 @@
                 if (symbol) {
                     window.location.href = `general_info.html?stock=${symbol}`;
                 } else {
-                    alert('Please enter a stock symbol.'); // Using alert for simple validation feedback
+                    showMessage('Please enter a stock symbol.', 'red', 'validationMessage');
                 }
             });
 
@@ -116,8 +133,8 @@
                 const errorMessageDiv = document.getElementById('calendarErrorMessage');
                 const errorTextSpan = document.getElementById('calendarErrorText');
 
-                errorMessageDiv.classList.add('hidden'); // Hide previous errors
-                loadingIndicator.classList.remove('hidden'); // Show loading spinner
+                errorMessageDiv.classList.add('hidden');
+                loadingIndicator.classList.remove('hidden');
 
                 if (!fromDate || !toDate) {
                     errorTextSpan.textContent = 'Please select both a "From Date" and a "To Date".';
@@ -128,27 +145,22 @@
 
                 try {
                     const response = await fetch(`${backendBaseUrl}/upcomingearnings?from_date=${fromDate}&to_date=${toDate}`);
-                    const result = await response.json(); // Always parse as JSON, backend sends JSON errors
+                    const result = await response.json();
 
                     if (response.ok) {
-                        // Success: data is an array or a message object
                         if (Array.isArray(result) && result.length > 0) {
-                            // Store successful data in sessionStorage
                             sessionStorage.setItem('upcomingEarningsData', JSON.stringify(result));
                             sessionStorage.setItem('upcomingEarningsFromDate', fromDate);
                             sessionStorage.setItem('upcomingEarningsToDate', toDate);
-                            window.location.href = `earnings_calendar.html`; // Navigate without query params
+                            window.location.href = `earnings_calendar.html`;
                         } else if (result && result.message) {
-                            // Backend returned a message like "No data found"
                             errorTextSpan.textContent = result.message;
                             errorMessageDiv.classList.remove('hidden');
                         } else {
-                            // Unexpected successful response format
                             errorTextSpan.textContent = 'Received unexpected data format from the server.';
                             errorMessageDiv.classList.remove('hidden');
                         }
                     } else {
-                        // Error: backend returned a non-200 status with an error object
                         errorTextSpan.textContent = result.error || 'An unknown error occurred while fetching data.';
                         errorMessageDiv.classList.remove('hidden');
                     }
@@ -157,7 +169,7 @@
                     errorTextSpan.textContent = `A network error occurred: ${error.message}. Please try again.`;
                     errorMessageDiv.classList.remove('hidden');
                 } finally {
-                    loadingIndicator.classList.add('hidden'); // Hide loading spinner
+                    loadingIndicator.classList.add('hidden');
                 }
             });
         });
