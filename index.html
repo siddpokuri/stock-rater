@@ -26,6 +26,24 @@
         .action-button {
             @apply bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 ease-in-out;
         }
+        .error-message {
+            @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 mb-4;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6; /* Tailwind blue-500 */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -34,7 +52,7 @@
     </header>
 
     <main class="container mx-auto p-6 flex flex-col items-center justify-center">
-        <!-- Stock Search Section (Existing or placeholder) -->
+        <!-- Stock Search Section -->
         <div class="card w-full max-w-md mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Search Stock by Symbol</h2>
             <div class="flex flex-col gap-4">
@@ -43,7 +61,7 @@
             </div>
         </div>
 
-        <!-- New: Upcoming Earnings Calendar Section -->
+        <!-- Upcoming Earnings Calendar Section -->
         <div class="card w-full max-w-md">
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Upcoming Earnings Calendar</h2>
             <div class="flex flex-col gap-4">
@@ -53,12 +71,21 @@
                 <label for="toDate" class="text-gray-700 font-medium">To Date:</label>
                 <input type="date" id="toDate" class="input-field">
                 
+                <div id="calendarLoadingIndicator" class="hidden text-center mt-4">
+                    <div class="loading-spinner"></div> Loading...
+                </div>
+                <div id="calendarErrorMessage" class="error-message hidden">
+                    <span id="calendarErrorText"></span>
+                </div>
+
                 <button id="viewCalendarBtn" class="action-button mt-2">View Earnings Calendar</button>
             </div>
         </div>
     </main>
 
     <script>
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+
         document.addEventListener('DOMContentLoaded', () => {
             // Set default dates for the calendar input fields
             const today = new Date();
@@ -82,17 +109,56 @@
             });
 
             // Upcoming Earnings Calendar Button Logic
-            document.getElementById('viewCalendarBtn').addEventListener('click', () => {
+            document.getElementById('viewCalendarBtn').addEventListener('click', async () => {
                 const fromDate = document.getElementById('fromDate').value;
                 const toDate = document.getElementById('toDate').value;
+                const loadingIndicator = document.getElementById('calendarLoadingIndicator');
+                const errorMessageDiv = document.getElementById('calendarErrorMessage');
+                const errorTextSpan = document.getElementById('calendarErrorText');
+
+                errorMessageDiv.classList.add('hidden'); // Hide previous errors
+                loadingIndicator.classList.remove('hidden'); // Show loading spinner
 
                 if (!fromDate || !toDate) {
-                    alert('Please select both a "From Date" and a "To Date".');
+                    errorTextSpan.textContent = 'Please select both a "From Date" and a "To Date".';
+                    errorMessageDiv.classList.remove('hidden');
+                    loadingIndicator.classList.add('hidden');
                     return;
                 }
 
-                // Construct the URL for earnings_calendar.html with date parameters
-                window.location.href = `earnings_calendar.html?from_date=${fromDate}&to_date=${toDate}`;
+                try {
+                    const response = await fetch(`${backendBaseUrl}/upcomingearnings?from_date=${fromDate}&to_date=${toDate}`);
+                    const result = await response.json(); // Always parse as JSON, backend sends JSON errors
+
+                    if (response.ok) {
+                        // Success: data is an array or a message object
+                        if (Array.isArray(result) && result.length > 0) {
+                            // Store successful data in sessionStorage
+                            sessionStorage.setItem('upcomingEarningsData', JSON.stringify(result));
+                            sessionStorage.setItem('upcomingEarningsFromDate', fromDate);
+                            sessionStorage.setItem('upcomingEarningsToDate', toDate);
+                            window.location.href = `earnings_calendar.html`; // Navigate without query params
+                        } else if (result && result.message) {
+                            // Backend returned a message like "No data found"
+                            errorTextSpan.textContent = result.message;
+                            errorMessageDiv.classList.remove('hidden');
+                        } else {
+                            // Unexpected successful response format
+                            errorTextSpan.textContent = 'Received unexpected data format from the server.';
+                            errorMessageDiv.classList.remove('hidden');
+                        }
+                    } else {
+                        // Error: backend returned a non-200 status with an error object
+                        errorTextSpan.textContent = result.error || 'An unknown error occurred while fetching data.';
+                        errorMessageDiv.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error fetching upcoming earnings calendar:', error);
+                    errorTextSpan.textContent = `A network error occurred: ${error.message}. Please try again.`;
+                    errorMessageDiv.classList.remove('hidden');
+                } finally {
+                    loadingIndicator.classList.add('hidden'); // Hide loading spinner
+                }
             });
         });
     </script>
