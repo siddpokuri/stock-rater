@@ -15,11 +15,14 @@
             flex-direction: column;
         }
         .header-container {
-            @apply bg-white shadow-md py-4 px-6 flex flex-col items-center; /* Changed to flex-col for stacking */
+            @apply bg-white shadow-md py-6 px-6 flex flex-col items-center justify-center; /* Increased vertical padding, centered items */
+        }
+        .header-container h1 {
+            @apply mb-4; /* Add margin below the title */
         }
         .back-button {
             @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 ease-in-out;
-            @apply mt-4; /* Add top margin to separate from title */
+            @apply w-auto; /* Ensure button width is auto, not full */
         }
         .earnings-card {
             @apply bg-white p-6 rounded-xl shadow-md flex flex-col space-y-2;
@@ -51,13 +54,12 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Removed #dateRangeDisplay styling as it's being removed from HTML */
     </style>
 </head>
 <body class="bg-gray-100">
     <header class="header-container">
         <h1 class="text-3xl font-bold text-gray-800 text-center">Upcoming Earnings Calendar</h1>
-        <!-- Back button moved directly below the title -->
+        <!-- Back button directly below the title, centered -->
         <a href="index.html" class="back-button">← Back to Home</a>
     </header>
 
@@ -81,12 +83,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             const calendarContentDiv = document.getElementById('calendarContent');
             const noCalendarDataMessage = document.getElementById('noCalendarDataMessage');
-            // Removed dateRangeDisplay element reference
 
             // Retrieve data from sessionStorage
             const storedData = sessionStorage.getItem('upcomingEarningsData');
-            const fromDate = sessionStorage.getItem('upcomingEarningsFromDate'); // Still retrieve for no data message
-            const toDate = sessionStorage.getItem('upcomingEarningsToDate');     // Still retrieve for no data message
+            const fromDate = sessionStorage.getItem('upcomingEarningsFromDate'); 
+            const toDate = sessionStorage.getItem('upcomingEarningsToDate');     
 
             if (storedData) {
                 const data = JSON.parse(storedData);
@@ -101,7 +102,6 @@
                 sessionStorage.removeItem('upcomingEarningsFromDate');
                 sessionStorage.removeItem('upcomingEarningsToDate');
             } else {
-                // This case should ideally not happen if index.html handles navigation correctly
                 noCalendarDataMessage.textContent = 'No earnings data available. Please select dates from the home page.';
                 noCalendarDataMessage.classList.remove('hidden');
             }
@@ -139,9 +139,6 @@
             });
         }
 
-        // Helper functions (showLoading, showError) are not strictly needed on this page
-        // as the data is passed via sessionStorage and errors are handled on index.html
-        // However, keeping them as placeholders if future direct fetches are added.
         function showLoading(show) {
             document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
         }
