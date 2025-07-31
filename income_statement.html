@@ -97,6 +97,8 @@
     </main>
 
     <script>
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const symbol = urlParams.get('stock'); 
@@ -133,8 +135,8 @@
             showLoading(true);
             showError('');
             try {
-                // Corrected fetch call to use the /tab2 endpoint with the stock symbol in the URL
-                const response = await fetch(`/tab2?stock=${symbol}`);
+                // Corrected fetch call with the full backend URL
+                const response = await fetch(`${backendBaseUrl}/tab2?stock=${symbol}`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -179,7 +181,6 @@
             let headerRow;
             const dates = incomeData.dates;
             
-            // For quarterly, the dates are an array. For yearly, the data is not.
             if (period === 'quarterly' && dates && dates.length > 0) {
                 headerRow = document.createElement('tr');
                 let metricHeader = document.createElement('th');
@@ -222,19 +223,16 @@
                 tableBody.appendChild(row);
             }
 
-            // Append income statement rows
             for (const key in incomeData) {
                 if (key !== "dates") {
                     appendRow(key, incomeData[key]);
                 }
             }
 
-            // Append a separator row
             const separatorRow = document.createElement('tr');
             separatorRow.innerHTML = `<td colspan="${period === 'quarterly' ? dates.length + 1 : 2}" class="h-6"></td>`;
             tableBody.appendChild(separatorRow);
 
-            // Append ratios
             if (ratioData) {
                 for (const key in ratioData) {
                     appendRow(key, ratioData[key]);
