@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI - Income Statement</title>
+    <title>Stock Income Statement</title>
     <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -22,6 +22,27 @@
             color: #2563eb; /* A nice blue color */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+        /* Loading spinner animation */
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3b82f6;
+            width: 40px;
+            height: 40px;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+            display: none; /* Initially hidden */
+        }
+
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -30,7 +51,7 @@
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
             <div class="flex space-x-8 text-gray-600 font-semibold">
-                <!-- Navigation items, using simple div as placeholders -->
+                <!-- Navigation items, using simple a tags for a clean look -->
                 <a href="#" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
                 <a href="#" class="text-blue-700 font-bold transition-colors duration-300">Income Statement</a>
                 <a href="#" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
@@ -45,12 +66,19 @@
     <!-- Main Content Area -->
     <main class="container mx-auto px-4 py-8">
         <div class="flex flex-col items-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-4">AI - Income Statement</h1>
+            <!-- Dynamic Title -->
+            <h1 id="stock-title" class="text-3xl font-bold text-gray-800 mb-4">Stock - Income Statement</h1>
             
             <!-- Toggle buttons for Quarterly/Yearly views -->
             <div class="flex justify-center mb-4 bg-gray-200 rounded-full p-1">
                 <button id="quarterly-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Quarterly</button>
                 <button id="yearly-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">Yearly</button>
+            </div>
+
+            <!-- Loading Spinner & Error Message -->
+            <div id="loading-area" class="flex flex-col items-center my-8">
+                <div id="loading-spinner" class="loading-spinner"></div>
+                <p id="error-message" class="text-red-500 mt-4 hidden text-center"></p>
             </div>
 
             <!-- Container for the financial data table -->
@@ -61,39 +89,22 @@
     </main>
 
     <script>
-        // The backend data provided by the user.
-        const backendData = {
-            "Quarterly Income Statement Info": {
-                "Ebitda": ["-88.965M", "-84.462M", "-72.315M", "-69.467M"],
-                "Gross Profit": ["67.510M", "58.347M", "57.840M", "52.166M"],
-                "Net Income": ["-79.702M", "-80.201M", "-65.972M", "-62.827M"],
-                "Operating Income": ["-88.965M", "-87.585M", "-75.288M", "-72.586M"],
-                "Revenue": ["108.723M", "98.782M", "94.338M", "87.213M"],
-                "dates": ["2025-04-30", "2025-01-31", "2024-10-31", "2024-07-31"]
-            },
-            "Quarterly Ratios": {
-                "Net Profit Margin": [-73.31, -81.19, -69.93, -72.04],
-                "Price to Sales Ratio": [26.97, 41.38, 33.38, 38.33]
-            },
-            "Yearly Income Statement Info": {
-                "Ebitda": "-324.424M",
-                "Gross Profit": "235.863M",
-                "Net Income": "-288.702M",
-                "Operating Income": "-324.424M",
-                "Revenue": ["389.056M", "310.582M", "266.795M", "252.759M"]
-            },
-            "Yearly Ratios": {
-                "Net Profit Margin": -0.74,
-                "Price to Sales Ratio": 7.3
-            }
-        };
-
+        // Global variable to store the fetched data
+        let currentBackendData = null;
+        let activeView = 'Quarterly';
+        
+        // DOM elements
         const statementContainer = document.getElementById('statement-container');
+        const quarterlyBtn = document.getElementById('quarterly-btn');
+        const yearlyBtn = document.getElementById('yearly-btn');
+        const stockTitle = document.getElementById('stock-title');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const errorMessage = document.getElementById('error-message');
 
         // Function to render the quarterly income statement data.
-        function renderQuarterlyData() {
-            const info = backendData["Quarterly Income Statement Info"];
-            const ratios = backendData["Quarterly Ratios"];
+        function renderQuarterlyData(data) {
+            const info = data["Quarterly Income Statement Info"];
+            const ratios = data["Quarterly Ratios"];
             
             const metrics = [
                 { name: "Revenue", data: info["Revenue"] },
@@ -134,9 +145,9 @@
         }
 
         // Function to render the yearly income statement data.
-        function renderYearlyData() {
-            const info = backendData["Yearly Income Statement Info"];
-            const ratios = backendData["Yearly Ratios"];
+        function renderYearlyData(data) {
+            const info = data["Yearly Income Statement Info"];
+            const ratios = data["Yearly Ratios"];
 
             // Extract the latest year's revenue from the array.
             const latestRevenue = info.Revenue && info.Revenue.length > 0 ? info.Revenue[0] : 'N/A';
@@ -177,26 +188,93 @@
             statementContainer.innerHTML = html;
         }
 
-        // Get button elements
-        const quarterlyBtn = document.getElementById('quarterly-btn');
-        const yearlyBtn = document.getElementById('yearly-btn');
+        // Main rendering function to display data based on active view
+        function renderData() {
+            if (!currentBackendData) {
+                return;
+            }
+            if (activeView === 'Quarterly') {
+                renderQuarterlyData(currentBackendData);
+            } else {
+                renderYearlyData(currentBackendData);
+            }
+        }
 
-        // Add event listeners to the buttons to switch views
+        // API call to fetch data using a direct URL
+        async function fetchStockData(ticker) {
+            loadingSpinner.style.display = 'block';
+            errorMessage.style.display = 'none';
+            statementContainer.innerHTML = '';
+            
+            const apiUrl = `https://stock-backend-0128.onrender.com/tab2?stock=${ticker}`;
+            
+            try {
+                // Fetch data with exponential backoff
+                let response = null;
+                let delay = 1000;
+                let maxRetries = 5;
+                for (let i = 0; i < maxRetries; i++) {
+                    response = await fetch(apiUrl);
+                    if (response.ok) {
+                        break;
+                    }
+                    if (response.status === 429) {
+                        console.warn(`API call failed with status 429. Retrying in ${delay}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    } else {
+                        throw new Error(`API call failed with status ${response.status}`);
+                    }
+                }
+                
+                if (!response || !response.ok) {
+                     throw new Error('Max retries reached, failed to fetch data.');
+                }
+                
+                const data = await response.json();
+
+                // Update the global data and render the view
+                currentBackendData = data;
+                stockTitle.textContent = `${ticker.toUpperCase()} - Income Statement`;
+                renderData();
+                
+            } catch (error) {
+                console.error('Failed to fetch stock data:', error);
+                errorMessage.textContent = `Error: Could not retrieve data for ticker "${ticker}". Please try another ticker from the main page.`;
+                errorMessage.style.display = 'block';
+            } finally {
+                loadingSpinner.style.display = 'none'; // Hide the spinner
+            }
+        }
+
+        // Add event listeners to the toggle buttons to switch views
         quarterlyBtn.addEventListener('click', () => {
             yearlyBtn.classList.remove('active');
             quarterlyBtn.classList.add('active');
-            renderQuarterlyData();
+            activeView = 'Quarterly';
+            renderData();
         });
 
         yearlyBtn.addEventListener('click', () => {
             quarterlyBtn.classList.remove('active');
             yearlyBtn.classList.add('active');
-            renderYearlyData();
+            activeView = 'Yearly';
+            renderData();
         });
 
-        // Initially render the quarterly data on page load
+        // Initial setup on page load
         document.addEventListener('DOMContentLoaded', () => {
-            renderQuarterlyData();
+            const urlParams = new URLSearchParams(window.location.search);
+            const stockTicker = urlParams.get('stock');
+
+            if (stockTicker) {
+                fetchStockData(stockTicker);
+            } else {
+                stockTitle.textContent = 'No Stock Selected';
+                statementContainer.innerHTML = '';
+                errorMessage.textContent = 'Please return to the main page and select a stock to view its income statement.';
+                errorMessage.style.display = 'block';
+            }
         });
     </script>
 </body>
