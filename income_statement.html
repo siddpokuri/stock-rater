@@ -16,10 +16,7 @@
             flex-direction: column;
         }
         .header-container {
-            @apply bg-white shadow-md py-6 px-6 flex flex-col items-center justify-center;
-        }
-        .header-container h1 {
-            @apply mb-4;
+            @apply bg-white shadow-md;
         }
         .nav-link {
             @apply px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition duration-200 ease-in-out font-medium;
@@ -28,13 +25,13 @@
             @apply text-blue-600 border-b-2 border-blue-600;
         }
         .financial-card {
-            @apply bg-white rounded-xl shadow-md p-6 mt-6;
+            @apply bg-white rounded-xl shadow-md p-6;
         }
         .financial-table {
             @apply min-w-full divide-y divide-gray-200 mt-4;
         }
         .financial-table th, .financial-table td {
-            @apply px-6 py-3 whitespace-nowrap text-sm text-gray-500;
+            @apply px-6 py-3 whitespace-nowrap text-sm;
         }
         .financial-table th {
             @apply text-left font-medium text-gray-700 uppercase tracking-wider;
@@ -64,9 +61,9 @@
     </style>
 </head>
 <body class="bg-gray-100">
-    <header class="bg-white shadow-md">
-        <div class="container mx-auto px-6 py-4">
-            <h1 class="text-3xl font-bold text-gray-800 text-center mb-4" id="incomeStatementTitle"></h1>
+    <header class="header-container">
+        <div class="container mx-auto px-6 py-4 flex flex-col items-center">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4" id="incomeStatementTitle"></h1>
             <nav class="flex flex-wrap justify-center space-x-2 sm:space-x-4">
                 <a href="general_info.html" id="generalInfoLink" class="nav-link">General Info</a>
                 <a href="income_statement.html" id="incomeStatementLink" class="nav-link active">Income Statement</a>
@@ -120,7 +117,6 @@
 
             if (symbol) {
                 pageTitle.textContent = `${symbol} - Income Statement`;
-                // Set nav links dynamically
                 navLinks.forEach(link => {
                     const originalHref = link.getAttribute('href');
                     if (originalHref.includes('.html')) {
@@ -187,8 +183,8 @@
             };
             statementPeriodTitle.textContent = titleMap[period];
 
-            if (!incomeData || !Object.keys(incomeData).length) {
-                tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No data available for this period.</td></tr>';
+            if (!incomeData || Object.keys(incomeData).length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">No data available for this period.</td></tr>';
                 return;
             }
 
@@ -236,17 +232,30 @@
                 }
                 tableBody.appendChild(row);
             }
-
+            
+            // Append a row for each metric in the income statement data
             for (const key in incomeData) {
-                if (key !== "dates") {
+                if (key !== "dates" && key !== "Revenue") {
                     appendRow(key, incomeData[key]);
                 }
             }
-
+            
+            // Append a separator row
             const separatorRow = document.createElement('tr');
             separatorRow.innerHTML = `<td colspan="${period === 'quarterly' ? dates.length + 1 : 2}" class="h-6"></td>`;
             tableBody.appendChild(separatorRow);
 
+            // Append a row for Revenue
+            if (incomeData.Revenue) {
+                appendRow("Revenue", incomeData.Revenue);
+            }
+
+            // Append another separator row
+            const separatorRow2 = document.createElement('tr');
+            separatorRow2.innerHTML = `<td colspan="${period === 'quarterly' ? dates.length + 1 : 2}" class="h-6"></td>`;
+            tableBody.appendChild(separatorRow2);
+            
+            // Append ratios
             if (ratioData) {
                 for (const key in ratioData) {
                     appendRow(key, ratioData[key]);
