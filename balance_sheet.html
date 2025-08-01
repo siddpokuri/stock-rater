@@ -20,7 +20,7 @@
         .toggle-button.active {
             background-color: white;
             color: #2563eb; /* A nice blue color */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         /* Loading spinner animation */
         .loading-spinner {
@@ -61,6 +61,8 @@
                 <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
                 <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+                <!-- The "Recent News" button has been added to the end of the navigation bar as requested. -->
+                <a href="#" id="nav-recent-news" class="hover:text-blue-600 transition-colors duration-300">Recent News</a>
             </div>
         </div>
     </nav>
@@ -306,6 +308,8 @@
                 { id: 'nav-earnings', file: 'earnings.html' },
                 { id: 'nav-insider-trades', file: 'insider_trades.html' },
                 { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
+                // Added the new "Recent News" link to the end of the array
+                { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
             if (stockSymbol) {
