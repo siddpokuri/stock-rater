@@ -58,7 +58,7 @@
     <!-- Navigation Bar -->
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
-            <div class="flex space-x-8 text-gray-600 font-semibold">
+            <div class="flex flex-wrap justify-center space-x-4 sm:space-x-8 text-gray-600 font-semibold">
                 <!-- Home button now links to index.html -->
                 <a href="index.html" id="nav-home" class="text-green-500 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
                 <!-- Navigation items, with dynamic hrefs set by JavaScript -->
@@ -69,6 +69,8 @@
                 <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
                 <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+                <!-- New "Recent News" button added here -->
+                <a href="#" id="nav-recent-news" class="hover:text-blue-600 transition-colors duration-300">Recent News</a>
             </div>
         </div>
     </nav>
@@ -155,6 +157,7 @@
                 { id: 'nav-earnings', file: 'earnings.html' },
                 { id: 'nav-insider-trades', file: 'insider_trades.html' },
                 { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
+                { id: 'nav-recent-news', file: 'recent_news.html' }, // New link for Recent News
             ];
 
             if (!stockSymbol) {
