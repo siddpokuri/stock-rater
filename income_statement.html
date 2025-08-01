@@ -70,7 +70,7 @@
         <div class="flex flex-col items-center">
             <!-- Dynamic Title -->
             <h1 id="stock-title" class="text-3xl font-bold text-gray-800 mb-4">Stock - Income Statement</h1>
-            
+
             <!-- Toggle buttons for Quarterly/Yearly views -->
             <div class="flex justify-center mb-4 bg-gray-200 rounded-full p-1">
                 <button id="quarterly-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Quarterly</button>
@@ -94,7 +94,7 @@
         // Global variable to store the fetched data
         let currentBackendData = null;
         let activeView = 'Quarterly';
-        
+
         // DOM elements
         const statementContainer = document.getElementById('statement-container');
         const quarterlyBtn = document.getElementById('quarterly-btn');
@@ -150,38 +150,40 @@
         function renderYearlyData(data) {
             const info = data["Yearly Income Statement Info"];
             const ratios = data["Yearly Ratios"];
-            const latestYear = new Date().getFullYear();
-
-            // Extract the latest year's revenue from the array.
-            const latestRevenue = info.Revenue && info.Revenue.length > 0 ? info.Revenue[0] : 'N/A';
+            
+            const currentYear = new Date().getFullYear();
+            // Generate an array of the last four years
+            const years = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3];
 
             const metrics = [
-                { name: "Revenue", value: latestRevenue },
-                { name: "Gross Profit", value: info["Gross Profit"] },
-                { name: "Ebitda", value: info["Ebitda"] },
-                { name: "Operating Income", value: info["Operating Income"] },
-                { name: "Net Income", value: info["Net Income"] },
-                { name: "Net Profit Margin", value: ratios["Net Profit Margin"] },
-                { name: "Price to Sales Ratio", value: ratios["Price to Sales Ratio"] },
+                { name: "Revenue", data: info["Revenue"] },
+                { name: "Gross Profit", data: info["Gross Profit"] },
+                { name: "Ebitda", data: info["Ebitda"] },
+                { name: "Operating Income", data: info["Operating Income"] },
+                { name: "Net Income", data: info["Net Income"] },
+                { name: "Net Profit Margin (%)", data: ratios["Net Profit Margin (%)"] },
+                { name: "Price to Sales Ratio", data: ratios["Price to Sales Ratio"] },
             ];
-            
+
             let html = `
-                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Income Statement (Latest Year)</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Income Statement (Last 4 Years)</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full table-auto">
                         <thead>
                             <tr class="bg-gray-50 text-gray-600">
                                 <th class="py-3 px-4 font-semibold text-left">Metric</th>
-                                <th class="py-3 px-4 font-semibold text-right">${latestYear}</th>
+                                ${years.map(year => `<th class="py-3 px-4 font-semibold text-right">${year}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${metrics.map(metric => `
                                 <tr>
                                     <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric.name}</td>
-                                    <td class="py-3 px-4 text-gray-600 text-right">
-                                        ${metric.value !== null && metric.value !== undefined ? metric.value : 'N/A'}
-                                    </td>
+                                    ${metric.data.map(value => `
+                                        <td class="py-3 px-4 text-gray-600 text-right">
+                                            ${value !== null && value !== undefined ? value : 'N/A'}
+                                        </td>
+                                    `).join('')}
                                 </tr>
                             `).join('')}
                         </tbody>
