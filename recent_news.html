@@ -134,8 +134,7 @@
                         <img src="${imageUrl}" alt="${article.title}" class="w-full h-48 object-cover object-center" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e2e8f0/4a5568?text=No+Image';">
                         <div class="p-5">
                             <h3 class="text-lg font-bold mb-2 text-gray-800 hover:text-blue-600 transition-colors duration-200">${article.title}</h3>
-                            <p class="text-sm text-gray-500 mb-1">${article.publishedDate ? new Date(article.publishedDate).toLocaleDateString() : 'Date not available'}</p>
-                            <p class="text-sm text-gray-600">${article.text ? article.text.substring(0, 100) + '...' : 'No text preview available.'}</p>
+                            <p class="text-sm text-gray-500">${article.publishedDate ? new Date(article.publishedDate).toLocaleDateString() : 'Date not available'}</p>
                         </div>
                     `;
                     newsContainer.appendChild(articleCard);
