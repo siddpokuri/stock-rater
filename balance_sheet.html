@@ -151,12 +151,13 @@
         function renderYearlyData(data) {
             const yearlyInfo = data['Yearly Balance Sheet Info'];
 
-            if (!yearlyInfo || Object.keys(yearlyInfo).length === 0) {
+            if (!yearlyInfo || Object.keys(yearlyInfo).length === 0 || yearlyInfo['Cash/Cash Equivalents'].length === 0) {
                 statementContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No yearly data available.</p>';
                 return;
             }
 
-            const latestYear = new Date().getFullYear();
+            const currentYear = new Date().getFullYear();
+            const years = Array.from({ length: yearlyInfo['Cash/Cash Equivalents'].length }, (_, i) => currentYear - i);
 
             const metrics = [
                 'Cash/Cash Equivalents', 'Short Term Investments', 'Total Current Assets', 'Total Assets',
@@ -164,24 +165,29 @@
             ];
             
             let html = `
-                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Balance Sheet (Latest Year)</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Balance Sheet</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full table-auto">
                         <thead>
                             <tr class="bg-gray-50 text-gray-600">
                                 <th class="py-3 px-4 font-semibold text-left">Metric</th>
-                                <th class="py-3 px-4 font-semibold text-right">${latestYear}</th>
+                                ${years.map(year => `<th class="py-3 px-4 font-semibold text-right">${year}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            ${metrics.map(metric => `
-                                <tr>
-                                    <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric}</td>
-                                    <td class="py-3 px-4 text-gray-600 text-right">
-                                        ${yearlyInfo[metric] !== null && yearlyInfo[metric] !== undefined ? formatNumber(yearlyInfo[metric]) : 'N/A'}
-                                    </td>
-                                </tr>
-                            `).join('')}
+                            ${metrics.map(metric => {
+                                const values = yearlyInfo[metric] || [];
+                                return `
+                                    <tr>
+                                        <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric}</td>
+                                        ${values.map(value => `
+                                            <td class="py-3 px-4 text-gray-600 text-right">
+                                                ${value !== null && value !== undefined ? formatNumber(value) : 'N/A'}
+                                            </td>
+                                        `).join('')}
+                                    </tr>
+                                `;
+                            }).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -252,7 +258,7 @@
                 }
                 
                 if (!response || !response.ok) {
-                     throw new Error('Max retries reached, failed to fetch data.');
+                    throw new Error('Max retries reached, failed to fetch data.');
                 }
                 
                 const data = await response.json();
