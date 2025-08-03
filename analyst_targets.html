@@ -227,18 +227,18 @@
         // Helper function to generate the HTML for a single metric with low, avg, and high values
         function createMetricItem(label, low, avg, high) {
             return `
-                <div class="flex flex-col">
-                    <p class="text-sm font-semibold text-gray-500 mb-1">${label}</p>
-                    <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                        <div class="flex flex-col items-center">
+                <div class="flex flex-col bg-gray-50 p-4 rounded-xl shadow-inner">
+                    <p class="text-lg font-bold text-gray-800 mb-2 text-center">${label}</p>
+                    <div class="grid grid-cols-3 text-center gap-2">
+                        <div class="flex flex-col">
                             <span class="text-xs text-red-500 font-medium">Low</span>
                             <span class="text-base font-bold text-red-700">${low || 'N/A'}</span>
                         </div>
-                        <div class="flex flex-col items-center">
+                        <div class="flex flex-col">
                             <span class="text-xs text-blue-500 font-medium">Avg</span>
                             <span class="text-base font-bold text-blue-700">${avg || 'N/A'}</span>
                         </div>
-                        <div class="flex flex-col items-center">
+                        <div class="flex flex-col">
                             <span class="text-xs text-green-500 font-medium">High</span>
                             <span class="text-base font-bold text-green-700">${high || 'N/A'}</span>
                         </div>
