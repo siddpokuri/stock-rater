@@ -16,6 +16,7 @@
         /* Custom styles for the toggle buttons */
         .toggle-button {
             transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
         }
         .toggle-button.active {
             background-color: white;
@@ -108,32 +109,30 @@
         // Function to render the quarterly income statement data.
         function renderQuarterlyData(data) {
             const info = data["Quarterly Income Statement Info"];
-            const ratios = data["Quarterly Ratios"];
             
+            // Metrics array is updated to reflect the new JSON structure
             const metrics = [
                 { name: "Revenue", data: info["Revenue"] },
                 { name: "Gross Profit", data: info["Gross Profit"] },
                 { name: "Ebitda", data: info["Ebitda"] },
                 { name: "Operating Income", data: info["Operating Income"] },
                 { name: "Net Income", data: info["Net Income"] },
-                { name: "Net Profit Margin", data: ratios["Net Profit Margin"] },
-                { name: "Price to Sales Ratio", data: ratios["Price to Sales Ratio"] },
             ];
 
             let html = `
                 <h2 class="text-xl font-bold text-gray-700 mb-6">Quarterly Income Statement</h2>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto">
+                    <table class="min-w-full table-auto border-collapse">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-600 text-left">
-                                <th class="py-3 px-4 font-semibold text-left">Metric</th>
-                                ${info.dates.map(date => `<th class="py-3 px-4 font-semibold text-right">${date}</th>`).join('')}
+                            <tr class="bg-gray-100 text-gray-600 text-left">
+                                <th class="py-3 px-4 font-semibold text-left border-b border-gray-200">Metric</th>
+                                ${info.dates.map(date => `<th class="py-3 px-4 font-semibold text-right border-b border-gray-200">${date}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${metrics.map(metric => `
-                                <tr>
-                                    <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric.name}</td>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="py-3 px-4 text-gray-800 font-medium text-left whitespace-nowrap">${metric.name}</td>
                                     ${metric.data.map(value => `
                                         <td class="py-3 px-4 text-gray-600 text-right">
                                             ${value !== null && value !== undefined ? value : 'N/A'}
@@ -153,34 +152,34 @@
             const info = data["Yearly Income Statement Info"];
             const ratios = data["Yearly Ratios"];
             
-            const currentYear = new Date().getFullYear();
-            // Generate an array of the last four years
-            const years = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3];
-
+            // Get the headers from the API data
+            const headers = info["Date"];
+            
+            // Combine metrics from both info and ratios objects
             const metrics = [
                 { name: "Revenue", data: info["Revenue"] },
                 { name: "Gross Profit", data: info["Gross Profit"] },
                 { name: "Ebitda", data: info["Ebitda"] },
                 { name: "Operating Income", data: info["Operating Income"] },
                 { name: "Net Income", data: info["Net Income"] },
-                { name: "Net Profit Margin (%)", data: ratios["Net Profit Margin (%)"] },
-                { name: "Price to Sales Ratio", data: ratios["Price to Sales Ratio"] },
+                { name: "Net Profit Margin (%)", data: ['N/A', ...ratios["Net Profit Margin (%)"]] }, // Pad with N/A for TTM
+                { name: "Price to Sales Ratio", data: ['N/A', ...ratios["Price to Sales Ratio"]] }, // Pad with N/A for TTM
             ];
 
             let html = `
-                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Income Statement (Last 4 Years)</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Income Statement</h2>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto">
+                    <table class="min-w-full table-auto border-collapse">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-600">
-                                <th class="py-3 px-4 font-semibold text-left">Metric</th>
-                                ${years.map(year => `<th class="py-3 px-4 font-semibold text-right">${year}</th>`).join('')}
+                            <tr class="bg-gray-100 text-gray-600">
+                                <th class="py-3 px-4 font-semibold text-left border-b border-gray-200">Metric</th>
+                                ${headers.map(date => `<th class="py-3 px-4 font-semibold text-right border-b border-gray-200">${date}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${metrics.map(metric => `
-                                <tr>
-                                    <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric.name}</td>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="py-3 px-4 text-gray-800 font-medium text-left whitespace-nowrap">${metric.name}</td>
                                     ${metric.data.map(value => `
                                         <td class="py-3 px-4 text-gray-600 text-right">
                                             ${value !== null && value !== undefined ? value : 'N/A'}
@@ -283,7 +282,6 @@
                 { id: 'nav-earnings', file: 'earnings.html' },
                 { id: 'nav-insider-trades', file: 'insider_trades.html' },
                 { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
-                // Added the new "Recent News" link to the end of the array
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
