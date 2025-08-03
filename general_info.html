@@ -220,7 +220,7 @@
                 const profileInfo = generalData["Profile Info"] || {};
                 const chartSectionTitle = document.getElementById('chartSectionTitle');
                 const companyName = profileInfo["Company Name"] || 'N/A';
-                const exchangeName = profileInfo["Exchange Name"] || 'N/A';
+                const exchangeName = profileInfo["Exchange"] || 'N/A';
                 chartSectionTitle.textContent = `${companyName} - (${exchangeName}: ${stockSymbol})`;
 
                 const currentPriceDisplay = document.getElementById('currentPriceDisplay');
@@ -235,7 +235,7 @@
                     { label: "Industry", value: profileInfo["Industry"] },
                     { label: "Sector", value: profileInfo["Sector"] },
                     { label: "Country", value: profileInfo["Country"] },
-                    { label: "Exchange Name", value: profileInfo["Exchange Name"] }
+                    { label: "Exchange", value: profileInfo["Exchange"] }
                 ];
 
                 infoItems.forEach(item => {
