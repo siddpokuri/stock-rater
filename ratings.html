@@ -86,7 +86,7 @@
                     <!-- Consensus data will be inserted here -->
                 </div>
             </div>
-            
+
             <!-- Upgrades/Downgrades Section -->
             <div id="upgradesDowngradesSection" class="bg-white p-6 rounded-2xl shadow-xl">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Analyst Upgrades/Downgrades</h2>
@@ -244,8 +244,8 @@
                 });
             }
             
-            // Display consensus summary
-            displayConsensusSummary(data.ConsensusSummary);
+            // Corrected line: Display consensus summary
+            displayConsensusSummary(data['Consensus Summary']);
 
             // Display upgrades and downgrades
             displayUpgradesDowngrades(data['Upgrades/Downgrades']);
