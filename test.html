@@ -4,38 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Info - Ratings</title>
+    <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Custom font for a modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background */
+            background-color: #f8fafc; /* A very light gray background */
         }
-        .nav-button {
-            @apply px-4 py-2 rounded-lg font-semibold transition duration-200 ease-in-out;
-            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        /* Custom styles for the table header */
+        .table-header {
+            background-color: #f3f4f6; /* light gray background */
+            font-weight: 600; /* semi-bold */
+            color: #4b5563; /* darker gray text */
         }
-        .nav-button.active {
-            @apply bg-blue-600 text-white hover:bg-blue-700;
+        /* Custom styles for table rows */
+        .table-row-odd {
+            background-color: #ffffff; /* white background */
+        }
+        .table-row-even {
+            background-color: #f9fafb; /* slightly off-white for striping */
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <header class="bg-white shadow-md py-4 px-6 flex flex-wrap justify-center gap-4">
-        <a href="#" id="navGeneral" class="nav-button">General Info</a>
-        <a href="#" id="navIncome" class="nav-button">Income Statement</a>
-        <a href="#" id="navBalance" class="nav-button">Balance Sheet</a>
-        <a href="#" id="navRatings" class="nav-button active">Ratings</a>
-        <a href="#" id="navEarnings" class="nav-button">Earnings</a>
-        <a href="#" id="navInsider" class="nav-button">Insider Trades</a>
-        <a href="#" id="navTargets" class="nav-button">Analyst Targets</a>
-    </header>
+    <!-- Navigation Bar, now consistent with other pages -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-center items-center">
+            <div class="flex space-x-8 text-gray-600 font-semibold">
+                <!-- Home button added to match other pages -->
+                <a href="index.html" class="text-green-600 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
+                <!-- Navigation items, with dynamic hrefs set by JavaScript -->
+                <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
+                <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
+                <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="text-blue-700 font-bold transition-colors duration-300">Ratings</a>
+                <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
+                <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
+                <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+                <!-- The "Recent News" button has been added to the end of the navigation bar as requested. -->
+                <a href="#" id="nav-recent-news" class="hover:text-blue-600 transition-colors duration-300">Recent News</a>
+            </div>
+        </div>
+    </nav>
 
     <main class="container mx-auto p-6">
-        <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
-        
+        <!-- Dynamic Title -->
+        <h1 id="stockTitle" class="text-3xl font-bold text-gray-800 mb-6 text-center">Stock Ratings</h1>
+
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
-            Fetching Ratings Data...
+            <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-blue-500 motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+                <span class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+            </div>
         </div>
 
         <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10" role="alert">
@@ -43,11 +64,37 @@
             <span class="block sm:inline" id="errorText"></span>
         </div>
 
-        <div id="ratingsContent" class="hidden bg-white p-6 rounded-xl shadow-md mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Stock Ratings</h2>
+        <div id="ratingsContainer" class="hidden max-w-4xl mx-auto space-y-8">
+            <!-- Overall Ratings Section -->
+            <div id="overallRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Core Ratings</h2>
+                <div id="coreRatings" class="divide-y divide-gray-200">
+                    <!-- Core ratings will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Fundamental Ratings Section -->
+            <div id="fundamentalRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Fundamental Ratings</h2>
+                <div id="otherRatings" class="divide-y divide-gray-200">
+                    <!-- Other ratings will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Consensus Summary Section -->
+            <div id="consensusSection" class="bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Consensus Summary</h2>
+                <div id="consensusSummary" class="flex flex-col md:flex-row justify-around text-center space-y-4 md:space-y-0">
+                    <!-- Consensus data will be inserted here -->
+                </div>
+            </div>
             
-            <div id="ratingDetails" class="max-w-md mx-auto divide-y divide-gray-200">
-                <!-- Individual ratings will be inserted here -->
+            <!-- Upgrades/Downgrades Section -->
+            <div id="upgradesDowngradesSection" class="bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Analyst Upgrades/Downgrades</h2>
+                <div id="upgradesTableContainer" class="overflow-x-auto">
+                    <!-- Upgrades/Downgrades table will be inserted here -->
+                </div>
             </div>
         </div>
     </main>
@@ -59,76 +106,89 @@
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
+            
+            if (stockSymbol) {
+                document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Ratings`;
+            }
+
+            const navLinks = [
+                { id: 'nav-general-info', file: 'general_info.html' },
+                { id: 'nav-income-statement', file: 'income_statement.html' },
+                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
+                { id: 'nav-ratings', file: 'ratings.html' },
+                { id: 'nav-earnings', file: 'earnings.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html' },
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
+                { id: 'nav-recent-news', file: 'recent_news.html' },
+            ];
 
             if (!stockSymbol) {
                 showError('No stock symbol provided in the URL.');
                 return;
             }
 
-            document.getElementById('stockTitle').textContent = `${stockSymbol} - Ratings`;
-            fetchRatings(stockSymbol);
-            setupNavigationButtons();
-        });
-
-        function setupNavigationButtons() {
-            const navButtons = {
-                'navGeneral': 'general_info.html',
-                'navIncome': 'income_statement.html',
-                'navBalance': 'balance_sheet.html',
-                'navRatings': 'ratings.html',
-                'navEarnings': 'earnings.html',
-                'navInsider': 'insider_trades.html',
-                'navTargets': 'analyst_targets.html'
-            };
-
-            for (const [id, page] of Object.entries(navButtons)) {
-                const button = document.getElementById(id);
-                if (button) {
-                    button.addEventListener('click', (event) => {
-                        event.preventDefault();
-                        window.location.href = `${page}?stock=${stockSymbol}`;
-                    });
+            // Update navigation bar hrefs
+            navLinks.forEach(link => {
+                const navElement = document.getElementById(link.id);
+                if (navElement) {
+                    navElement.href = `${link.file}?stock=${stockSymbol}`;
                 }
-            }
-        }
+            });
+            
+            fetchRatings(stockSymbol);
+        });
 
         // Helper function to get Tailwind CSS color class based on rating text
         function getRatingColorClass(ratingText) {
-            if (!ratingText) return 'text-gray-700'; 
+            if (!ratingText) return 'text-gray-700';
 
             const lowerRating = String(ratingText).toLowerCase();
 
             // Green for A grades and Strong Buy/Buy
-            if (lowerRating === 'a' || lowerRating === 'a+' || lowerRating === 'a-' || lowerRating.includes('strong buy') || lowerRating.includes('buy')) {
-                return 'text-green-600'; // Tailwind green-600
+            if (lowerRating === 'a' || lowerRating === 'a+' || lowerRating === 'a-' || lowerRating.includes('strong buy') || lowerRating.includes('buy') || lowerRating.includes('outperform') || lowerRating.includes('overweight')) {
+                return 'text-green-600';
             }
             // Yellow for B grades and Hold/Neutral
-            if (lowerRating === 'b' || lowerRating === 'b+' || lowerRating === 'b-' || lowerRating.includes('hold') || lowerRating.includes('peer perform') || lowerRating.includes('market perform')) {
-                return 'text-yellow-500'; // Tailwind yellow-500
+            if (lowerRating === 'b' || lowerRating === 'b+' || lowerRating === 'b-' || lowerRating.includes('hold') || lowerRating.includes('peer perform') || lowerRating.includes('market perform') || lowerRating.includes('neutral')) {
+                return 'text-yellow-500';
             }
             // Orange for C grades
             if (lowerRating === 'c' || lowerRating === 'c+' || lowerRating === 'c-') {
-                return 'text-orange-500'; // Tailwind orange-500
+                return 'text-orange-500';
             }
             // Red for D/F grades and Sell
             if (lowerRating === 'd' || lowerRating === 'f' || lowerRating.includes('sell') || lowerRating.includes('strong sell') || lowerRating.includes('underperform')) {
-                return 'text-red-600'; // Tailwind red-600
+                return 'text-red-600';
             }
             
-            // Default if no specific match
             return 'text-gray-700'; // Neutral gray
         }
 
+        // Main function to fetch and display all rating data
         async function fetchRatings(symbol) {
             showLoading(true);
             try {
-                const response = await fetch(`${backendBaseUrl}/tab4?stock=${symbol}`);
+                let response = null;
+                let delay = 1000;
+                const maxRetries = 5;
+                for (let i = 0; i < maxRetries; i++) {
+                    response = await fetch(`${backendBaseUrl}/tab4?stock=${symbol}`);
+                    if (response.ok) {
+                        break;
+                    }
+                    if (response.status === 429) {
+                        console.warn(`API call failed with status 429. Retrying in ${delay}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    } else {
+                        throw new Error(`API call failed with status ${response.status}`);
+                    }
+                }
                 
-                if (!response.ok) {
-                    const errorBody = await response.text(); 
-                    console.error('Backend responded with non-OK status:', response.status, response.statusText, errorBody);
-                    showError(`Failed to fetch ratings data. Server responded with status: ${response.status}.`);
-                    return; 
+                if (!response || !response.ok) {
+                    const errorBody = response ? await response.text() : 'No response';
+                    console.error('Backend responded with non-OK status:', response ? response.status : 'N/A', response ? response.statusText : 'N/A', errorBody);
+                    throw new Error(`Failed to fetch ratings data. Server responded with status: ${response ? response.status : 'N/A'}.`);
                 }
 
                 const data = await response.json();
@@ -136,72 +196,163 @@
                 if (data.error) {
                     showError(data.error);
                 } else {
-                    displayRatings(data);
+                    displayCoreRatings(data);
+                    displayOtherRatings(data["Other Ratings"]);
+                    displayConsensusSummary(data.ConsensusSummary);
+                    displayUpgradesDowngrades(data['Upgrades/Downgrades']);
                     showLoading(false);
-                    document.getElementById('ratingsContent').classList.remove('hidden');
+                    document.getElementById('ratingsContainer').classList.remove('hidden');
                 }
             } catch (error) {
-                console.error('Error fetching ratings (network or JSON parse error):', error);
-                if (error instanceof TypeError && error.message.includes('JSON')) {
-                    try {
-                        const responseClone = await fetch(`${backendBaseUrl}/tab4?stock=${symbol}`); 
-                        const rawText = await responseClone.text();
-                        console.error('Raw response text that caused JSON parsing error:', rawText);
-                        showError('Failed to parse ratings data. The server might be returning non-JSON content. Check console for raw response.');
-                    } catch (reFetchError) {
-                        console.error('Error re-fetching for raw text:', reFetchError);
-                        showError('A network error occurred while fetching ratings. Please check your internet connection or try again later.');
-                    }
-                } else {
-                    showError('A network error occurred while fetching ratings. Please check your internet connection or try again later.');
-                }
+                console.error('Error fetching ratings:', error);
+                showError('A network error occurred while fetching ratings. Please check your internet connection or try again later.');
             }
         }
 
-        function displayRatings(data) {
-            const ratingDetailsElement = document.getElementById('ratingDetails');
-            ratingDetailsElement.innerHTML = ''; // Clear previous content
+        // Displays core ratings like Overall, Profitability, Growth, etc.
+        function displayCoreRatings(data) {
+            const coreRatingsElement = document.getElementById('coreRatings');
+            coreRatingsElement.innerHTML = '';
+            
+            const metricsOrder = ["Overall Rating", "Consensus", "Valuation", "Stability", "Profitability", "Growth"];
+            
+            metricsOrder.forEach(metric => {
+                let value;
+                if (metric === "Consensus") {
+                    value = data.ConsensusSummary ? data.ConsensusSummary.Consensus : "N/A";
+                } else if (metric === "Overall Rating") {
+                    value = data["Other Ratings"] ? data["Other Ratings"]["Overall Rating"] : "N/A";
+                } else {
+                    value = data[metric];
+                }
 
-            if (!data || Object.keys(data).length === 0) {
-                ratingDetailsElement.innerHTML = '<p class="text-center text-gray-500 py-4">No ratings data available.</p>';
+                if (value !== undefined && value !== null) {
+                    appendRatingItem(coreRatingsElement, metric, value);
+                }
+            });
+        }
+        
+        // Displays other ratings like Debt to Equity, ROE, etc.
+        function displayOtherRatings(otherRatings) {
+            const otherRatingsElement = document.getElementById('otherRatings');
+            otherRatingsElement.innerHTML = '';
+
+            if (!otherRatings || Object.keys(otherRatings).length === 0) {
+                otherRatingsElement.innerHTML = '<p class="text-center text-gray-500 py-4">No fundamental ratings data available.</p>';
                 return;
             }
 
-            // Define the order of metrics to display
-            const metricsOrder = [
-                "Overall Rating", "Consensus", "Valuation", "Stability", "Profitability", "Growth"
-            ];
+            const otherMetricsOrder = ["Debt to Equity Rating", "PE Ratio Rating", "ROA Rating", "ROE Rating"];
 
-            metricsOrder.forEach(metric => {
-                const value = data[metric];
+            otherMetricsOrder.forEach(metric => {
+                const value = otherRatings[metric];
                 if (value !== undefined && value !== null) {
-                    const listItem = document.createElement('div');
-                    listItem.className = 'flex justify-between items-center py-3';
-                    
-                    const metricNameSpan = document.createElement('span');
-                    metricNameSpan.textContent = `${metric}:`;
-                    metricNameSpan.className = 'text-lg font-semibold text-gray-700';
-                    
-                    const ratingValueSpan = document.createElement('span');
-                    ratingValueSpan.textContent = value;
-                    ratingValueSpan.className = `text-xl font-bold ${getRatingColorClass(value)}`;
-                    
-                    listItem.appendChild(metricNameSpan);
-                    listItem.appendChild(ratingValueSpan);
-                    ratingDetailsElement.appendChild(listItem);
+                    appendRatingItem(otherRatingsElement, metric, value);
                 }
             });
         }
 
+        function appendRatingItem(parent, metric, value) {
+            const listItem = document.createElement('div');
+            listItem.className = 'flex justify-between items-center py-3';
+            
+            const metricNameSpan = document.createElement('span');
+            metricNameSpan.textContent = `${metric}:`;
+            metricNameSpan.className = 'text-lg font-semibold text-gray-700';
+            
+            const ratingValueSpan = document.createElement('span');
+            ratingValueSpan.textContent = value;
+            ratingValueSpan.className = `text-xl font-bold ${getRatingColorClass(value)}`;
+            
+            listItem.appendChild(metricNameSpan);
+            listItem.appendChild(ratingValueSpan);
+            parent.appendChild(listItem);
+        }
+
+        // Displays the consensus summary from the backend data
+        function displayConsensusSummary(data) {
+            const consensusSummaryElement = document.getElementById('consensusSummary');
+            consensusSummaryElement.innerHTML = '';
+
+            if (!data || Object.keys(data).length === 0) {
+                consensusSummaryElement.innerHTML = '<p class="text-center text-gray-500 py-4">No consensus data available.</p>';
+                return;
+            }
+
+            const consensusOrder = ["# Strong Buy", "# Buy", "# Hold", "# Sell", "# Strong Sell"];
+            
+            consensusOrder.forEach(key => {
+                const value = data[key];
+                if (value !== undefined) {
+                    const item = document.createElement('div');
+                    item.className = 'flex flex-col items-center p-4 bg-gray-50 rounded-xl shadow-inner w-full md:w-auto';
+                    
+                    const valueSpan = document.createElement('span');
+                    valueSpan.textContent = value;
+                    valueSpan.className = `text-3xl font-bold ${getRatingColorClass(key.replace('# ', ''))}`;
+                    
+                    const labelSpan = document.createElement('span');
+                    labelSpan.textContent = key.replace('# ', ''); // Remove the '#' for the label
+                    labelSpan.className = 'text-sm font-medium text-gray-600 mt-1';
+                    
+                    item.appendChild(valueSpan);
+                    item.appendChild(labelSpan);
+                    consensusSummaryElement.appendChild(item);
+                }
+            });
+        }
+
+        // Renders the table for analyst upgrades and downgrades
+        function displayUpgradesDowngrades(data) {
+            const container = document.getElementById('upgradesTableContainer');
+            container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-4">No recent upgrades or downgrades available.</p>';
+                return;
+            }
+
+            let tableHtml = `
+                <table class="min-w-full table-auto rounded-xl overflow-hidden shadow">
+                    <thead>
+                        <tr class="table-header">
+                            <th class="py-3 px-4 text-left">Date</th>
+                            <th class="py-3 px-4 text-left">Company</th>
+                            <th class="py-3 px-4 text-left">Action</th>
+                            <th class="py-3 px-4 text-left">New Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+            `;
+            
+            data.forEach((item, index) => {
+                const rowClass = index % 2 === 0 ? 'table-row-even' : 'table-row-odd';
+                tableHtml += `
+                    <tr class="${rowClass}">
+                        <td class="py-3 px-4">${item.Date}</td>
+                        <td class="py-3 px-4">${item.Company}</td>
+                        <td class="py-3 px-4">${item.Action}</td>
+                        <td class="py-3 px-4 ${getRatingColorClass(item['New Grade'])} font-bold">${item['New Grade']}</td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = tableHtml;
+        }
+
         function showLoading(show) {
             document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
-            document.getElementById('ratingsContent').classList.toggle('hidden', show);
+            document.getElementById('ratingsContainer').classList.toggle('hidden', show);
             document.getElementById('errorMessage').classList.add('hidden');
         }
 
         function showError(message) {
             document.getElementById('loadingIndicator').classList.add('hidden');
-            document.getElementById('ratingsContent').classList.add('hidden');
+            document.getElementById('ratingsContainer').classList.add('hidden');
             document.getElementById('errorText').textContent = message;
             document.getElementById('errorMessage').classList.remove('hidden');
         }
