@@ -111,7 +111,7 @@
         function renderQuarterlyData(data) {
             const quarterlyInfo = data['Quarterly Balance Sheet Info'];
             
-            if (!quarterlyInfo || !quarterlyInfo.dates || quarterlyInfo.dates.length === 0) {
+            if (!quarterlyInfo || !quarterlyInfo.Date || quarterlyInfo.Date.length === 0) {
                 statementContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No quarterly data available.</p>';
                 return;
             }
@@ -128,7 +128,7 @@
                         <thead>
                             <tr class="bg-gray-50 text-gray-600">
                                 <th class="py-3 px-4 font-semibold text-left">Metric</th>
-                                ${quarterlyInfo.dates.map(date => `<th class="py-3 px-4 font-semibold text-right">${date}</th>`).join('')}
+                                ${quarterlyInfo.Date.map(date => `<th class="py-3 px-4 font-semibold text-right">${date}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -153,13 +153,12 @@
         function renderYearlyData(data) {
             const yearlyInfo = data['Yearly Balance Sheet Info'];
 
-            if (!yearlyInfo || Object.keys(yearlyInfo).length === 0 || yearlyInfo['Cash/Cash Equivalents'].length === 0) {
+            if (!yearlyInfo || !yearlyInfo.Year || yearlyInfo.Year.length === 0) {
                 statementContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No yearly data available.</p>';
                 return;
             }
 
-            const currentYear = new Date().getFullYear();
-            const years = Array.from({ length: yearlyInfo['Cash/Cash Equivalents'].length }, (_, i) => currentYear - i);
+            const years = yearlyInfo.Year;
 
             const metrics = [
                 'Cash/Cash Equivalents', 'Short Term Investments', 'Total Current Assets', 'Total Assets',
@@ -209,9 +208,11 @@
             }
         }
 
-        // Helper function to format numbers
+        // Helper function to format numbers. This function correctly handles negative values
+        // as well as the 'N/A' case for null or undefined values.
         function formatNumber(num) {
             if (num === null || num === undefined) return 'N/A';
+            // Handle values that are already formatted strings like '123.45M'
             if (typeof num === 'string' && num.match(/^[\d.]+[BMKT]?$/i)) {
                 return num;
             }
@@ -220,16 +221,18 @@
             if (isNaN(value)) return 'N/A';
 
             const absValue = Math.abs(value);
+            const sign = value < 0 ? '-' : '';
+
             if (absValue >= 1.0e+9) {
-                return (value / 1.0e+9).toFixed(2) + "B";
+                return sign + (absValue / 1.0e+9).toFixed(2) + "B";
             }
             if (absValue >= 1.0e+6) {
-                return (value / 1.0e+6).toFixed(2) + "M";
+                return sign + (absValue / 1.0e+6).toFixed(2) + "M";
             }
             if (absValue >= 1.0e+3) {
-                return (value / 1.0e+3).toFixed(2) + "K";
+                return sign + (absValue / 1.0e+3).toFixed(2) + "K";
             }
-            return value.toFixed(2);
+            return sign + absValue.toFixed(2);
         }
 
         // API call to fetch data using a direct URL
