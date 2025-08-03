@@ -29,13 +29,12 @@
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <!-- Navigation Bar, now consistent with other pages -->
+    <!-- Navigation Bar -->
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
             <div class="flex space-x-8 text-gray-600 font-semibold">
-                <!-- Home button added to match other pages -->
+                <!-- Navigation items with dynamic hrefs set by JavaScript -->
                 <a href="index.html" class="text-green-600 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
-                <!-- Navigation items, with dynamic hrefs set by JavaScript -->
                 <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
                 <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
                 <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
@@ -43,7 +42,6 @@
                 <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
                 <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
-                <!-- The "Recent News" button has been added to the end of the navigation bar as requested. -->
                 <a href="#" id="nav-recent-news" class="hover:text-blue-600 transition-colors duration-300">Recent News</a>
             </div>
         </div>
@@ -145,7 +143,7 @@
             const lowerRating = String(ratingText).toLowerCase();
 
             // Green for A grades and Strong Buy/Buy
-            if (lowerRating === 'a' || lowerRating === 'a+' || lowerRating === 'a-' || lowerRating.includes('strong buy') || lowerRating.includes('buy') || lowerRating.includes('outperform') || lowerRating.includes('overweight')) {
+            if (lowerRating === 'a' || lowerRating === 'a+' || lowerRating === 'a-' || lowerRating.includes('strong buy') || lowerRating.includes('buy') || lowerRating.includes('outperform') || lowerRating.includes('overweight') || lowerRating.includes('sector outperform') || lowerRating.includes('market outperform')) {
                 return 'text-green-600';
             }
             // Yellow for B grades and Hold/Neutral
@@ -196,10 +194,7 @@
                 if (data.error) {
                     showError(data.error);
                 } else {
-                    displayCoreRatings(data);
-                    displayOtherRatings(data["Other Ratings"]);
-                    displayConsensusSummary(data.ConsensusSummary);
-                    displayUpgradesDowngrades(data['Upgrades/Downgrades']);
+                    displayAllRatings(data);
                     showLoading(false);
                     document.getElementById('ratingsContainer').classList.remove('hidden');
                 }
@@ -208,50 +203,55 @@
                 showError('A network error occurred while fetching ratings. Please check your internet connection or try again later.');
             }
         }
-
-        // Displays core ratings like Overall, Profitability, Growth, etc.
-        function displayCoreRatings(data) {
+        
+        // New function to handle all display logic based on the updated JSON structure
+        function displayAllRatings(data) {
+            // Display core ratings, including Overall Rating and Consensus
             const coreRatingsElement = document.getElementById('coreRatings');
             coreRatingsElement.innerHTML = '';
             
-            const metricsOrder = ["Overall Rating", "Consensus", "Valuation", "Stability", "Profitability", "Growth"];
-            
-            metricsOrder.forEach(metric => {
-                let value;
-                if (metric === "Consensus") {
-                    value = data.ConsensusSummary ? data.ConsensusSummary.Consensus : "N/A";
-                } else if (metric === "Overall Rating") {
-                    value = data["Other Ratings"] ? data["Other Ratings"]["Overall Rating"] : "N/A";
-                } else {
-                    value = data[metric];
-                }
+            const coreMetrics = [
+                { key: 'Overall Rating', source: data['Other Ratings'] },
+                { key: 'Consensus', source: data['Consensus Summary'] },
+                { key: 'Valuation', source: data['Core Ratings'] },
+                { key: 'Stability', source: data['Core Ratings'] },
+                { key: 'Profitability', source: data['Core Ratings'] },
+                { key: 'Growth', source: data['Core Ratings'] }
+            ];
 
+            coreMetrics.forEach(metric => {
+                const value = metric.source ? metric.source[metric.key] : 'N/A';
                 if (value !== undefined && value !== null) {
-                    appendRatingItem(coreRatingsElement, metric, value);
+                    appendRatingItem(coreRatingsElement, metric.key, value);
                 }
             });
-        }
-        
-        // Displays other ratings like Debt to Equity, ROE, etc.
-        function displayOtherRatings(otherRatings) {
+
+            // Display other fundamental ratings
             const otherRatingsElement = document.getElementById('otherRatings');
             otherRatingsElement.innerHTML = '';
 
-            if (!otherRatings || Object.keys(otherRatings).length === 0) {
-                otherRatingsElement.innerHTML = '<p class="text-center text-gray-500 py-4">No fundamental ratings data available.</p>';
-                return;
-            }
-
             const otherMetricsOrder = ["Debt to Equity Rating", "PE Ratio Rating", "ROA Rating", "ROE Rating"];
 
-            otherMetricsOrder.forEach(metric => {
-                const value = otherRatings[metric];
-                if (value !== undefined && value !== null) {
-                    appendRatingItem(otherRatingsElement, metric, value);
-                }
-            });
+            const otherRatingsData = data['Other Ratings'];
+            if (!otherRatingsData || Object.keys(otherRatingsData).length === 0) {
+                otherRatingsElement.innerHTML = '<p class="text-center text-gray-500 py-4">No fundamental ratings data available.</p>';
+            } else {
+                otherMetricsOrder.forEach(metric => {
+                    const value = otherRatingsData[metric];
+                    if (value !== undefined && value !== null) {
+                        appendRatingItem(otherRatingsElement, metric, value);
+                    }
+                });
+            }
+            
+            // Display consensus summary
+            displayConsensusSummary(data.ConsensusSummary);
+
+            // Display upgrades and downgrades
+            displayUpgradesDowngrades(data['Upgrades/Downgrades']);
         }
 
+        // Creates a list item for a rating
         function appendRatingItem(parent, metric, value) {
             const listItem = document.createElement('div');
             listItem.className = 'flex justify-between items-center py-3';
