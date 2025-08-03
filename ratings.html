@@ -67,9 +67,17 @@
         <div id="ratingsContainer" class="hidden max-w-4xl mx-auto space-y-8">
             <!-- Overall Ratings Section -->
             <div id="overallRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Overall Ratings</h2>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Core Ratings</h2>
                 <div id="coreRatings" class="divide-y divide-gray-200">
                     <!-- Core ratings will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Fundamental Ratings Section -->
+            <div id="fundamentalRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Fundamental Ratings</h2>
+                <div id="otherRatings" class="divide-y divide-gray-200">
+                    <!-- Other ratings will be inserted here -->
                 </div>
             </div>
 
@@ -189,6 +197,7 @@
                     showError(data.error);
                 } else {
                     displayCoreRatings(data);
+                    displayOtherRatings(data["Other Ratings"]);
                     displayConsensusSummary(data.ConsensusSummary);
                     displayUpgradesDowngrades(data['Upgrades/Downgrades']);
                     showLoading(false);
@@ -200,31 +209,21 @@
             }
         }
 
-        // Displays core ratings like Growth, Stability, etc.
+        // Displays core ratings like Overall, Profitability, Growth, etc.
         function displayCoreRatings(data) {
             const coreRatingsElement = document.getElementById('coreRatings');
             coreRatingsElement.innerHTML = '';
             
-            const metricsOrder = ["Overall Rating", "Consensus", "Valuation", "Stability", "Profitability", "Growth", "Other Ratings"];
+            const metricsOrder = ["Overall Rating", "Consensus", "Valuation", "Stability", "Profitability", "Growth"];
             
             metricsOrder.forEach(metric => {
                 let value;
-                if (metric === "Consensus" || metric === "Valuation" || metric === "Stability" || metric === "Profitability" || metric === "Growth") {
-                    value = data[metric];
-                } else if (metric === "Other Ratings") {
-                    // Iterate through "Other Ratings" as well
-                    const otherRatings = data["Other Ratings"];
-                    if (otherRatings) {
-                        for (const subMetric in otherRatings) {
-                            if (otherRatings.hasOwnProperty(subMetric)) {
-                                value = otherRatings[subMetric];
-                                appendRatingItem(coreRatingsElement, subMetric, value);
-                            }
-                        }
-                    }
-                    return; // Skip the main loop for "Other Ratings" since we handled its sub-metrics
+                if (metric === "Consensus") {
+                    value = data.ConsensusSummary ? data.ConsensusSummary.Consensus : "N/A";
+                } else if (metric === "Overall Rating") {
+                    value = data["Other Ratings"] ? data["Other Ratings"]["Overall Rating"] : "N/A";
                 } else {
-                    value = data["Other Ratings"]?.[metric] || null;
+                    value = data[metric];
                 }
 
                 if (value !== undefined && value !== null) {
@@ -233,6 +232,26 @@
             });
         }
         
+        // Displays other ratings like Debt to Equity, ROE, etc.
+        function displayOtherRatings(otherRatings) {
+            const otherRatingsElement = document.getElementById('otherRatings');
+            otherRatingsElement.innerHTML = '';
+
+            if (!otherRatings || Object.keys(otherRatings).length === 0) {
+                otherRatingsElement.innerHTML = '<p class="text-center text-gray-500 py-4">No fundamental ratings data available.</p>';
+                return;
+            }
+
+            const otherMetricsOrder = ["Debt to Equity Rating", "PE Ratio Rating", "ROA Rating", "ROE Rating"];
+
+            otherMetricsOrder.forEach(metric => {
+                const value = otherRatings[metric];
+                if (value !== undefined && value !== null) {
+                    appendRatingItem(otherRatingsElement, metric, value);
+                }
+            });
+        }
+
         function appendRatingItem(parent, metric, value) {
             const listItem = document.createElement('div');
             listItem.className = 'flex justify-between items-center py-3';
@@ -261,7 +280,7 @@
             }
 
             const consensusOrder = ["# Strong Buy", "# Buy", "# Hold", "# Sell", "# Strong Sell"];
-
+            
             consensusOrder.forEach(key => {
                 const value = data[key];
                 if (value !== undefined) {
