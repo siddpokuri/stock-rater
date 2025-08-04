@@ -123,18 +123,19 @@
             if (newsData && newsData.length > 0) {
                 newsData.forEach(article => {
                     const articleCard = document.createElement('a');
-                    articleCard.href = article.url;
+                    articleCard.href = article.URL; // Changed from article.url
                     articleCard.target = "_blank"; // Open link in a new tab
                     articleCard.className = "block bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out";
 
                     // Use a placeholder image if the article image URL is invalid or missing
-                    const imageUrl = article.image || 'https://placehold.co/600x400/e2e8f0/4a5568?text=No+Image';
+                    const imageUrl = article.Image || 'https://placehold.co/600x400/e2e8f0/4a5568?text=No+Image'; // Changed from article.image
 
                     articleCard.innerHTML = `
-                        <img src="${imageUrl}" alt="${article.title}" class="w-full h-48 object-cover object-center" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e2e8f0/4a5568?text=No+Image';">
+                        <img src="${imageUrl}" alt="${article.Title}" class="w-full h-48 object-cover object-center" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e2e8f0/4a5568?text=No+Image';">
                         <div class="p-5">
-                            <h3 class="text-lg font-bold mb-2 text-gray-800 hover:text-blue-600 transition-colors duration-200">${article.title}</h3>
-                            <p class="text-sm text-gray-500">${article.publishedDate ? new Date(article.publishedDate).toLocaleDateString() : 'Date not available'}</p>
+                            <h3 class="text-lg font-bold mb-2 text-gray-800 hover:text-blue-600 transition-colors duration-200">${article.Title}</h3>
+                            <p class="text-sm text-gray-600 mb-2">Publisher: ${article.Publisher || 'N/A'}</p> <!-- Added Publisher -->
+                            <p class="text-sm text-gray-500">${article['Date Published'] ? new Date(article['Date Published']).toLocaleDateString() : 'Date not available'}</p> <!-- Changed from article.publishedDate -->
                         </div>
                     `;
                     newsContainer.appendChild(articleCard);
