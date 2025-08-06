@@ -15,7 +15,6 @@
             flex-direction: column;
             color: #1f2937; /* Default text color */
         }
-        /* I've removed the header-container class and moved the styles directly to the new card element */
         .back-button {
             @apply bg-gray-200 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-md hover:bg-gray-300 transition-colors duration-200;
         }
@@ -59,10 +58,14 @@
 </head>
 <body class="bg-gray-100">
     <main class="container mx-auto p-6 flex-grow">
-        <!-- New card for the page title and back button -->
-        <div class="bg-white p-8 rounded-2xl shadow-xl flex flex-col items-center justify-center mt-10 mb-8">
-            <h1 id="pageTitle" class="text-5xl font-extrabold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Earnings Calendar</h1>
-            <a href="index.html" class="back-button mt-6">← Back to Home</a>
+        <!-- Card for the title, now with smaller padding and font size -->
+        <div class="bg-white py-8 px-6 rounded-2xl shadow-xl flex justify-center items-center mt-10 mb-4">
+            <h1 id="pageTitle" class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Earnings Calendar</h1>
+        </div>
+        
+        <!-- Card for the back button, also with smaller padding -->
+        <div class="bg-white py-4 px-6 rounded-2xl shadow-xl flex justify-center items-center mb-8">
+            <a href="index.html" class="back-button">← Back to Home</a>
         </div>
 
         <div id="loadingIndicator" class="text-center">
