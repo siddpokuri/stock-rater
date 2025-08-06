@@ -53,42 +53,35 @@
                 </div>
             </div>
 
-            <!-- Upcoming Earnings Calendar Section -->
+            <!-- Calendar Selection Section -->
             <div class="bg-white p-8 rounded-2xl card-shadow flex flex-col items-center text-center">
-                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Upcoming Earnings Calendar</h2>
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">View Calendar by Date</h2>
                 <div class="flex flex-col gap-6 w-full max-w-sm">
                     <div class="flex flex-col text-left">
-                        <label for="fromDate" class="text-gray-700 font-medium mb-1">From Date:</label>
-                        <input type="date" id="fromDate" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
+                        <label for="calendarDate" class="text-gray-700 font-medium mb-1">Select Date:</label>
+                        <input type="date" id="calendarDate" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
                     </div>
                     <div class="flex flex-col text-left">
-                        <label for="toDate" class="text-gray-700 font-medium mb-1">To Date:</label>
-                        <input type="date" id="toDate" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
+                        <label for="calendarTypeSelect" class="text-gray-700 font-medium mb-1">Select Calendar Type:</label>
+                        <select id="calendarTypeSelect" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
+                            <option value="earnings_calendar.html">Upcoming/Historical Earnings Calendar</option>
+                            <option value="ipos_calendar.html">Upcoming/Historical IPO Calendar</option>
+                            <option value="split_calendar.html">Upcoming/Historical Split Calendar</option>
+                        </select>
                     </div>
                     
-                    <!-- Loading Indicator for Calendar -->
-                    <div id="calendarLoadingIndicator" class="hidden flex items-center justify-center text-gray-600 font-medium mt-4">
-                        <svg class="animate-spin h-6 w-6 text-green-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Loading...</span>
-                    </div>
-
                     <!-- Error Message for Calendar -->
                     <div id="calendarErrorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4" role="alert">
                         <span id="calendarErrorText"></span>
                     </div>
 
-                    <button id="viewCalendarBtn" class="w-full bg-green-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 mt-2">View Earnings Calendar</button>
+                    <button id="viewCalendarBtn" class="w-full bg-green-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 mt-2">View Calendar</button>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
-
         // Custom function to show a styled message instead of alert()
         function showMessage(message, type, targetElementId) {
             const messageBox = document.getElementById(targetElementId);
@@ -104,16 +97,9 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Set default dates for the calendar input fields
+            // Set default date for the new calendar input field to today
             const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(today.getDate() + 1);
-
-            const sixtyDaysFromTomorrow = new Date(tomorrow);
-            sixtyDaysFromTomorrow.setDate(tomorrow.getDate() + 60);
-
-            document.getElementById('fromDate').value = tomorrow.toISOString().split('T')[0];
-            document.getElementById('toDate').value = sixtyDaysFromTomorrow.toISOString().split('T')[0];
+            document.getElementById('calendarDate').value = today.toISOString().split('T')[0];
 
             // Stock Search Button Logic
             document.getElementById('searchStockBtn').addEventListener('click', () => {
@@ -125,52 +111,29 @@
                 }
             });
 
-            // Upcoming Earnings Calendar Button Logic
-            document.getElementById('viewCalendarBtn').addEventListener('click', async () => {
-                const fromDate = document.getElementById('fromDate').value;
-                const toDate = document.getElementById('toDate').value;
-                const loadingIndicator = document.getElementById('calendarLoadingIndicator');
+            // View Calendar Button Logic
+            document.getElementById('viewCalendarBtn').addEventListener('click', () => {
+                const selectedDate = document.getElementById('calendarDate').value;
+                const selectedCalendarTypeFile = document.getElementById('calendarTypeSelect').value;
                 const errorMessageDiv = document.getElementById('calendarErrorMessage');
                 const errorTextSpan = document.getElementById('calendarErrorText');
 
-                errorMessageDiv.classList.add('hidden');
-                loadingIndicator.classList.remove('hidden');
+                errorMessageDiv.classList.add('hidden'); // Hide previous errors
 
-                if (!fromDate || !toDate) {
-                    errorTextSpan.textContent = 'Please select both a "From Date" and a "To Date".';
+                if (!selectedDate) {
+                    errorTextSpan.textContent = 'Please select a date for the calendar.';
                     errorMessageDiv.classList.remove('hidden');
-                    loadingIndicator.classList.add('hidden');
                     return;
                 }
 
-                try {
-                    const response = await fetch(`${backendBaseUrl}/upcomingearnings?from_date=${fromDate}&to_date=${toDate}`);
-                    const result = await response.json();
-
-                    if (response.ok) {
-                        if (Array.isArray(result) && result.length > 0) {
-                            sessionStorage.setItem('upcomingEarningsData', JSON.stringify(result));
-                            sessionStorage.setItem('upcomingEarningsFromDate', fromDate);
-                            sessionStorage.setItem('upcomingEarningsToDate', toDate);
-                            window.location.href = `earnings_calendar.html`;
-                        } else if (result && result.message) {
-                            errorTextSpan.textContent = result.message;
-                            errorMessageDiv.classList.remove('hidden');
-                        } else {
-                            errorTextSpan.textContent = 'Received unexpected data format from the server.';
-                            errorMessageDiv.classList.remove('hidden');
-                        }
-                    } else {
-                        errorTextSpan.textContent = result.error || 'An unknown error occurred while fetching data.';
-                        errorMessageDiv.classList.remove('hidden');
-                    }
-                } catch (error) {
-                    console.error('Error fetching upcoming earnings calendar:', error);
-                    errorTextSpan.textContent = `A network error occurred: ${error.message}. Please try again.`;
+                if (!selectedCalendarTypeFile) {
+                    errorTextSpan.textContent = 'Please select a calendar type.';
                     errorMessageDiv.classList.remove('hidden');
-                } finally {
-                    loadingIndicator.classList.add('hidden');
+                    return;
                 }
+
+                // Navigate to the selected calendar page, passing the date as a query parameter
+                window.location.href = `${selectedCalendarTypeFile}?date=${selectedDate}`;
             });
         });
     </script>
