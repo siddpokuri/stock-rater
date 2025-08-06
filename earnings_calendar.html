@@ -27,7 +27,6 @@
         .card-header h3 {
             @apply text-2xl font-bold text-blue-700;
         }
-        /* Corrected styling for each data row to make it a distinct card */
         .data-row {
             @apply flex justify-between items-center bg-white p-4 rounded-lg shadow-md mb-2;
         }
@@ -152,10 +151,10 @@
                 data.forEach(entry => {
                     const card = document.createElement('div');
                     card.className = 'earnings-card';
+                    // The "Last Updated" row has been removed from the card's innerHTML
                     card.innerHTML = `
                         <div class="card-header">
                             <h3 class="text-2xl font-bold text-blue-700">${entry["Symbol"] || 'N/A'}</h3>
-                            <span class="text-sm font-semibold text-gray-500">${entry["Last Updated"] || 'N/A'}</span>
                         </div>
                         <div>
                             <div class="data-row">
