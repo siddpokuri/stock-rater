@@ -22,12 +22,12 @@
             @apply bg-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1;
         }
         .card-header {
-            @apply flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-100;
+            @apply mb-4 pb-2 border-b-2 border-gray-100;
         }
         .card-header h3 {
             @apply text-2xl font-bold text-blue-700;
         }
-        /* Updated styling for each data row to make it a distinct card */
+        /* Corrected styling for each data row to make it a distinct card */
         .data-row {
             @apply flex justify-between items-center bg-white p-4 rounded-lg shadow-md mb-2;
         }
@@ -152,7 +152,6 @@
                 data.forEach(entry => {
                     const card = document.createElement('div');
                     card.className = 'earnings-card';
-                    // The "Release Date" row has been removed from the card's innerHTML
                     card.innerHTML = `
                         <div class="card-header">
                             <h3 class="text-2xl font-bold text-blue-700">${entry["Symbol"] || 'N/A'}</h3>
