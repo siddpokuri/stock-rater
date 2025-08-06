@@ -25,7 +25,7 @@
             @apply flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-100;
         }
         .card-header h3 {
-            @apply text-3xl font-bold text-blue-700;
+            @apply text-2xl font-bold text-blue-700;
         }
         .data-row {
             @apply flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0;
@@ -58,13 +58,13 @@
 </head>
 <body class="bg-gray-100">
     <main class="container mx-auto p-6 flex-grow">
-        <!-- Card for the title, now with smaller padding and font size -->
-        <div class="bg-white py-8 px-6 rounded-2xl shadow-xl flex justify-center items-center mt-10 mb-4">
+        <!-- Title card now has a limited width and is centered -->
+        <div class="bg-white py-8 px-6 rounded-2xl shadow-xl flex justify-center items-center mt-10 mb-4 max-w-xl mx-auto">
             <h1 id="pageTitle" class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Earnings Calendar</h1>
         </div>
         
-        <!-- Card for the back button, also with smaller padding -->
-        <div class="bg-white py-4 px-6 rounded-2xl shadow-xl flex justify-center items-center mb-8">
+        <!-- Back button card also has a limited width and is centered -->
+        <div class="bg-white py-4 px-6 rounded-2xl shadow-xl flex justify-center items-center mb-8 max-w-sm mx-auto">
             <a href="index.html" class="back-button">← Back to Home</a>
         </div>
 
@@ -151,16 +151,13 @@
                 data.forEach(entry => {
                     const card = document.createElement('div');
                     card.className = 'earnings-card';
+                    // The "Release Date" row has been removed from the card's innerHTML
                     card.innerHTML = `
                         <div class="card-header">
-                            <h3 class="text-3xl font-bold text-blue-700">${entry["Symbol"] || 'N/A'}</h3>
+                            <h3 class="text-2xl font-bold text-blue-700">${entry["Symbol"] || 'N/A'}</h3>
                             <span class="text-sm font-semibold text-gray-500">${entry["Last Updated"] || 'N/A'}</span>
                         </div>
                         <div class="flex flex-col space-y-2">
-                            <div class="data-row">
-                                <span class="data-label">Release Date:</span>
-                                <span class="data-value">${entry["Release Date"] || 'N/A'}</span>
-                            </div>
                             <div class="data-row">
                                 <span class="data-label">EPS Actual:</span>
                                 <span class="data-value">${entry["EPS Actual"] !== undefined && entry["EPS Actual"] !== null ? entry["EPS Actual"] : 'N/A'}</span>
