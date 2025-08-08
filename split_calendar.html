@@ -9,46 +9,6 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #e5e7eb;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: #1f2937;
-        }
-        .back-button {
-            @apply bg-gray-200 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-md hover:bg-gray-300 transition-colors duration-200;
-        }
-        .split-card {
-            @apply bg-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1;
-        }
-        .card-header {
-            @apply mb-4 pb-2 border-b-2 border-gray-100;
-        }
-        .card-header h3 {
-            @apply text-2xl font-bold text-blue-700;
-        }
-        .data-row {
-            @apply flex justify-between items-center bg-white p-4 rounded-lg shadow-md mb-2;
-        }
-        .data-label {
-            @apply text-sm text-gray-500 font-medium;
-        }
-        .data-value {
-            @apply text-base font-semibold text-gray-900;
-        }
-        .loading-container {
-            @apply flex flex-col items-center justify-center p-10 bg-white rounded-2xl shadow-lg;
-        }
-        .loading-spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        .error-message {
-            @apply bg-red-100 border border-red-400 text-red-700 p-6 rounded-2xl shadow-md text-center font-semibold;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -56,7 +16,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 min-h-screen flex flex-col text-gray-800">
     <main class="container mx-auto p-6 flex-grow">
         <!-- Title card with limited width and centered -->
         <div class="bg-white py-8 px-6 rounded-2xl shadow-xl flex justify-center items-center mt-10 mb-4 max-w-xl mx-auto">
@@ -65,18 +25,18 @@
         
         <!-- Back button card with limited width and centered -->
         <div class="bg-white py-4 px-6 rounded-2xl shadow-xl flex justify-center items-center mb-8 max-w-sm mx-auto">
-            <a href="index.html" class="back-button">← Back to Home</a>
+            <a href="index.html" class="bg-gray-200 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-md hover:bg-gray-300 transition-colors duration-200">← Back to Home</a>
         </div>
 
         <div id="loadingIndicator" class="text-center">
-            <div class="loading-container">
-                <div class="loading-spinner"></div>
+            <div class="flex flex-col items-center justify-center p-10 bg-white rounded-2xl shadow-lg">
+                <div class="w-10 h-10 border-4 border-gray-200 border-l-blue-500 rounded-full animate-spin"></div>
                 <p class="mt-4 text-xl font-medium text-gray-600">Loading Split Data...</p>
             </div>
         </div>
 
         <div id="errorMessage" class="hidden mt-10">
-            <div class="error-message">
+            <div class="bg-red-100 border border-red-400 text-red-700 p-6 rounded-2xl shadow-md text-center font-semibold">
                 <strong class="font-bold">Oops!</strong>
                 <span class="block sm:inline" id="errorText"></span>
             </div>
@@ -89,12 +49,15 @@
     </main>
 
     <script>
+        // The backend base URL is a constant
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Get the selected date from the URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const selectedDate = urlParams.get('date');
 
+            // Get references to the HTML elements
             const pageTitle = document.getElementById('pageTitle');
             const calendarContentDiv = document.getElementById('calendarContent');
             const noCalendarDataMessage = document.getElementById('noCalendarDataMessage');
@@ -102,15 +65,19 @@
             const errorMessageDiv = document.getElementById('errorMessage');
             const errorTextSpan = document.getElementById('errorText');
 
+            // Check if a date has been selected
             if (selectedDate) {
+                // Update the page title and fetch the split data
                 pageTitle.textContent = `Split Calendar for ${selectedDate}`;
                 fetchSplitData(selectedDate);
             } else {
+                // If no date is selected, display an error message
                 pageTitle.textContent = 'Split Calendar';
                 noCalendarDataMessage.textContent = 'No date selected. Please go back to the home page and select a date.';
                 noCalendarDataMessage.classList.remove('hidden');
             }
 
+            // Asynchronous function to fetch split data from the API
             async function fetchSplitData(date) {
                 showLoading(true);
                 hideError();
@@ -139,26 +106,31 @@
                 }
             }
 
+            // Function to display the fetched split data
             function displayCalendarData(data) {
                 calendarContentDiv.innerHTML = '';
                 
+                // Sort the data alphabetically by symbol
                 data.sort((a, b) => {
                     const symbolA = a["symbol"] || '';
                     const symbolB = b["symbol"] || '';
                     return symbolA.localeCompare(symbolB);
                 });
 
+                // Create a card for each split entry
                 data.forEach(entry => {
                     const card = document.createElement('div');
-                    card.className = 'split-card';
+                    // Updated classes for a distinct white card with a shadow
+                    card.className = 'bg-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1';
+                    
                     card.innerHTML = `
-                        <div class="card-header">
+                        <div class="mb-4 pb-2 border-b-2 border-gray-100">
                             <h3 class="text-2xl font-bold text-blue-700">${entry["symbol"] || 'N/A'}</h3>
                         </div>
                         <div>
-                            <div class="data-row">
-                                <span class="data-label">Ratio:</span>
-                                <span class="data-value">${entry["ratio"] || 'N/A'}</span>
+                            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm mb-2">
+                                <span class="text-sm text-gray-500 font-medium">Ratio:</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["ratio"] || 'N/A'}</span>
                             </div>
                         </div>
                     `;
@@ -166,11 +138,13 @@
                 });
             }
 
+            // Function to show/hide the loading indicator
             function showLoading(show) {
                 loadingIndicator.classList.toggle('hidden', !show);
                 calendarContentDiv.classList.toggle('hidden', show);
             }
 
+            // Function to display an error message
             function showError(message) {
                 errorTextSpan.textContent = message;
                 errorMessageDiv.classList.remove('hidden');
@@ -178,6 +152,7 @@
                 noCalendarDataMessage.classList.add('hidden');
             }
 
+            // Function to hide the error message
             function hideError() {
                 errorMessageDiv.classList.add('hidden');
             }
