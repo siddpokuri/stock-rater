@@ -304,7 +304,6 @@
 
             ctx = priceChartCanvas.getContext('2d');
 
-            // Now using the "Changes" object for percentage change
             const chartDataForPeriod = generalData[period];
             const percentageChangeValue = generalData["Changes"] ? generalData["Changes"][period] : null;
 
@@ -331,13 +330,21 @@
             let percentageChangeText = 'N/A';
             let changeColorClass = 'text-gray-800';
             
+            // Define chart colors based on the percentage change
+            let chartBorderColor = 'rgb(75, 192, 192)'; // Default color
+            let chartBackgroundColor = 'rgba(75, 192, 192, 0.2)'; // Default color
+
             // Using the new Changes object from the backend
             if (percentageChangeValue !== null && !isNaN(percentageChangeValue)) {
                 percentageChangeText = `${percentageChangeValue.toFixed(2)}%`;
                 if (percentageChangeValue > 0) {
                     changeColorClass = 'text-green-600';
+                    chartBorderColor = 'rgb(34, 197, 94)'; // Green for positive change
+                    chartBackgroundColor = 'rgba(34, 197, 94, 0.2)'; // Light green for positive change
                 } else if (percentageChangeValue < 0) {
                     changeColorClass = 'text-red-600';
+                    chartBorderColor = 'rgb(239, 68, 68)'; // Red for negative change
+                    chartBackgroundColor = 'rgba(239, 68, 68, 0.2)'; // Light red for negative change
                 }
             }
 
@@ -360,8 +367,8 @@
                     datasets: [{
                         label: 'Price',
                         data: prices,
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: chartBorderColor, // Use dynamic color
+                        backgroundColor: chartBackgroundColor, // Use dynamic color
                         fill: true,
                         tension: 0.1,
                         pointRadius: 0
