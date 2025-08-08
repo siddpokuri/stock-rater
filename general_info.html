@@ -304,7 +304,9 @@
 
             ctx = priceChartCanvas.getContext('2d');
 
+            // Now using the "Changes" object for percentage change
             const chartDataForPeriod = generalData[period];
+            const percentageChangeValue = generalData["Changes"] ? generalData["Changes"][period] : null;
 
             if (!chartDataForPeriod || chartDataForPeriod === "N/A" || chartDataForPeriod.length === 0) {
                 priceChartCanvas.style.display = 'none';
@@ -326,22 +328,20 @@
             const labels = chartDataForPeriod.map(d => d[dateKey]);
             const prices = chartDataForPeriod.map(d => parseFloat(d[priceKey]));
 
-            let percentageChange = 'N/A';
+            let percentageChangeText = 'N/A';
             let changeColorClass = 'text-gray-800';
-            if (prices.length > 1) {
-                const firstPrice = prices[0];
-                const lastPrice = prices[prices.length - 1];
-                if (firstPrice !== 0 && !isNaN(firstPrice) && !isNaN(lastPrice)) {
-                    const change = ((lastPrice - firstPrice) / firstPrice) * 100;
-                    percentageChange = change.toFixed(2) + '%';
-                    if (change > 0) {
-                        changeColorClass = 'text-green-600';
-                    } else if (change < 0) {
-                        changeColorClass = 'text-red-600';
-                    }
+            
+            // Using the new Changes object from the backend
+            if (percentageChangeValue !== null && !isNaN(percentageChangeValue)) {
+                percentageChangeText = `${percentageChangeValue.toFixed(2)}%`;
+                if (percentageChangeValue > 0) {
+                    changeColorClass = 'text-green-600';
+                } else if (percentageChangeValue < 0) {
+                    changeColorClass = 'text-red-600';
                 }
             }
-            document.getElementById('chartPercentageChange').textContent = `Change: ${percentageChange}`;
+
+            document.getElementById('chartPercentageChange').textContent = `Change: ${percentageChangeText}`;
             document.getElementById('chartPercentageChange').className = `text-xl md:text-2xl font-semibold ${changeColorClass}`;
 
             const chartVolumeElement = document.getElementById('chartVolume');
