@@ -87,7 +87,7 @@
 
         <div id="generalContent" class="hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <!-- General Info Box -->
+                <!-- Company Overview Box -->
                 <div class="bg-white p-6 rounded-xl shadow-md">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Company Overview</h2>
                     <div id="generalInfoDetails" class="divide-y divide-gray-200">
@@ -133,11 +133,11 @@
                 </div>
             </div>
 
-            <!-- New Key Ratios Section -->
-            <div id="keyRatiosSection" class="bg-white p-6 rounded-xl shadow-md mt-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Key Ratios</h2>
-                <div id="keyRatiosDetails" class="divide-y divide-gray-200">
-                    <!-- Ratios will be populated by JS -->
+            <!-- New Summary Metrics Section -->
+            <div id="summaryMetricsSection" class="bg-white p-6 rounded-xl shadow-md mt-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Summary Metrics</h2>
+                <div id="summaryMetricsDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Metrics will be populated by JS in a grid format -->
                 </div>
             </div>
         </div>
@@ -197,7 +197,7 @@
                 console.log("General Data from /tab1:", generalData);
 
                 displayGeneralInfo();
-                displayKeyRatios(); // Call new function to display ratios
+                displaySummaryMetrics(); // Call new function to display summary metrics
                 showLoading(false);
                 document.getElementById('generalContent').classList.remove('hidden');
 
@@ -235,10 +235,10 @@
                 const currentPriceDisplay = document.getElementById('currentPriceDisplay');
                 currentPriceDisplay.textContent = `Price: ${formatValue(profileInfo["Price"], "Price")}`;
 
+                // Only display a few key items here, the rest go in the new Summary Metrics section
                 const infoItems = [
                     { label: "Market Cap", value: profileInfo["Market Cap"] },
                     { label: "EPS", value: generalData["EPS"] },
-                    { label: "Quarterly Dividend", value: generalData["Quarterly Dividend"] },
                     { label: "Beta", value: profileInfo["Beta"] },
                     { label: "Industry", value: profileInfo["Industry"] },
                     { label: "Sector", value: profileInfo["Sector"] },
@@ -266,28 +266,44 @@
             document.getElementById('chartBtn1Y').onclick = () => { renderPriceChart('1Y'); setActiveChartButton('chartBtn1Y'); };
         }
 
-        function displayKeyRatios() {
-            const keyRatiosDetailsDiv = document.getElementById('keyRatiosDetails');
-            keyRatiosDetailsDiv.innerHTML = ''; // Clear previous content
+        function displaySummaryMetrics() {
+            const summaryMetricsDetailsDiv = document.getElementById('summaryMetricsDetails');
+            summaryMetricsDetailsDiv.innerHTML = ''; // Clear previous content
 
-            const ratiosData = generalData["Ratios"];
-            if (!ratiosData || Object.keys(ratiosData).length === 0) {
-                keyRatiosDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No ratio data available.</p>';
-            } else {
-                for (const key in ratiosData) {
-                    if (ratiosData.hasOwnProperty(key)) {
-                        const ratioLabel = key.replace(/([A-Z])/g, ' $1').trim(); // Add space before capital letters
-                        const ratioValue = ratiosData[key];
-                        const row = document.createElement('div');
-                        row.className = 'flex justify-between items-center py-2';
-                        row.innerHTML = `
-                            <strong class="text-gray-700">${ratioLabel}:</strong>
-                            <span class="text-gray-800">${formatValue(ratioValue, key)}</span>
-                        `;
-                        keyRatiosDetailsDiv.appendChild(row);
-                    }
-                }
+            if (!generalData || Object.keys(generalData).length === 0) {
+                summaryMetricsDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No summary metrics data available.</p>';
+                return;
             }
+
+            const profileInfo = generalData["Profile Info"] || {};
+            const ratiosData = generalData["Ratios"] || {};
+
+            const metrics = [
+                // Group 1: Price and range
+                { label: "Open", value: profileInfo["Open"] },
+                { label: "High", value: profileInfo["Day High"] },
+                { label: "Low", value: profileInfo["Day Low"] },
+
+                // Group 2: Valuation and Dividends
+                { label: "Mkt cap", value: profileInfo["Market Cap"] },
+                { label: "P/E ratio", value: ratiosData["peRatio"] },
+                { label: "Div yield", value: ratiosData["dividendYield"] },
+
+                // Group 3: 52-week metrics
+                { label: "52-wk high", value: profileInfo["52-wk high"] },
+                { label: "52-wk low", value: profileInfo["52-wk low"] },
+                { label: "Qtrly Div Amt", value: generalData["Quarterly Dividend"] }
+            ];
+
+            metrics.forEach(metric => {
+                const metricDiv = document.createElement('div');
+                metricDiv.className = 'bg-gray-50 p-4 rounded-lg shadow-sm flex flex-col justify-center items-start';
+                metricDiv.innerHTML = `
+                    <div class="text-sm font-semibold text-gray-600">${metric.label}</div>
+                    <div class="text-xl font-bold text-gray-800">${formatValue(metric.value, metric.label)}</div>
+                `;
+                summaryMetricsDetailsDiv.appendChild(metricDiv);
+            });
         }
 
         function formatValue(value, label) {
@@ -295,7 +311,19 @@
                 return 'N/A';
             }
             if (typeof value === 'number') {
-                return value.toFixed(3);
+                 // Format market cap and other large numbers
+                if (label.includes("Market Cap") || label.includes("Volume")) {
+                    const absValue = Math.abs(value);
+                    if (absValue >= 1e12) return (value / 1e12).toFixed(2) + 'T';
+                    if (absValue >= 1e9) return (value / 1e9).toFixed(2) + 'B';
+                    if (absValue >= 1e6) return (value / 1e6).toFixed(2) + 'M';
+                    return value.toFixed(2);
+                }
+                // Format dividend yields as percentages
+                if (label.includes("Div yield")) {
+                     return (value * 100).toFixed(2) + '%';
+                }
+                return value.toFixed(2);
             }
             return value;
         }
