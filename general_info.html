@@ -132,6 +132,14 @@
                     </div>
                 </div>
             </div>
+
+            <!-- New Key Ratios Section -->
+            <div id="keyRatiosSection" class="bg-white p-6 rounded-xl shadow-md mt-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Key Ratios</h2>
+                <div id="keyRatiosDetails" class="divide-y divide-gray-200">
+                    <!-- Ratios will be populated by JS -->
+                </div>
+            </div>
         </div>
     </main>
 
@@ -189,6 +197,7 @@
                 console.log("General Data from /tab1:", generalData);
 
                 displayGeneralInfo();
+                displayKeyRatios(); // Call new function to display ratios
                 showLoading(false);
                 document.getElementById('generalContent').classList.remove('hidden');
 
@@ -224,11 +233,10 @@
                 chartSectionTitle.textContent = `${companyName} - (${exchangeName}: ${stockSymbol})`;
 
                 const currentPriceDisplay = document.getElementById('currentPriceDisplay');
-                currentPriceDisplay.textContent = `Price: ${formatGeneralInfoValue(profileInfo["Price"], "Price")}`;
+                currentPriceDisplay.textContent = `Price: ${formatValue(profileInfo["Price"], "Price")}`;
 
                 const infoItems = [
                     { label: "Market Cap", value: profileInfo["Market Cap"] },
-                    { label: "PE Ratio", value: generalData["PE Ratio"] },
                     { label: "EPS", value: generalData["EPS"] },
                     { label: "Quarterly Dividend", value: generalData["Quarterly Dividend"] },
                     { label: "Beta", value: profileInfo["Beta"] },
@@ -243,7 +251,7 @@
                     row.className = 'flex justify-between items-center py-2';
                     row.innerHTML = `
                         <strong class="text-gray-700">${item.label}:</strong>
-                        <span class="text-gray-800">${formatGeneralInfoValue(item.value, item.label)}</span>
+                        <span class="text-gray-800">${formatValue(item.value, item.label)}</span>
                     `;
                     generalInfoDetailsDiv.appendChild(row);
                 });
@@ -258,15 +266,36 @@
             document.getElementById('chartBtn1Y').onclick = () => { renderPriceChart('1Y'); setActiveChartButton('chartBtn1Y'); };
         }
 
-        function formatGeneralInfoValue(value, label) {
+        function displayKeyRatios() {
+            const keyRatiosDetailsDiv = document.getElementById('keyRatiosDetails');
+            keyRatiosDetailsDiv.innerHTML = ''; // Clear previous content
+
+            const ratiosData = generalData["Ratios"];
+            if (!ratiosData || Object.keys(ratiosData).length === 0) {
+                keyRatiosDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No ratio data available.</p>';
+            } else {
+                for (const key in ratiosData) {
+                    if (ratiosData.hasOwnProperty(key)) {
+                        const ratioLabel = key.replace(/([A-Z])/g, ' $1').trim(); // Add space before capital letters
+                        const ratioValue = ratiosData[key];
+                        const row = document.createElement('div');
+                        row.className = 'flex justify-between items-center py-2';
+                        row.innerHTML = `
+                            <strong class="text-gray-700">${ratioLabel}:</strong>
+                            <span class="text-gray-800">${formatValue(ratioValue, key)}</span>
+                        `;
+                        keyRatiosDetailsDiv.appendChild(row);
+                    }
+                }
+            }
+        }
+
+        function formatValue(value, label) {
             if (value === null || value === undefined || value === 'N/A' || value === 'TBA') {
                 return 'N/A';
             }
-            if (label === "Market Cap") {
-                return value;
-            }
-            if (typeof value === 'number' && (label === "Price" || label === "PE Ratio" || label === "EPS" || label === "Quarterly Dividend" || label === "Beta")) {
-                return value.toFixed(2);
+            if (typeof value === 'number') {
+                return value.toFixed(3);
             }
             return value;
         }
@@ -353,7 +382,7 @@
 
             const chartVolumeElement = document.getElementById('chartVolume');
             if (period === '1D' && generalData["Volume (last trading day)"] !== undefined && generalData["Volume (last trading day)"] !== null) {
-                chartVolumeElement.textContent = `Volume: ${formatGeneralInfoValue(generalData["Volume (last trading day)"], "Volume")}`;
+                chartVolumeElement.textContent = `Volume: ${formatValue(generalData["Volume (last trading day)"], "Volume")}`;
                 chartVolumeElement.classList.remove('hidden');
             } else {
                 chartVolumeElement.textContent = 'Volume: N/A';
