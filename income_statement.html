@@ -307,13 +307,14 @@
             // Prepare and render the charts with scaled numerical data
             destroyExistingCharts();
             chartsContainer.style.display = 'flex';
-            const lastFourDates = info.dates.slice(-4);
+            // Get the last four dates and reverse them to be in chronological order
+            const lastFourDates = info.dates.slice(-4).reverse();
 
-            const { scaledData: scaledRevenue, unit: revenueUnit } = scaleFinancialData(info.Revenue.slice(-4));
+            const { scaledData: scaledRevenue, unit: revenueUnit } = scaleFinancialData(info.Revenue.slice(-4).reverse());
             revenueChartTitle.textContent = `Revenue (${revenueUnit})`;
             revenueChartInstance = createChart(revenueChartCanvas, `Revenue (${revenueUnit})`, lastFourDates, scaledRevenue);
 
-            const { scaledData: scaledNetIncome, unit: netIncomeUnit } = scaleFinancialData(info["Net Income"].slice(-4));
+            const { scaledData: scaledNetIncome, unit: netIncomeUnit } = scaleFinancialData(info["Net Income"].slice(-4).reverse());
             netIncomeChartTitle.textContent = `Net Income (${netIncomeUnit})`;
             netIncomeChartInstance = createChart(netIncomeChartCanvas, `Net Income (${netIncomeUnit})`, lastFourDates, scaledNetIncome);
         }
@@ -371,13 +372,14 @@
             // Prepare and render the charts with scaled numerical data
             destroyExistingCharts();
             chartsContainer.style.display = 'flex';
-            const lastFourDates = headers.slice(-4);
+            // Get the last four dates and reverse them to be in chronological order
+            const lastFourDates = headers.slice(-4).reverse();
             
-            const { scaledData: scaledRevenue, unit: revenueUnit } = scaleFinancialData(info.Revenue.slice(-4));
+            const { scaledData: scaledRevenue, unit: revenueUnit } = scaleFinancialData(info.Revenue.slice(-4).reverse());
             revenueChartTitle.textContent = `Revenue (${revenueUnit})`;
             revenueChartInstance = createChart(revenueChartCanvas, `Revenue (${revenueUnit})`, lastFourDates, scaledRevenue);
 
-            const { scaledData: scaledNetIncome, unit: netIncomeUnit } = scaleFinancialData(info["Net Income"].slice(-4));
+            const { scaledData: scaledNetIncome, unit: netIncomeUnit } = scaleFinancialData(info["Net Income"].slice(-4).reverse());
             netIncomeChartTitle.textContent = `Net Income (${netIncomeUnit})`;
             netIncomeChartInstance = createChart(netIncomeChartCanvas, `Net Income (${netIncomeUnit})`, lastFourDates, scaledNetIncome);
         }
