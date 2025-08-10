@@ -96,11 +96,11 @@
             <!-- Container for the charts -->
             <div id="charts-container" class="w-full max-w-5xl flex flex-col md:flex-row justify-center gap-6 mt-8">
                 <div class="w-full md:w-1/2 bg-white p-6 rounded-2xl shadow-xl">
-                    <h3 class="text-lg font-bold text-gray-700 mb-4 text-center">Revenue</h3>
+                    <h3 id="revenue-chart-title" class="text-lg font-bold text-gray-700 mb-4 text-center">Revenue</h3>
                     <canvas id="revenue-chart"></canvas>
                 </div>
                 <div class="w-full md:w-1/2 bg-white p-6 rounded-2xl shadow-xl">
-                    <h3 class="text-lg font-bold text-gray-700 mb-4 text-center">Net Income</h3>
+                    <h3 id="net-income-chart-title" class="text-lg font-bold text-gray-700 mb-4 text-center">Net Income</h3>
                     <canvas id="net-income-chart"></canvas>
                 </div>
             </div>
@@ -124,6 +124,8 @@
         const revenueChartCanvas = document.getElementById('revenue-chart');
         const netIncomeChartCanvas = document.getElementById('net-income-chart');
         const chartsContainer = document.getElementById('charts-container');
+        const revenueChartTitle = document.getElementById('revenue-chart-title');
+        const netIncomeChartTitle = document.getElementById('net-income-chart-title');
         chartsContainer.style.display = 'none'; // Initially hide charts container
 
         /**
@@ -173,6 +175,36 @@
         }
 
         /**
+         * Scales an array of financial data for easier chart visualization.
+         * @param {string[]} dataArray The array of financial strings (e.g., ["1.2B", "900M"]).
+         * @returns {{scaledData: number[], unit: string}} An object with the scaled data and the unit string.
+         */
+        function scaleFinancialData(dataArray) {
+            const parsedData = dataArray.map(parseFinancialString).filter(d => d !== null);
+            if (parsedData.length === 0) {
+                return { scaledData: [], unit: "" };
+            }
+
+            const maxVal = Math.max(...parsedData.map(Math.abs));
+            let unit = "";
+            let scaleFactor = 1;
+
+            if (maxVal >= 1e9) {
+                unit = "in billions";
+                scaleFactor = 1e9;
+            } else if (maxVal >= 1e6) {
+                unit = "in millions";
+                scaleFactor = 1e6;
+            } else if (maxVal >= 1e3) {
+                unit = "in thousands";
+                scaleFactor = 1e3;
+            }
+
+            const scaledData = parsedData.map(val => val / scaleFactor);
+            return { scaledData, unit };
+        }
+
+        /**
          * Creates a bar chart using Chart.js.
          * @param {HTMLCanvasElement} canvasElement The canvas element to render the chart on.
          * @param {string} title The title of the chart.
@@ -208,14 +240,8 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value, index, values) {
-                                    if (value >= 1e9) {
-                                        return (value / 1e9).toFixed(1) + 'B';
-                                    } else if (value >= 1e6) {
-                                        return (value / 1e6).toFixed(1) + 'M';
-                                    } else if (value >= 1e3) {
-                                        return (value / 1e3).toFixed(1) + 'k';
-                                    }
-                                    return value;
+                                    // Simply return the scaled number
+                                    return value.toFixed(1);
                                 }
                             }
                         }
@@ -236,7 +262,6 @@
 
         /**
          * Renders the quarterly income statement data.
-         * The table now uses the raw string values from the API.
          * @param {object} data The API response data.
          */
         function renderQuarterlyData(data) {
@@ -278,20 +303,22 @@
             `;
             statementContainer.innerHTML = html;
 
-            // Prepare and render the charts with parsed numerical data
+            // Prepare and render the charts with scaled numerical data
             destroyExistingCharts();
             chartsContainer.style.display = 'flex';
             const lastFourDates = info.dates.slice(-4);
-            const lastFourRevenues = info.Revenue.slice(-4).map(parseFinancialString);
-            const lastFourNetIncomes = info["Net Income"].slice(-4).map(parseFinancialString);
-            
-            revenueChartInstance = createChart(revenueChartCanvas, 'Revenue', lastFourDates, lastFourRevenues);
-            netIncomeChartInstance = createChart(netIncomeChartCanvas, 'Net Income', lastFourDates, lastFourNetIncomes);
+
+            const { scaledData: scaledRevenue, unit: revenueUnit } = scaleFinancialData(info.Revenue.slice(-4));
+            revenueChartTitle.textContent = `Revenue (${revenueUnit})`;
+            revenueChartInstance = createChart(revenueChartCanvas, `Revenue (${revenueUnit})`, lastFourDates, scaledRevenue);
+
+            const { scaledData: scaledNetIncome, unit: netIncomeUnit } = scaleFinancialData(info["Net Income"].slice(-4));
+            netIncomeChartTitle.textContent = `Net Income (${netIncomeUnit})`;
+            netIncomeChartInstance = createChart(netIncomeChartCanvas, `Net Income (${netIncomeUnit})`, lastFourDates, scaledNetIncome);
         }
 
         /**
          * Renders the yearly income statement data.
-         * The table now uses the raw string values from the API.
          * @param {object} data The API response data.
          */
         function renderYearlyData(data) {
@@ -340,15 +367,18 @@
             `;
             statementContainer.innerHTML = html;
 
-            // Prepare and render the charts with parsed numerical data
+            // Prepare and render the charts with scaled numerical data
             destroyExistingCharts();
             chartsContainer.style.display = 'flex';
             const lastFourDates = headers.slice(-4);
-            const lastFourRevenues = info.Revenue.slice(-4).map(parseFinancialString);
-            const lastFourNetIncomes = info["Net Income"].slice(-4).map(parseFinancialString);
+            
+            const { scaledData: scaledRevenue, unit: revenueUnit } = scaleFinancialData(info.Revenue.slice(-4));
+            revenueChartTitle.textContent = `Revenue (${revenueUnit})`;
+            revenueChartInstance = createChart(revenueChartCanvas, `Revenue (${revenueUnit})`, lastFourDates, scaledRevenue);
 
-            revenueChartInstance = createChart(revenueChartCanvas, 'Revenue', lastFourDates, lastFourRevenues);
-            netIncomeChartInstance = createChart(netIncomeChartCanvas, 'Net Income', lastFourDates, lastFourNetIncomes);
+            const { scaledData: scaledNetIncome, unit: netIncomeUnit } = scaleFinancialData(info["Net Income"].slice(-4));
+            netIncomeChartTitle.textContent = `Net Income (${netIncomeUnit})`;
+            netIncomeChartInstance = createChart(netIncomeChartCanvas, `Net Income (${netIncomeUnit})`, lastFourDates, scaledNetIncome);
         }
 
         // Main rendering function to display data based on active view
