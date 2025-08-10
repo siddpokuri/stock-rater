@@ -234,17 +234,21 @@
             return new Chart(canvasElement, chartConfig);
         }
 
-        // Function to render the quarterly income statement data.
+        /**
+         * Renders the quarterly income statement data.
+         * The table now uses the raw string values from the API.
+         * @param {object} data The API response data.
+         */
         function renderQuarterlyData(data) {
             const info = data["Quarterly Income Statement Info"];
             
-            // Metrics array is updated to reflect the new JSON structure
+            // Metrics for the table, using original string values
             const metrics = [
-                { name: "Revenue", data: info["Revenue"].map(parseFinancialString) },
-                { name: "Gross Profit", data: info["Gross Profit"].map(parseFinancialString) },
-                { name: "Ebitda", data: info["Ebitda"].map(parseFinancialString) },
-                { name: "Operating Income", data: info["Operating Income"].map(parseFinancialString) },
-                { name: "Net Income", data: info["Net Income"].map(parseFinancialString) },
+                { name: "Revenue", data: info["Revenue"] },
+                { name: "Gross Profit", data: info["Gross Profit"] },
+                { name: "Ebitda", data: info["Ebitda"] },
+                { name: "Operating Income", data: info["Operating Income"] },
+                { name: "Net Income", data: info["Net Income"] },
             ];
 
             let html = `
@@ -263,7 +267,7 @@
                                     <td class="py-3 px-4 text-gray-800 font-medium text-left whitespace-nowrap">${metric.name}</td>
                                     ${metric.data.map(value => `
                                         <td class="py-3 px-4 text-gray-600 text-right">
-                                            ${value !== null && typeof value === 'number' ? new Intl.NumberFormat('en-US').format(value) : 'N/A'}
+                                            ${value !== null && typeof value !== 'undefined' ? value : 'N/A'}
                                         </td>
                                     `).join('')}
                                 </tr>
@@ -274,7 +278,7 @@
             `;
             statementContainer.innerHTML = html;
 
-            // Prepare and render the charts
+            // Prepare and render the charts with parsed numerical data
             destroyExistingCharts();
             chartsContainer.style.display = 'flex';
             const lastFourDates = info.dates.slice(-4);
@@ -285,7 +289,11 @@
             netIncomeChartInstance = createChart(netIncomeChartCanvas, 'Net Income', lastFourDates, lastFourNetIncomes);
         }
 
-        // Function to render the yearly income statement data.
+        /**
+         * Renders the yearly income statement data.
+         * The table now uses the raw string values from the API.
+         * @param {object} data The API response data.
+         */
         function renderYearlyData(data) {
             const info = data["Yearly Income Statement Info"];
             const ratios = data["Yearly Ratios"];
@@ -293,14 +301,14 @@
             // Get the headers from the API data
             const headers = info["Date"];
             
-            // Combine metrics from both info and ratios objects
+            // Metrics for the table, using original string values
             const metrics = [
-                { name: "Revenue", data: info["Revenue"].map(parseFinancialString) },
-                { name: "Gross Profit", data: info["Gross Profit"].map(parseFinancialString) },
-                { name: "Ebitda", data: info["Ebitda"].map(parseFinancialString) },
-                { name: "Operating Income", data: info["Operating Income"].map(parseFinancialString) },
-                { name: "Net Income", data: info["Net Income"].map(parseFinancialString) },
-                // These ratios are already numbers, so they don't need parsing
+                { name: "Revenue", data: info["Revenue"] },
+                { name: "Gross Profit", data: info["Gross Profit"] },
+                { name: "Ebitda", data: info["Ebitda"] },
+                { name: "Operating Income", data: info["Operating Income"] },
+                { name: "Net Income", data: info["Net Income"] },
+                // These ratios are already in a displayable format
                 { name: "Net Profit Margin (%)", data: ['N/A', ...ratios["Net Profit Margin (%)"]] },
                 { name: "Price to Sales Ratio", data: ['N/A', ...ratios["Price to Sales Ratio"]] },
             ];
@@ -321,7 +329,7 @@
                                     <td class="py-3 px-4 text-gray-800 font-medium text-left whitespace-nowrap">${metric.name}</td>
                                     ${metric.data.map(value => `
                                         <td class="py-3 px-4 text-gray-600 text-right">
-                                            ${value !== null && typeof value === 'number' ? new Intl.NumberFormat('en-US').format(value) : 'N/A'}
+                                            ${value !== null && typeof value !== 'undefined' ? value : 'N/A'}
                                         </td>
                                     `).join('')}
                                 </tr>
@@ -332,7 +340,7 @@
             `;
             statementContainer.innerHTML = html;
 
-            // Prepare and render the charts
+            // Prepare and render the charts with parsed numerical data
             destroyExistingCharts();
             chartsContainer.style.display = 'flex';
             const lastFourDates = headers.slice(-4);
