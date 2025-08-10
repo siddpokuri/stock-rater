@@ -133,10 +133,10 @@
                 </div>
             </div>
 
-            <!-- New Summary Metrics Section -->
-            <div id="summaryMetricsSection" class="bg-white p-6 rounded-xl shadow-md mt-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Summary Metrics</h2>
-                <div id="summaryMetricsDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- The Summary Metrics section has been updated to Key Ratios -->
+            <div id="keyRatiosSection" class="bg-white p-6 rounded-xl shadow-md mt-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Key Ratios</h2>
+                <div id="keyRatiosDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- Metrics will be populated by JS in a grid format -->
                 </div>
             </div>
@@ -145,6 +145,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Global variables for Firebase, though not used in this specific script.
+        // They are included as part of a standard template for a web application.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
+        
         let stockSymbol = '';
         let generalData = null; // Stores the entire response from /tab1
         let priceChartInstance = null; // To manage Chart.js instance
@@ -197,7 +203,7 @@
                 console.log("General Data from /tab1:", generalData);
 
                 displayGeneralInfo();
-                displaySummaryMetrics(); // Call new function to display summary metrics
+                displayKeyRatios(); // Call the updated function
                 showLoading(false);
                 document.getElementById('generalContent').classList.remove('hidden');
 
@@ -266,43 +272,28 @@
             document.getElementById('chartBtn1Y').onclick = () => { renderPriceChart('1Y'); setActiveChartButton('chartBtn1Y'); };
         }
 
-        function displaySummaryMetrics() {
-            const summaryMetricsDetailsDiv = document.getElementById('summaryMetricsDetails');
-            summaryMetricsDetailsDiv.innerHTML = ''; // Clear previous content
+        /**
+         * Updates the "Key Ratios" section with data from the "Ratios" object.
+         */
+        function displayKeyRatios() {
+            const keyRatiosDetailsDiv = document.getElementById('keyRatiosDetails');
+            keyRatiosDetailsDiv.innerHTML = ''; // Clear previous content
 
-            if (!generalData || Object.keys(generalData).length === 0) {
-                summaryMetricsDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No summary metrics data available.</p>';
+            if (!generalData || !generalData["Ratios"] || Object.keys(generalData["Ratios"]).length === 0) {
+                keyRatiosDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No key ratios data available.</p>';
                 return;
             }
 
-            const profileInfo = generalData["Profile Info"] || {};
-            const ratiosData = generalData["Ratios"] || {};
+            const ratiosData = generalData["Ratios"];
 
-            const metrics = [
-                // Group 1: Price and range
-                { label: "Open", value: profileInfo["Open"] },
-                { label: "High", value: profileInfo["Day High"] },
-                { label: "Low", value: profileInfo["Day Low"] },
-
-                // Group 2: Valuation and Dividends
-                { label: "Mkt cap", value: profileInfo["Market Cap"] },
-                { label: "P/E ratio", value: ratiosData["peRatio"] },
-                { label: "Div yield", value: ratiosData["dividendYield"] },
-
-                // Group 3: 52-week metrics
-                { label: "52-wk high", value: profileInfo["52-wk high"] },
-                { label: "52-wk low", value: profileInfo["52-wk low"] },
-                { label: "Qtrly Div Amt", value: generalData["Quarterly Dividend"] }
-            ];
-
-            metrics.forEach(metric => {
+            Object.entries(ratiosData).forEach(([label, value]) => {
                 const metricDiv = document.createElement('div');
                 metricDiv.className = 'bg-gray-50 p-4 rounded-lg shadow-sm flex flex-col justify-center items-start';
                 metricDiv.innerHTML = `
-                    <div class="text-sm font-semibold text-gray-600">${metric.label}</div>
-                    <div class="text-xl font-bold text-gray-800">${formatValue(metric.value, metric.label)}</div>
+                    <div class="text-sm font-semibold text-gray-600">${label}</div>
+                    <div class="text-xl font-bold text-gray-800">${formatValue(value, label)}</div>
                 `;
-                summaryMetricsDetailsDiv.appendChild(metricDiv);
+                keyRatiosDetailsDiv.appendChild(metricDiv);
             });
         }
 
@@ -311,7 +302,7 @@
                 return 'N/A';
             }
             if (typeof value === 'number') {
-                 // Format market cap and other large numbers
+                // Format market cap and other large numbers
                 if (label.includes("Market Cap") || label.includes("Volume")) {
                     const absValue = Math.abs(value);
                     if (absValue >= 1e12) return (value / 1e12).toFixed(2) + 'T';
@@ -321,7 +312,7 @@
                 }
                 // Format dividend yields as percentages
                 if (label.includes("Div yield")) {
-                     return (value * 100).toFixed(2) + '%';
+                    return (value * 100).toFixed(2) + '%';
                 }
                 return value.toFixed(2);
             }
