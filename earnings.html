@@ -85,6 +85,14 @@
         .markdown-content strong {
             font-weight: bold;
         }
+        /* New styling for the Q&A box */
+        .qna-box h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -172,12 +180,22 @@
                 </div>
             </div>
 
-            <!-- View 2: AI Summary -->
-            <div id="aiSummaryView" class="hidden">
-                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl mx-auto">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Most Recent Earnings Transcript Summary</h2>
+            <!-- View 2: AI Summary with new separated boxes -->
+            <div id="aiSummaryView" class="hidden flex flex-col items-center">
+                
+                <!-- AI Summary Box -->
+                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl mx-auto mb-6">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Earnings Transcript Summary</h2>
                     <div id="aiSummaryContent" class="markdown-content prose max-w-none">
                         <!-- AI Summary will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Q&A Highlights Box -->
+                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Q&A Highlights</h2>
+                    <div id="aiQnAContent" class="markdown-content prose max-w-none qna-box">
+                        <!-- AI Q&A will be populated here -->
                     </div>
                 </div>
             </div>
@@ -321,23 +339,68 @@
             document.getElementById('earningsDataView').classList.remove('hidden');
             document.getElementById('aiSummaryView').classList.add('hidden');
         }
+        
+        // This is a new helper function to convert markdown to HTML
+        function markdownToHtml(markdownText) {
+            if (!markdownText) return '';
+            let html = markdownText;
+            // Convert bold text
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Convert list items
+            html = html.replace(/^\* (.*?)$/gm, '<li>$1</li>');
+            // Wrap in a ul if it's a list
+            if (html.includes('<li>')) {
+                html = `<ul>${html}</ul>`;
+            }
+            // Convert headers
+            html = html.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+            return html;
+        }
 
         function renderAiSummaryView() {
             const aiSummary = backendData["Most Recent Earnings Transcript AI Summary"];
             const aiSummaryContentDiv = document.getElementById('aiSummaryContent');
-            
-            // Convert the markdown-like string to HTML
-            if (aiSummary) {
-                // Simple conversion: replace bullet points, bold text, etc.
-                const htmlContent = aiSummary
-                    .replace(/\* (.*?)\n/g, '<li>$1</li>')
-                    .replace(/\n\n\*\*([^\*]+)\*\*\n\n/g, '<h2>$1</h2>') // H2 for Q&A section
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/^(?!<h|li)/gm, '<p>$&</p>');
+            const aiQnAContentDiv = document.getElementById('aiQnAContent');
 
-                aiSummaryContentDiv.innerHTML = `<ul>${htmlContent}</ul>`;
+            // Clear previous content
+            aiSummaryContentDiv.innerHTML = '';
+            aiQnAContentDiv.innerHTML = '';
+            
+            if (aiSummary) {
+                // Split the content into summary and Q&A based on the heading
+                const qnaSeparator = '\n\n**Q&A Highlights**\n\n';
+                const parts = aiSummary.split(qnaSeparator);
+                
+                // The first part is the summary
+                const summaryText = parts[0].trim();
+                aiSummaryContentDiv.innerHTML = markdownToHtml(summaryText);
+                
+                // The second part is the Q&A, if it exists
+                if (parts.length > 1) {
+                    const qnaText = parts[1].trim();
+                    // Split the Q&A section into individual questions for better formatting
+                    const qnaItems = qnaText.split('\n\n- ');
+                    let qnaHtml = '';
+                    qnaItems.forEach(item => {
+                        const [question, answer] = item.split('\n  - ');
+                        if (question && answer) {
+                            qnaHtml += `
+                                <div>
+                                    <h3 class="font-semibold text-lg text-gray-800">${question.replace('-', '').trim()}</h3>
+                                    <p class="text-gray-600 pl-4">${markdownToHtml(answer.trim()).replace('<ul>','').replace('</ul>','')}</p>
+                                </div>
+                            `;
+                        }
+                    });
+                    aiQnAContentDiv.innerHTML = qnaHtml;
+
+                } else {
+                    aiQnAContentDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No Q&A highlights available.</p>';
+                }
+
             } else {
                 aiSummaryContentDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No AI summary available for this stock.</p>';
+                aiQnAContentDiv.innerHTML = '';
             }
 
             // Show the AI Summary view and hide the Earnings Data view
@@ -361,10 +424,16 @@
             if (epsChartInstance) {
                 epsChartInstance.destroy();
             }
+            
+            // Re-select the canvas element if it was replaced
+            const chartParent = document.querySelector('#earningsDataView .relative');
+            const existingMessage = chartParent.querySelector('p');
+            if (existingMessage) {
+                chartParent.innerHTML = '<canvas id="epsChart"></canvas>';
+            }
 
             if (!pastEarningsData || pastEarningsData.length === 0) {
-                const chartContainer = document.getElementById('epsChart').parentNode;
-                chartContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No EPS data for chart.</p>';
+                chartParent.innerHTML = '<p class="text-center text-gray-500 mt-4">No EPS data for chart.</p>';
                 return;
             }
 
