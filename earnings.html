@@ -6,14 +6,26 @@
     <title>Stock Info - Earnings</title>
     <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Chart.js for creating the bar graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Custom font for a modern look */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* A very light gray background, consistent with balance_sheet.html */
+            background-color: #f8fafc; /* A very light gray background */
         }
-        /* Loading spinner animation from balance_sheet.html */
+        /* Custom styles for the toggle buttons */
+        .toggle-button {
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .toggle-button.active {
+            background-color: white;
+            color: #2563eb; /* A nice blue color */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        /* Loading spinner animation */
         .loading-spinner {
             border: 4px solid #f3f3f3;
             border-radius: 50%;
@@ -55,26 +67,40 @@
             max-width: 100%;
             height: 100%;
         }
+        /* Markdown styling for the AI Summary */
+        .markdown-content h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-content ul, .markdown-content ol {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .markdown-content li {
+            margin-bottom: 0.5rem;
+        }
+        .markdown-content strong {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <!-- Navigation Bar - Replaced with the one from balance_sheet.html -->
+    <!-- Navigation Bar -->
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
-            <!-- The nav items are updated with the correct IDs and styles -->
             <div class="flex flex-wrap justify-center space-x-8 font-semibold">
-                <!-- The new "Home" button is added here with green letters -->
                 <a href="index.html" id="nav-home" class="text-green-600 hover:text-blue-600 transition-colors duration-300">Home</a>
                 <a href="#" id="nav-general-info" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">General Info</a>
                 <a href="#" id="nav-income-statement" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Income Statement</a>
                 <a href="#" id="nav-balance-sheet" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
                 <a href="#" id="nav-ratings" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Ratings</a>
-                <!-- The "Earnings" link is now the active one -->
                 <a href="#" id="nav-earnings" class="text-blue-700 font-bold transition-colors duration-300">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
                 <a href="#" id="nav-analyst-targets" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
-                <!-- The new "Recent News" button has been added to the end of the navigation bar as requested. -->
                 <a href="#" id="nav-recent-news" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Recent News</a>
             </div>
         </div>
@@ -83,8 +109,13 @@
     <main class="container mx-auto p-6">
         <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
         
+        <!-- Toggle buttons for Earnings Data / AI Summary -->
+        <div class="flex justify-center mb-6 bg-gray-200 rounded-full p-1 max-w-sm mx-auto">
+            <button id="earnings-data-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Earnings Data</button>
+            <button id="ai-summary-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">AI Summary</button>
+        </div>
+        
         <div id="loadingIndicator" class="flex flex-col items-center my-8 hidden">
-            <!-- Used spinner from balance_sheet.html instead of text -->
             <div id="loading-spinner" class="loading-spinner"></div>
             <p class="text-gray-600 mt-4 text-lg">Fetching Earnings Data...</p>
         </div>
@@ -94,46 +125,60 @@
             <span class="block sm:inline" id="errorText"></span>
         </div>
 
+        <!-- Container for both views. Only one will be visible at a time. -->
         <div id="earningsContent" class="hidden">
-            <!-- Top section: Next Quarter Estimates and EPS Chart -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <!-- Next Quarter Estimates Box (Left) -->
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Next Quarter Estimates</h2>
-                    <div id="nextQuarterEstimates" class="space-y-2">
-                        <!-- Content populated by JS -->
+            <!-- View 1: Existing Earnings Data -->
+            <div id="earningsDataView">
+                <!-- Top section: Next Quarter Estimates and EPS Chart -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Next Quarter Estimates Box (Left) -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Next Quarter Estimates</h2>
+                        <div id="nextQuarterEstimates" class="space-y-2">
+                            <!-- Content populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Last 4 Quarters' EPS Bar Graph (Right) -->
+                    <div class="bg-white p-6 rounded-xl shadow-md flex flex-col">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Last 4 Quarters' EPS Results</h2>
+                        <div class="relative h-40 w-full"> 
+                            <canvas id="epsChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Last 4 Quarters' EPS Bar Graph (Right) -->
-                <div class="bg-white p-6 rounded-xl shadow-md flex flex-col">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Last 4 Quarters' EPS Results</h2>
-                    <div class="relative h-40 w-full"> 
-                        <canvas id="epsChart"></canvas>
+                <!-- Bottom section: Past 4 Quarters' Earnings Table -->
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Past 4 Quarters' Earnings</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg earnings-table">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Date</th>
+                                    <th class="text-center">EPS Estimate</th>
+                                    <th class="text-center">EPS Result</th>
+                                    <th class="text-center">EPS Surprise (%)</th>
+                                    <th class="text-center">Revenue Estimate</th>
+                                    <th class="text-center">Revenue Result</th>
+                                    <th class="text-center">Revenue Surprise (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pastEarningsTableBody">
+                                <!-- Past earnings data will be inserted here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Bottom section: Past 4 Quarters' Earnings Table -->
-            <div class="bg-white p-6 rounded-xl shadow-md">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Past 4 Quarters' Earnings</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-lg earnings-table">
-                        <thead>
-                            <tr>
-                                <th class="text-left">Date</th>
-                                <th class="text-center">EPS Estimate</th>
-                                <th class="text-center">EPS Result</th>
-                                <th class="text-center">EPS Surprise (%)</th>
-                                <th class="text-center">Revenue Estimate</th>
-                                <th class="text-center">Revenue Result</th>
-                                <th class="text-center">Revenue Surprise (%)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pastEarningsTableBody">
-                            <!-- Past earnings data will be inserted here -->
-                        </tbody>
-                    </table>
+            <!-- View 2: AI Summary -->
+            <div id="aiSummaryView" class="hidden">
+                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Most Recent Earnings Transcript Summary</h2>
+                    <div id="aiSummaryContent" class="markdown-content prose max-w-none">
+                        <!-- AI Summary will be populated here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -143,6 +188,8 @@
     <script>
         let stockSymbol = '';
         let epsChartInstance = null;
+        let activeView = 'earningsData'; // State to track the active view
+        let backendData = null; // Store the fetched data to avoid re-fetching
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
         // Helper function to format numbers
@@ -196,6 +243,7 @@
                         throw new Error(`API call failed with status ${response.status}`);
                     }
                 }
+                
                 if (!response || !response.ok) {
                     throw new Error('Max retries reached, failed to fetch data.');
                 }
@@ -205,7 +253,8 @@
                 if (data.error) {
                     showError(data.error);
                 } else {
-                    displayEarnings(data);
+                    backendData = data;
+                    renderView();
                     showLoading(false);
                     document.getElementById('earningsContent').classList.remove('hidden');
                 }
@@ -226,16 +275,14 @@
                 }
             }
         }
-
-        function displayEarnings(data) {
-            const nextQuarterEstimatesDiv = document.getElementById('nextQuarterEstimates');
-            const pastEarningsTableBody = document.getElementById('pastEarningsTableBody');
+        
+        function renderEarningsDataView() {
+            const pastEarnings = backendData["Past 4 Quarters' Earnings"] || [];
+            const nextQuarter = backendData["Next Quarter Estimates"] || {};
             
-            const pastEarnings = data["Past 4 Quarters' Earnings"] || [];
-            const nextQuarter = data["Next Quarter Estimates"] || {};
-
             // --- Display Next Quarter Estimates ---
-            nextQuarterEstimatesDiv.innerHTML = ''; // Clear previous content
+            const nextQuarterEstimatesDiv = document.getElementById('nextQuarterEstimates');
+            nextQuarterEstimatesDiv.innerHTML = '';
             if (nextQuarter && Object.keys(nextQuarter).length > 0) {
                 nextQuarterEstimatesDiv.innerHTML = `
                     <p><strong class="text-gray-700">Date:</strong> <span class="text-gray-800">${nextQuarter.Date || 'N/A'}</span></p>
@@ -247,7 +294,8 @@
             }
 
             // --- Display Past 4 Quarters' Earnings Table ---
-            pastEarningsTableBody.innerHTML = ''; // Clear previous content
+            const pastEarningsTableBody = document.getElementById('pastEarningsTableBody');
+            pastEarningsTableBody.innerHTML = '';
             if (pastEarnings.length > 0) {
                 pastEarnings.forEach(earning => {
                     const row = document.createElement('tr');
@@ -268,6 +316,43 @@
 
             // --- Render Last 4 Quarters' EPS Bar Graph ---
             renderEpsChart(pastEarnings);
+
+            // Show the Earnings Data view and hide the AI Summary view
+            document.getElementById('earningsDataView').classList.remove('hidden');
+            document.getElementById('aiSummaryView').classList.add('hidden');
+        }
+
+        function renderAiSummaryView() {
+            const aiSummary = backendData["Most Recent Earnings Transcript AI Summary"];
+            const aiSummaryContentDiv = document.getElementById('aiSummaryContent');
+            
+            // Convert the markdown-like string to HTML
+            if (aiSummary) {
+                // Simple conversion: replace bullet points, bold text, etc.
+                const htmlContent = aiSummary
+                    .replace(/\* (.*?)\n/g, '<li>$1</li>')
+                    .replace(/\n\n\*\*([^\*]+)\*\*\n\n/g, '<h2>$1</h2>') // H2 for Q&A section
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/^(?!<h|li)/gm, '<p>$&</p>');
+
+                aiSummaryContentDiv.innerHTML = `<ul>${htmlContent}</ul>`;
+            } else {
+                aiSummaryContentDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No AI summary available for this stock.</p>';
+            }
+
+            // Show the AI Summary view and hide the Earnings Data view
+            document.getElementById('aiSummaryView').classList.remove('hidden');
+            document.getElementById('earningsDataView').classList.add('hidden');
+        }
+
+        function renderView() {
+            if (!backendData) return;
+
+            if (activeView === 'earningsData') {
+                renderEarningsDataView();
+            } else {
+                renderAiSummaryView();
+            }
         }
 
         function renderEpsChart(pastEarningsData) {
@@ -278,7 +363,6 @@
             }
 
             if (!pastEarningsData || pastEarningsData.length === 0) {
-                // If no data, display a message in the chart container
                 const chartContainer = document.getElementById('epsChart').parentNode;
                 chartContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No EPS data for chart.</p>';
                 return;
@@ -338,10 +422,26 @@
             document.getElementById('errorMessage').classList.remove('hidden');
         }
 
-        // The initial setup function is replaced with the cleaner version from balance_sheet.html
+        // Add event listeners for the new toggle buttons
+        document.getElementById('earnings-data-btn').addEventListener('click', () => {
+            document.getElementById('ai-summary-btn').classList.remove('active');
+            document.getElementById('earnings-data-btn').classList.add('active');
+            activeView = 'earningsData';
+            renderView();
+        });
+
+        document.getElementById('ai-summary-btn').addEventListener('click', () => {
+            document.getElementById('earnings-data-btn').classList.remove('active');
+            document.getElementById('ai-summary-btn').classList.add('active');
+            activeView = 'aiSummary';
+            renderView();
+        });
+
+        // Initial setup
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
+            document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Earnings`;
 
             const navLinks = [
                 { id: 'nav-general-info', file: 'general_info.html' },
@@ -351,7 +451,6 @@
                 { id: 'nav-earnings', file: 'earnings.html' },
                 { id: 'nav-insider-trades', file: 'insider_trades.html' },
                 { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
-                // Added the new "Recent News" link to the array
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
@@ -364,8 +463,6 @@
                     }
                 });
             } else {
-                document.getElementById('stockTitle').textContent = 'No Stock Selected';
-                document.getElementById('earningsContent').classList.add('hidden');
                 showError('Please return to the main page and select a stock to view its earnings.');
             }
         });
