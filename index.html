@@ -113,15 +113,15 @@
         <!-- Top Gainers, Losers, and Most Active Section -->
         <section id="marketSummarySection" class="w-full grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
             <!-- Top Gainers -->
-            <div class="bg-white p-6 rounded-2xl card-shadow">
+            <div class="bg-white p-8 rounded-2xl card-shadow">
                 <h3 class="text-2xl font-bold text-green-600 mb-4 text-center">Top Gainers</h3>
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-max">
+                    <table class="w-full">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl">Stock</th>
-                                <th class="px-4 py-2 text-left text-gray-600 font-semibold">Price</th>
-                                <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl">Change (%)</th>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl w-1/2">Stock</th>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold w-1/4">Price</th>
+                                <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl w-1/4">Change (%)</th>
                             </tr>
                         </thead>
                         <tbody id="gainersList">
@@ -132,15 +132,15 @@
             </div>
 
             <!-- Top Losers -->
-            <div class="bg-white p-6 rounded-2xl card-shadow">
+            <div class="bg-white p-8 rounded-2xl card-shadow">
                 <h3 class="text-2xl font-bold text-red-600 mb-4 text-center">Top Losers</h3>
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-max">
+                    <table class="w-full">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl">Stock</th>
-                                <th class="px-4 py-2 text-left text-gray-600 font-semibold">Price</th>
-                                <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl">Change (%)</th>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl w-1/2">Stock</th>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold w-1/4">Price</th>
+                                <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl w-1/4">Change (%)</th>
                             </tr>
                         </thead>
                         <tbody id="losersList">
@@ -151,15 +151,15 @@
             </div>
             
             <!-- Most Active Stocks -->
-            <div class="bg-white p-6 rounded-2xl card-shadow">
+            <div class="bg-white p-8 rounded-2xl card-shadow">
                 <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Most Active Stocks</h3>
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-max">
+                    <table class="w-full">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl">Stock</th>
-                                <th class="px-4 py-2 text-left text-gray-600 font-semibold">Price</th>
-                                <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl">Change (%)</th>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl w-1/2">Stock</th>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold w-1/4">Price</th>
+                                <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl w-1/4">Change (%)</th>
                             </tr>
                         </thead>
                         <tbody id="mostActiveList">
@@ -267,9 +267,9 @@
                         const changeSign = stock['Change (%)'] >= 0 ? '+' : '';
                         const stockRowHtml = `
                             <tr class="border-b last:border-b-0 border-gray-200 hover:bg-gray-50 transition-colors duration-150">
-                                <td class="px-4 py-3 font-medium text-gray-800">${stock.Stock} <span class="text-xs text-gray-400">(${stock.Exchange})</span></td>
-                                <td class="px-4 py-3 text-gray-700">${formatNumber(stock.Price, 2)}</td>
-                                <td class="px-4 py-3 text-right font-semibold ${changeColor}">${changeSign}${formatNumber(stock['Change (%)'], 2)}%</td>
+                                <td class="px-4 py-3 font-medium text-gray-800 w-1/2">${stock.Stock} <span class="text-xs text-gray-400">(${stock.Exchange})</span></td>
+                                <td class="px-4 py-3 text-gray-700 w-1/4">${formatNumber(stock.Price, 2)}</td>
+                                <td class="px-4 py-3 text-right font-semibold ${changeColor} w-1/4">${changeSign}${formatNumber(stock['Change (%)'], 2)}%</td>
                             </tr>
                         `;
                         containerElement.innerHTML += stockRowHtml;
