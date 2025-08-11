@@ -330,11 +330,12 @@
             // Get the headers from the API data
             const headers = info["Date"];
             
-            // Metrics for the table, using original string values
+            // Metrics for the table, now including Ebit from the backend data
             const metrics = [
                 { name: "Revenue", data: info["Revenue"] },
                 { name: "Gross Profit", data: info["Gross Profit"] },
                 { name: "Ebitda", data: info["Ebitda"] },
+                { name: "Ebit", data: info["Ebit"] }, // Added the new metric here
                 { name: "Operating Income", data: info["Operating Income"] },
                 { name: "Net Income", data: info["Net Income"] },
                 // These ratios are already in a displayable format
