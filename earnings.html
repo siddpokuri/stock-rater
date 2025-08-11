@@ -340,23 +340,6 @@
             document.getElementById('aiSummaryView').classList.add('hidden');
         }
         
-        // This is a new helper function to convert markdown to HTML
-        function markdownToHtml(markdownText) {
-            if (!markdownText) return '';
-            let html = markdownText;
-            // Convert bold text
-            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            // Convert list items
-            html = html.replace(/^\* (.*?)$/gm, '<li>$1</li>');
-            // Wrap in a ul if it's a list
-            if (html.includes('<li>')) {
-                html = `<ul>${html}</ul>`;
-            }
-            // Convert headers
-            html = html.replace(/^### (.*)$/gm, '<h3>$1</h3>');
-            return html;
-        }
-
         function renderAiSummaryView() {
             const aiSummary = backendData["Most Recent Earnings Transcript AI Summary"];
             const aiSummaryContentDiv = document.getElementById('aiSummaryContent');
@@ -367,33 +350,58 @@
             aiQnAContentDiv.innerHTML = '';
             
             if (aiSummary) {
-                // Split the content into summary and Q&A based on the heading
-                const qnaSeparator = '\n\n**Q&A Highlights**\n\n';
-                const parts = aiSummary.split(qnaSeparator);
+                // Find the index of the Q&A section separator
+                const qnaSeparator = '---Q&A Summary---';
+                const qnaIndex = aiSummary.indexOf(qnaSeparator);
                 
-                // The first part is the summary
-                const summaryText = parts[0].trim();
-                aiSummaryContentDiv.innerHTML = markdownToHtml(summaryText);
+                let summaryText = '';
+                let qnaText = '';
+
+                if (qnaIndex !== -1) {
+                    // Split the content into summary and Q&A
+                    summaryText = aiSummary.substring(0, qnaIndex).trim();
+                    qnaText = aiSummary.substring(qnaIndex + qnaSeparator.length).trim();
+                } else {
+                    // If no Q&A section, the whole text is the summary
+                    summaryText = aiSummary.trim();
+                }
                 
-                // The second part is the Q&A, if it exists
-                if (parts.length > 1) {
-                    const qnaText = parts[1].trim();
-                    // Split the Q&A section into individual questions for better formatting
-                    const qnaItems = qnaText.split('\n\n- ');
+                // Process the summary content, removing the header
+                const summaryHeader = '---Overall Summary---';
+                if (summaryText.startsWith(summaryHeader)) {
+                    const content = summaryText.substring(summaryHeader.length).trim();
+                    // Convert bullet points to a proper list
+                    const listHtml = content.split('\n* ').filter(Boolean).map(item => `<li>${item.trim()}</li>`).join('');
+                    if (listHtml) {
+                         aiSummaryContentDiv.innerHTML = `<ul>${listHtml}</ul>`;
+                    } else {
+                        aiSummaryContentDiv.innerHTML = `<p>${content}</p>`;
+                    }
+                } else {
+                    aiSummaryContentDiv.innerHTML = `<p>${summaryText}</p>`;
+                }
+                
+                // Process the Q&A content
+                if (qnaText) {
+                    const qnaItems = qnaText.split('\n* ');
                     let qnaHtml = '';
                     qnaItems.forEach(item => {
-                        const [question, answer] = item.split('\n  - ');
-                        if (question && answer) {
-                            qnaHtml += `
-                                <div>
-                                    <h3 class="font-semibold text-lg text-gray-800">${question.replace('-', '').trim()}</h3>
-                                    <p class="text-gray-600 pl-4">${markdownToHtml(answer.trim()).replace('<ul>','').replace('</ul>','')}</p>
-                                </div>
-                            `;
+                        if (item.trim()) {
+                            const [question, answer] = item.split('\n    * ');
+                            if (question && answer) {
+                                // Extract the question text, removing the `**Q: ` part
+                                const questionText = question.replace('**Q:', '').replace('**', '').trim();
+                                const answerText = answer.replace('A:', '').trim();
+                                qnaHtml += `
+                                    <div class="mb-4">
+                                        <h3 class="font-semibold text-lg text-gray-800">Q: ${questionText}</h3>
+                                        <p class="text-gray-600 pl-4">A: ${answerText}</p>
+                                    </div>
+                                `;
+                            }
                         }
                     });
                     aiQnAContentDiv.innerHTML = qnaHtml;
-
                 } else {
                     aiQnAContentDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No Q&A highlights available.</p>';
                 }
