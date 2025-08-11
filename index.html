@@ -110,8 +110,8 @@
             </div>
         </section>
 
-        <!-- Top Gainers and Losers Section -->
-        <section id="gainersLosersSection" class="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 hidden">
+        <!-- Top Gainers, Losers, and Most Active Section -->
+        <section id="marketSummarySection" class="w-full grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
             <!-- Top Gainers -->
             <div class="bg-white p-6 rounded-2xl card-shadow">
                 <h3 class="text-2xl font-bold text-green-600 mb-4 text-center">Top Gainers</h3>
@@ -145,6 +145,25 @@
                         </thead>
                         <tbody id="losersList">
                             <!-- Top losers will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Most Active Stocks -->
+            <div class="bg-white p-6 rounded-2xl card-shadow">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Most Active Stocks</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-max">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl">Stock</th>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold">Price</th>
+                                <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl">Change (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mostActiveList">
+                            <!-- Most active stocks will be dynamically inserted here -->
                         </tbody>
                     </table>
                 </div>
@@ -209,7 +228,7 @@
             });
 
             // =========================================================================
-            // NEW CODE FOR DYNAMIC MARKET DATA
+            // CODE FOR DYNAMIC MARKET DATA
             // =========================================================================
 
             const API_URL = "https://stock-backend-0128.onrender.com/tabzero";
@@ -220,8 +239,10 @@
             const newsContainer = document.getElementById('newsContainer');
             const gainersList = document.getElementById('gainersList');
             const losersList = document.getElementById('losersList');
+            const mostActiveList = document.getElementById('mostActiveList');
             const generalNewsSection = document.getElementById('generalNewsSection');
-            const gainersLosersSection = document.getElementById('gainersLosersSection');
+            // Changed section id to be more general since it now contains three tables
+            const marketSummarySection = document.getElementById('marketSummarySection'); 
 
             /**
              * Formats a number to a specified number of decimal places.
@@ -233,6 +254,29 @@
                 return parseFloat(num).toFixed(decimals);
             }
 
+            /**
+             * Renders a list of stocks (gainers, losers, or most active) into a table.
+             * @param {Array} stockData An array of stock objects.
+             * @param {HTMLElement} containerElement The element to render the list into.
+             */
+            function renderStocks(stockData, containerElement) {
+                containerElement.innerHTML = ''; // Clear previous content
+                if (stockData && stockData.length > 0) {
+                    stockData.slice(0, 10).forEach(stock => {
+                        const changeColor = stock['Change (%)'] >= 0 ? 'text-green-600' : 'text-red-600';
+                        const changeSign = stock['Change (%)'] >= 0 ? '+' : '';
+                        const stockRowHtml = `
+                            <tr class="border-b last:border-b-0 border-gray-200 hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-4 py-3 font-medium text-gray-800">${stock.Stock} <span class="text-xs text-gray-400">(${stock.Exchange})</span></td>
+                                <td class="px-4 py-3 text-gray-700">${formatNumber(stock.Price, 2)}</td>
+                                <td class="px-4 py-3 text-right font-semibold ${changeColor}">${changeSign}${formatNumber(stock['Change (%)'], 2)}%</td>
+                            </tr>
+                        `;
+                        containerElement.innerHTML += stockRowHtml;
+                    });
+                }
+            }
+            
             /**
              * Renders the general market news cards.
              * @param {Array} newsData An array of news objects.
@@ -255,29 +299,6 @@
                 }
             }
 
-            /**
-             * Renders the top gainers or losers list.
-             * @param {Array} stockData An array of stock objects.
-             * @param {HTMLElement} containerElement The element to render the list into.
-             * @param {boolean} isGainer A boolean indicating if the data is for gainers.
-             */
-            function renderStocks(stockData, containerElement) {
-                containerElement.innerHTML = ''; // Clear previous content
-                if (stockData && stockData.length > 0) {
-                    stockData.slice(0, 10).forEach(stock => {
-                        const changeColor = stock['Change (%)'] >= 0 ? 'text-green-600' : 'text-red-600';
-                        const changeSign = stock['Change (%)'] >= 0 ? '+' : '';
-                        const stockRowHtml = `
-                            <tr class="border-b last:border-b-0 border-gray-200 hover:bg-gray-50 transition-colors duration-150">
-                                <td class="px-4 py-3 font-medium text-gray-800">${stock.Stock} <span class="text-xs text-gray-400">(${stock.Exchange})</span></td>
-                                <td class="px-4 py-3 text-gray-700">${formatNumber(stock.Price, 2)}</td>
-                                <td class="px-4 py-3 text-right font-semibold ${changeColor}">${changeSign}${formatNumber(stock['Change (%)'], 2)}%</td>
-                            </tr>
-                        `;
-                        containerElement.innerHTML += stockRowHtml;
-                    });
-                }
-            }
 
             /**
              * Fetches and displays the market data from the backend.
@@ -286,7 +307,7 @@
                 loadingIndicator.classList.remove('hidden');
                 errorMessageDiv.classList.add('hidden');
                 generalNewsSection.classList.add('hidden');
-                gainersLosersSection.classList.add('hidden');
+                marketSummarySection.classList.add('hidden');
 
                 try {
                     let response;
@@ -326,13 +347,19 @@
                     if (data['Top Losers'] && data['Top Losers'].length > 0) {
                         renderStocks(data['Top Losers'], losersList);
                     }
+                    if (data['Most Active'] && data['Most Active'].length > 0) {
+                        renderStocks(data['Most Active'], mostActiveList);
+                    }
+
 
                     // Show the sections if data was successfully rendered
                     if (data['General News'] && data['General News'].length > 0) {
-                      generalNewsSection.classList.remove('hidden');
+                        generalNewsSection.classList.remove('hidden');
                     }
-                    if (data['Top Gainers'] && data['Top Gainers'].length > 0 || data['Top Losers'] && data['Top Losers'].length > 0) {
-                      gainersLosersSection.classList.remove('hidden');
+                    if (data['Top Gainers'] && data['Top Gainers'].length > 0 || 
+                        data['Top Losers'] && data['Top Losers'].length > 0 || 
+                        data['Most Active'] && data['Most Active'].length > 0) {
+                        marketSummarySection.classList.remove('hidden');
                     }
                 } catch (error) {
                     console.error("Failed to fetch market data:", error);
