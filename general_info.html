@@ -64,6 +64,9 @@
                 <!-- Navigation items, with dynamic hrefs set by JavaScript -->
                 <a href="#" id="nav-general-info" class="text-blue-700 font-bold transition-colors duration-300">General Info</a>
                 <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
+                <!-- === NEW CODE: Cash Flow Tab === -->
+                <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
+                <!-- === END OF NEW CODE === -->
                 <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
                 <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
                 <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
@@ -162,10 +165,11 @@
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
 
-            // Set the navigation bar links
+            // === UPDATED CODE: Added nav-cash-flow link to the array ===
             const navLinks = [
                 { id: 'nav-general-info', file: 'general_info.html' },
                 { id: 'nav-income-statement', file: 'income_statement.html' },
+                { id: 'nav-cash-flow', file: 'cash_flow.html' }, // New link for Cash Flow
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
                 { id: 'nav-ratings', file: 'ratings.html' },
                 { id: 'nav-earnings', file: 'earnings.html' },
@@ -173,6 +177,7 @@
                 { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
                 { id: 'nav-recent-news', file: 'recent_news.html' }, // New link for Recent News
             ];
+            // === END OF UPDATED CODE ===
 
             if (!stockSymbol) {
                 showError('No stock symbol provided in the URL.');
