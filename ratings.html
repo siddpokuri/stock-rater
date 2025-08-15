@@ -26,13 +26,23 @@
         .table-row-even {
             background-color: #f9fafb; /* slightly off-white for striping */
         }
+
+        /* NEW: Custom styles for the toggle buttons, matching balance_sheet.html */
+        .toggle-button {
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+        }
+        .toggle-button.active {
+            background-color: white;
+            color: #2563eb; /* A nice blue color */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <!-- Navigation Bar -->
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
-            <div class="flex space-x-8 text-gray-600 font-semibold">
+            <div class="flex flex-wrap justify-center space-x-4 sm:space-x-8 text-gray-600 font-semibold">
                 <!-- Navigation items with dynamic hrefs set by JavaScript -->
                 <a href="index.html" class="text-green-600 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
                 <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
@@ -52,6 +62,13 @@
         <!-- Dynamic Title -->
         <h1 id="stockTitle" class="text-3xl font-bold text-gray-800 mb-6 text-center">Stock Ratings</h1>
 
+        <!-- Updated Toggle Buttons to match balance_sheet.html -->
+        <!-- Adjusted the container to have a max-width and be centered -->
+        <div class="flex justify-center max-w-md mx-auto mb-6 bg-gray-200 rounded-full p-1">
+            <button id="showCurrentRatings" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Current Ratings</button>
+            <button id="showPastRatings" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">Past-to-Current Ratings</button>
+        </div>
+
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
             <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-blue-500 motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
                 <span class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
@@ -63,7 +80,8 @@
             <span class="block sm:inline" id="errorText"></span>
         </div>
 
-        <div id="ratingsContainer" class="hidden max-w-4xl mx-auto space-y-8">
+        <!-- Container for Current Ratings -->
+        <div id="currentRatingsContainer" class="hidden max-w-4xl mx-auto space-y-8">
             <!-- Overall Ratings Section -->
             <div id="overallRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Core Ratings</h2>
@@ -87,6 +105,17 @@
                     <!-- Consensus data will be inserted here -->
                 </div>
             </div>
+        </div>
+
+        <!-- Container for Past-to-Current Ratings -->
+        <div id="pastRatingsContainer" class="hidden max-w-4xl mx-auto space-y-8">
+            <!-- Historical Ratings Section -->
+            <div id="historicalRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Historical Ratings</h2>
+                <div id="historicalRatingsTableContainer" class="overflow-x-auto">
+                    <!-- Historical Ratings table will be inserted here -->
+                </div>
+            </div>
 
             <!-- Upgrades/Downgrades Section -->
             <div id="upgradesDowngradesSection" class="bg-white p-6 rounded-2xl shadow-xl">
@@ -106,7 +135,9 @@
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
             
+            // NEW: Set the page title dynamically
             if (stockSymbol) {
+                document.title = `${stockSymbol.toUpperCase()} - Ratings`;
                 document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Ratings`;
             }
 
@@ -136,7 +167,31 @@
             });
             
             fetchRatings(stockSymbol);
+
+            // Add event listeners for the toggle buttons
+            document.getElementById('showCurrentRatings').addEventListener('click', () => switchRatingsView('current'));
+            document.getElementById('showPastRatings').addEventListener('click', () => switchRatingsView('past'));
         });
+
+        // Toggles between the two rating views
+        function switchRatingsView(view) {
+            const currentBtn = document.getElementById('showCurrentRatings');
+            const pastBtn = document.getElementById('showPastRatings');
+            const currentContainer = document.getElementById('currentRatingsContainer');
+            const pastContainer = document.getElementById('pastRatingsContainer');
+
+            if (view === 'current') {
+                currentContainer.classList.remove('hidden');
+                pastContainer.classList.add('hidden');
+                currentBtn.classList.add('active'); // Use the 'active' class
+                pastBtn.classList.remove('active');
+            } else {
+                pastContainer.classList.remove('hidden');
+                currentContainer.classList.add('hidden');
+                pastBtn.classList.add('active'); // Use the 'active' class
+                currentBtn.classList.remove('active');
+            }
+        }
 
         // Helper function to get Tailwind CSS color class based on rating text
         function getRatingColorClass(ratingText) {
@@ -198,7 +253,7 @@
                 } else {
                     displayAllRatings(data);
                     showLoading(false);
-                    document.getElementById('ratingsContainer').classList.remove('hidden');
+                    switchRatingsView('current'); // Show current ratings by default
                 }
             } catch (error) {
                 console.error('Error fetching ratings:', error);
@@ -251,6 +306,9 @@
 
             // Display upgrades and downgrades
             displayUpgradesDowngrades(data['Upgrades/Downgrades']);
+
+            // Display historical ratings
+            displayHistoricalRatings(data['Historical Ratings']);
         }
 
         // Creates a list item for a rating
@@ -346,15 +404,65 @@
             container.innerHTML = tableHtml;
         }
 
+        // Renders the table for historical ratings
+        function displayHistoricalRatings(data) {
+            const container = document.getElementById('historicalRatingsTableContainer');
+            container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-4">No historical ratings data available.</p>';
+                return;
+            }
+
+            let tableHtml = `
+                <table class="min-w-full table-auto rounded-xl overflow-hidden shadow">
+                    <thead>
+                        <tr class="table-header">
+                            <th class="py-3 px-4 text-left">Date</th>
+                            <th class="py-3 px-4 text-left">Overall</th>
+                            <th class="py-3 px-4 text-left">ROE</th>
+                            <th class="py-3 px-4 text-left">ROA</th>
+                            <th class="py-3 px-4 text-left">P/E</th>
+                            <th class="py-3 px-4 text-left">D/E</th>
+                            <th class="py-3 px-4 text-left">P/B</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+            `;
+            
+            data.forEach((item, index) => {
+                const rowClass = index % 2 === 0 ? 'table-row-even' : 'table-row-odd';
+                tableHtml += `
+                    <tr class="${rowClass}">
+                        <td class="py-3 px-4">${item.Date}</td>
+                        <td class="py-3 px-4 ${getRatingColorClass(item['Overall Rating'])} font-bold">${item['Overall Rating']}</td>
+                        <td class="py-3 px-4 ${getRatingColorClass(item['ROE Score'])} font-bold">${item['ROE Score']}</td>
+                        <td class="py-3 px-4 ${getRatingColorClass(item['ROA Score'])} font-bold">${item['ROA Score']}</td>
+                        <td class="py-3 px-4 ${getRatingColorClass(item['Price-to-Earnings Score'])} font-bold">${item['Price-to-Earnings Score']}</td>
+                        <td class="py-3 px-4 ${getRatingColorClass(item['Debt-to-Equity Score'])} font-bold">${item['Debt-to-Equity Score']}</td>
+                        <td class="py-3 px-4 ${getRatingColorClass(item['Price-to-Book Score'])} font-bold">${item['Price-to-Book Score']}</td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = tableHtml;
+        }
+
         function showLoading(show) {
             document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
-            document.getElementById('ratingsContainer').classList.toggle('hidden', show);
+            document.getElementById('currentRatingsContainer').classList.toggle('hidden', show);
+            document.getElementById('pastRatingsContainer').classList.toggle('hidden', show);
             document.getElementById('errorMessage').classList.add('hidden');
         }
 
         function showError(message) {
             document.getElementById('loadingIndicator').classList.add('hidden');
-            document.getElementById('ratingsContainer').classList.add('hidden');
+            document.getElementById('currentRatingsContainer').classList.add('hidden');
+            document.getElementById('pastRatingsContainer').classList.add('hidden');
             document.getElementById('errorText').textContent = message;
             document.getElementById('errorMessage').classList.remove('hidden');
         }
