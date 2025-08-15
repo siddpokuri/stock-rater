@@ -26,6 +26,16 @@
         .table-row-even {
             background-color: #f9fafb; /* slightly off-white for striping */
         }
+
+        /* NEW: Custom styles for the toggle buttons, matching balance_sheet.html */
+        .toggle-button {
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+        }
+        .toggle-button.active {
+            background-color: white;
+            color: #2563eb; /* A nice blue color */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -52,10 +62,10 @@
         <!-- Dynamic Title -->
         <h1 id="stockTitle" class="text-3xl font-bold text-gray-800 mb-6 text-center">Stock Ratings</h1>
 
-        <!-- Toggle Buttons -->
-        <div class="flex justify-center mb-6">
-            <button id="showCurrentRatings" class="px-6 py-3 rounded-l-full font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors">Current Ratings</button>
-            <button id="showPastRatings" class="px-6 py-3 rounded-r-full font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors">Past-to-Current Ratings</button>
+        <!-- Updated Toggle Buttons to match balance_sheet.html -->
+        <div class="flex justify-center mb-6 bg-gray-200 rounded-full p-1">
+            <button id="showCurrentRatings" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Current Ratings</button>
+            <button id="showPastRatings" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">Past-to-Current Ratings</button>
         </div>
 
         <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
@@ -166,17 +176,13 @@
             if (view === 'current') {
                 currentContainer.classList.remove('hidden');
                 pastContainer.classList.add('hidden');
-                currentBtn.classList.remove('bg-gray-200', 'text-gray-700');
-                currentBtn.classList.add('bg-blue-600', 'text-white');
-                pastBtn.classList.remove('bg-blue-600', 'text-white');
-                pastBtn.classList.add('bg-gray-200', 'text-gray-700');
+                currentBtn.classList.add('active'); // Use the 'active' class
+                pastBtn.classList.remove('active');
             } else {
                 pastContainer.classList.remove('hidden');
                 currentContainer.classList.add('hidden');
-                pastBtn.classList.remove('bg-gray-200', 'text-gray-700');
-                pastBtn.classList.add('bg-blue-600', 'text-white');
-                currentBtn.classList.remove('bg-blue-600', 'text-white');
-                currentBtn.classList.add('bg-gray-200', 'text-gray-700');
+                pastBtn.classList.add('active'); // Use the 'active' class
+                currentBtn.classList.remove('active');
             }
         }
 
