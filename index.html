@@ -193,12 +193,70 @@
             document.getElementById('calendarDate').value = today.toISOString().split('T')[0];
 
             // Stock Search Button Logic
-            document.getElementById('searchStockBtn').addEventListener('click', () => {
-                const symbol = document.getElementById('stockSymbolInput').value.trim().toUpperCase();
-                if (symbol) {
-                    window.location.href = `general_info.html?stock=${symbol}`;
-                } else {
+            // The logic has been updated to include an async fetch call for validation.
+            document.getElementById('searchStockBtn').addEventListener('click', async () => {
+                const stockSymbolInput = document.getElementById('stockSymbolInput');
+                const symbol = stockSymbolInput.value.trim().toUpperCase();
+
+                // Validation check for empty input
+                if (symbol.length === 0) {
                     showMessage('Please enter a stock symbol.', 'red', 'validationMessage');
+                    return;
+                }
+
+                // Show loading indicator while waiting for validation
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                loadingIndicator.classList.remove('hidden');
+
+                try {
+                    // Endpoint for stock validation
+                    const validationApiUrl = `https://stock-backend-0128.onrender.com/check?stock=${symbol}`;
+                    
+                    let response;
+                    let attempts = 0;
+                    const maxAttempts = 3;
+                    const baseDelay = 1000;
+
+                    // Implement exponential backoff for API calls
+                    while (attempts < maxAttempts) {
+                        try {
+                            response = await fetch(validationApiUrl);
+                            if (response.ok) {
+                                break;
+                            } else {
+                                throw new Error(`HTTP Error: ${response.status}`);
+                            }
+                        } catch (error) {
+                            attempts++;
+                            if (attempts < maxAttempts) {
+                                const delay = baseDelay * (2 ** attempts);
+                                console.error(`Attempt ${attempts} failed. Retrying in ${delay / 1000}s...`, error);
+                                await new Promise(res => setTimeout(res, delay));
+                            } else {
+                                throw error;
+                            }
+                        }
+                    }
+
+                    const data = await response.json();
+
+                    // Check the API response for validity
+                    if (data['valid?'] === 1) {
+                        // If valid, navigate to the stock info page
+                        window.location.href = `general_info.html?stock=${symbol}`;
+                    } else if (data['error']) {
+                        // If there's an error message, display it
+                        showMessage(data['error'], 'red', 'validationMessage');
+                    } else {
+                        // Handle unexpected response
+                        showMessage('Could not validate stock symbol. Please try again.', 'red', 'validationMessage');
+                    }
+                } catch (error) {
+                    console.error("Failed to validate stock symbol:", error);
+                    showMessage('Network error: Could not connect to validation service. Please check your connection and try again.', 'red', 'validationMessage');
+                } finally {
+                    // Hide loading indicator after the request is complete
+                    loadingIndicator.classList.add('hidden');
                 }
             });
 
