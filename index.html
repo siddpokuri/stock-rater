@@ -253,7 +253,7 @@
                     }
                 } catch (error) {
                     console.error("Failed to validate stock symbol:", error);
-                    showMessage('Network error: Could not connect to validation service. Please check your connection and try again.', 'red', 'validationMessage');
+                    showMessage('Invalid Stock Symbol. Please enter a valid symbol and try again.', 'red', 'validationMessage');
                 } finally {
                     // Hide loading indicator after the request is complete
                     loadingIndicator.classList.add('hidden');
