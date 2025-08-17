@@ -8,6 +8,22 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom font for a modern look -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Exporting these for global use in the script below
+        window.firebase = {
+            initializeApp,
+            getAuth,
+            signInAnonymously,
+            signInWithCustomToken,
+            onAuthStateChanged,
+            signOut,
+            signInWithEmailAndPassword,
+            createUserWithEmailAndPassword
+        };
+    </script>
     <style>
         /* Define a custom color palette */
         :root {
@@ -37,317 +53,182 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-4 sm:p-6">
 
-    <!-- The main container now holds either the auth forms or the app content -->
-    <div id="app-container" class="w-full max-w-6xl mx-auto flex flex-col gap-12">
+    <!-- Main Container for the entire app -->
+    <div class="w-full max-w-6xl mx-auto flex flex-col gap-12">
 
         <!-- Header Section with a subtle gradient and shadow -->
         <header class="w-full text-center py-8 rounded-2xl bg-gradient-to-r from-gray-50 to-gray-200 card-shadow">
             <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 mb-2">Stock Info Hub</h1>
+            <p id="authStatusText" class="text-gray-500 font-medium"></p>
+            <button id="signOutBtn" class="mt-4 px-6 py-2 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition hidden">Sign Out</button>
         </header>
-
-        <!-- Authentication and Loading Section -->
-        <div id="auth-section" class="w-full flex flex-col items-center justify-center hidden">
-            <div class="bg-white p-8 rounded-2xl card-shadow max-w-sm w-full">
-                <h2 id="auth-title" class="text-2xl font-bold text-center text-gray-800 mb-6">Sign Up</h2>
-
-                <!-- Email & Password Form -->
-                <div id="email-password-form" class="space-y-4">
-                    <input type="email" id="auth-email" placeholder="Email" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-                    <input type="password" id="auth-password" placeholder="Password" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-                    <button id="auth-submit-btn" class="w-full bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105">Sign Up</button>
-                    <p class="text-center text-sm text-gray-500 mt-4">
-                        <span id="auth-toggle-text">Already have an account?</span>
-                        <a id="auth-toggle-link" href="#" class="text-blue-600 hover:underline font-semibold">Log In</a>
-                    </p>
-                </div>
-                
-                <!-- Custom Message Box for auth errors -->
-                <div id="auth-message-box" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4" role="alert">
-                    <span id="auth-message-text"></span>
-                </div>
+        
+        <!-- Loading Indicator for initial auth and data fetching -->
+        <div id="loadingIndicator" class="text-center my-10 hidden">
+            <div class="bg-white p-10 rounded-2xl card-shadow flex flex-col items-center">
+                <div class="loading-spinner border-4 border-gray-200 border-t-blue-500 rounded-full w-12 h-12 animate-spin"></div>
+                <p class="mt-4 text-xl font-medium text-gray-600">Checking authentication...</p>
             </div>
         </div>
 
-        <!-- Main Content Section - Only visible when logged in -->
-        <div id="main-content" class="hidden w-full flex flex-col gap-12">
-            <div class="w-full text-right">
-                <button id="sign-out-btn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-xl font-semibold hover:bg-gray-300 transition duration-300">Sign Out</button>
+        <!-- Auth Section - Login/Signup form -->
+        <div id="authSection" class="w-full max-w-sm mx-auto my-auto p-8 bg-white rounded-2xl card-shadow">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Sign In / Sign Up</h2>
+            <form id="authForm" class="space-y-4">
+                <div>
+                    <input type="email" id="emailInput" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+                <div>
+                    <input type="password" id="passwordInput" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+                <button type="submit" id="authBtn" class="w-full p-3 rounded-xl bg-blue-600 text-white font-semibold shadow-lg hover:bg-blue-700 transition-colors">Sign In</button>
+            </form>
+            <div id="authMessage" class="hidden mt-4 text-center text-sm"></div>
+            <div class="mt-4 text-center text-sm text-gray-500">
+                <button id="toggleAuthModeBtn" class="text-blue-600 hover:underline">Don't have an account? Sign up</button>
+            </div>
+        </div>
+
+
+        <!-- Main Content Grid - Hidden until authenticated -->
+        <main id="mainContent" class="w-full grid grid-cols-1 md:grid-cols-2 gap-8 hidden">
+
+            <!-- Stock Search Section -->
+            <div class="bg-white p-8 rounded-2xl card-shadow flex flex-col items-center text-center">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Search Stock by Symbol</h2>
+                <div class="flex flex-col gap-6 w-full max-w-sm">
+                    <input type="text" id="stockSymbolInput" placeholder="e.g., AAPL, GOOG" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                    <button id="searchStockBtn" class="w-full bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105">View Stock Info</button>
+                </div>
+                <!-- Custom Message Box for validation errors -->
+                <div id="validationMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-6 transition-all duration-300 transform scale-95" role="alert">
+                    <span id="validationText"></span>
+                </div>
+            </div>
+
+            <!-- Calendar Selection Section -->
+            <div class="bg-white p-8 rounded-2xl card-shadow flex flex-col items-center text-center">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">View Calendar by Date</h2>
+                <div class="flex flex-col gap-6 w-full max-w-sm">
+                    <div class="flex flex-col text-left">
+                        <label for="calendarDate" class="text-gray-700 font-medium mb-1">Select Date:</label>
+                        <input type="date" id="calendarDate" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
+                    </div>
+                    <div class="flex flex-col text-left">
+                        <label for="calendarTypeSelect" class="text-gray-700 font-medium mb-1">Select Calendar Type:</label>
+                        <select id="calendarTypeSelect" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
+                            <option value="earnings_calendar.html">Upcoming/Historical Earnings Calendar</option>
+                            <option value="ipos_calendar.html">Upcoming/Historical IPO Calendar</option>
+                            <option value="split_calendar.html">Upcoming/Historical Split Calendar</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Error Message for Calendar -->
+                    <div id="calendarErrorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4" role="alert">
+                        <span id="calendarErrorText"></span>
+                    </div>
+
+                    <button id="viewCalendarBtn" class="w-full bg-green-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 mt-2">View Calendar</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- General News Section -->
+        <section id="generalNewsSection" class="w-full hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">General Market News</h2>
+            <div id="newsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- News articles will be dynamically inserted here -->
+            </div>
+        </section>
+
+        <!-- Top Gainers, Losers, and Most Active Section -->
+        <section id="marketSummarySection" class="w-full grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
+            <!-- Top Gainers -->
+            <div class="bg-white p-8 rounded-2xl card-shadow">
+                <h3 class="text-2xl font-bold text-green-600 mb-4 text-center">Top Gainers</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl w-1/2">Stock</th>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold w-1/4">Price</th>
+                                <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl w-1/4">Change (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gainersList">
+                            <!-- Top gainers will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Losers -->
+            <div class="bg-white p-8 rounded-2xl card-shadow">
+                <h3 class="text-2xl font-bold text-red-600 mb-4 text-center">Top Losers</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl w-1/2">Stock</th>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold w-1/4">Price</th>
+                                <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl w-1/4">Change (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="losersList">
+                            <!-- Top losers will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
             
-            <!-- Main Content Grid -->
-            <main class="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Stock Search Section -->
-                <div class="bg-white p-8 rounded-2xl card-shadow flex flex-col items-center text-center">
-                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Search Stock by Symbol</h2>
-                    <div class="flex flex-col gap-6 w-full max-w-sm">
-                        <input type="text" id="stockSymbolInput" placeholder="e.g., AAPL, GOOG" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                        <button id="searchStockBtn" class="w-full bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105">View Stock Info</button>
-                    </div>
-                    <!-- Custom Message Box for validation errors -->
-                    <div id="validationMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-6 transition-all duration-300 transform scale-95" role="alert">
-                        <span id="validationText"></span>
-                    </div>
-                </div>
-
-                <!-- Calendar Selection Section -->
-                <div class="bg-white p-8 rounded-2xl card-shadow flex flex-col items-center text-center">
-                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">View Calendar by Date</h2>
-                    <div class="flex flex-col gap-6 w-full max-w-sm">
-                        <div class="flex flex-col text-left">
-                            <label for="calendarDate" class="text-gray-700 font-medium mb-1">Select Date:</label>
-                            <input type="date" id="calendarDate" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
-                        </div>
-                        <div class="flex flex-col text-left">
-                            <label for="calendarTypeSelect" class="text-gray-700 font-medium mb-1">Select Calendar Type:</label>
-                            <select id="calendarTypeSelect" class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
-                                <option value="earnings_calendar.html">Upcoming/Historical Earnings Calendar</option>
-                                <option value="ipos_calendar.html">Upcoming/Historical IPO Calendar</option>
-                                <option value="split_calendar.html">Upcoming/Historical Split Calendar</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Error Message for Calendar -->
-                        <div id="calendarErrorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4" role="alert">
-                            <span id="calendarErrorText"></span>
-                        </div>
-
-                        <button id="viewCalendarBtn" class="w-full bg-green-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 mt-2">View Calendar</button>
-                    </div>
-                </div>
-            </main>
-
-            <!-- Loading Indicator -->
-            <div id="loadingIndicator" class="text-center my-10 hidden">
-                <div class="bg-white p-10 rounded-2xl card-shadow flex flex-col items-center">
-                    <div class="loading-spinner border-4 border-gray-200 border-t-blue-500 rounded-full w-12 h-12 animate-spin"></div>
-                    <p class="mt-4 text-xl font-medium text-gray-600">Loading Market Data...</p>
+            <!-- Most Active Stocks -->
+            <div class="bg-white p-8 rounded-2xl card-shadow">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Most Active Stocks</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl w-1/2">Stock</th>
+                                <th class="px-4 py-2 text-left text-gray-600 font-semibold w-1/4">Price</th>
+                                <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl w-1/4">Change (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mostActiveList">
+                            <!-- Most active stocks will be dynamically inserted here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </section>
 
-            <!-- Error Message -->
-            <div id="errorMessage" class="hidden my-10 bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-2xl card-shadow text-center">
-                <strong class="font-bold">Oops!</strong>
-                <span class="block sm:inline" id="errorText">An error occurred while loading data. Please try again.</span>
-            </div>
-
-            <!-- General News Section -->
-            <section id="generalNewsSection" class="w-full hidden">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">General Market News</h2>
-                <div id="newsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- News articles will be dynamically inserted here -->
-                </div>
-            </section>
-
-            <!-- Top Gainers, Losers, and Most Active Section -->
-            <section id="marketSummarySection" class="w-full grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
-                <!-- Top Gainers -->
-                <div class="bg-white p-8 rounded-2xl card-shadow">
-                    <h3 class="text-2xl font-bold text-green-600 mb-4 text-center">Top Gainers</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl w-1/2">Stock</th>
-                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold w-1/4">Price</th>
-                                    <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl w-1/4">Change (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="gainersList">
-                                <!-- Top gainers will be dynamically inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Top Losers -->
-                <div class="bg-white p-8 rounded-2xl card-shadow">
-                    <h3 class="text-2xl font-bold text-red-600 mb-4 text-center">Top Losers</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl w-1/2">Stock</th>
-                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold w-1/4">Price</th>
-                                    <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl w-1/4">Change (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="losersList">
-                                <!-- Top losers will be dynamically inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Most Active Stocks -->
-                <div class="bg-white p-8 rounded-2xl card-shadow">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Most Active Stocks</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold rounded-tl-xl w-1/2">Stock</th>
-                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold w-1/4">Price</th>
-                                    <th class="px-4 py-2 text-right text-gray-600 font-semibold rounded-tr-xl w-1/4">Change (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="mostActiveList">
-                                <!-- Most active stocks will be dynamically inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-        </div>
     </div>
-    
-    <!-- Firebase SDK Scripts -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-        
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
-            authDomain: "stocksight-pro-2e52a.firebaseapp.com",
-            projectId: "stocksight-pro-2e52a",
-            storageBucket: "stocksight-pro-2e52a.firebasestorage.app",
-            messagingSenderId: "440324765765",
-            appId: "1:440324765765:web:a26430d5f773f91079cb2c",
-            measurementId: "G-DQTYB9FW2K"
-        };
-        
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        // =================================================================
-        // UI and Authentication Logic
-        // =================================================================
-        const authSection = document.getElementById('auth-section');
-        const mainContent = document.getElementById('main-content');
-        const authTitle = document.getElementById('auth-title');
-        const authEmailInput = document.getElementById('auth-email');
-        const authPasswordInput = document.getElementById('auth-password');
-        const authSubmitBtn = document.getElementById('auth-submit-btn');
-        const authToggleText = document.getElementById('auth-toggle-text');
-        const authToggleLink = document.getElementById('auth-toggle-link');
-        const authMessageBox = document.getElementById('auth-message-box');
-        const authMessageText = document.getElementById('auth-message-text');
-        const signOutBtn = document.getElementById('sign-out-btn');
-        
-        let isSigningUp = true;
-
-        // Custom function to show auth messages
-        function showAuthMessage(message, type = 'error') {
-            authMessageText.textContent = message;
-            authMessageBox.className = `bg-${type === 'error' ? 'red' : 'green'}-100 border border-${type === 'error' ? 'red' : 'green'}-400 text-${type === 'error' ? 'red' : 'green'}-700 px-4 py-3 rounded-xl relative mt-4 transition-all duration-300 transform scale-100`;
-            authMessageBox.classList.remove('hidden');
-            setTimeout(() => {
-                authMessageBox.classList.add('hidden');
-            }, 5000);
-        }
-
-        // Toggle between sign-up and log-in forms
-        authToggleLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            isSigningUp = !isSigningUp;
-            if (isSigningUp) {
-                authTitle.textContent = 'Sign Up';
-                authSubmitBtn.textContent = 'Sign Up';
-                authToggleText.textContent = 'Already have an account?';
-                authToggleLink.textContent = 'Log In';
-            } else {
-                authTitle.textContent = 'Log In';
-                authSubmitBtn.textContent = 'Log In';
-                authToggleText.textContent = 'Don\'t have an account?';
-                authToggleLink.textContent = 'Sign Up';
-            }
-            authMessageBox.classList.add('hidden');
-            authEmailInput.value = '';
-            authPasswordInput.value = '';
-        });
-
-        // Handle form submission (Sign Up or Log In)
-        authSubmitBtn.addEventListener('click', async () => {
-            const email = authEmailInput.value.trim();
-            const password = authPasswordInput.value.trim();
-
-            if (!email || !password) {
-                showAuthMessage('Please enter both email and password.');
-                return;
-            }
-
-            try {
-                if (isSigningUp) {
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    showAuthMessage('Sign up successful!', 'success');
-                    // Add a document for the new user in Firestore
-                    await setDoc(doc(db, "users", userCredential.user.uid), {
-                        email: userCredential.user.email,
-                        createdAt: new Date()
-                    });
-                } else {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    showAuthMessage('Logged in successfully!', 'success');
-                }
-            } catch (error) {
-                console.error("Authentication Error:", error);
-                let message = 'An unknown error occurred. Please try again.';
-                if (error.code === 'auth/email-already-in-use') {
-                    message = 'The email address is already in use.';
-                } else if (error.code === 'auth/invalid-email') {
-                    message = 'The email address is not valid.';
-                } else if (error.code === 'auth/weak-password') {
-                    message = 'Password should be at least 6 characters.';
-                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    message = 'Invalid email or password.';
-                }
-                showAuthMessage(message);
-            }
-        });
-
-        // Handle user sign out
-        signOutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                // The onAuthStateChanged listener will handle UI changes
-            } catch (error) {
-                console.error("Sign Out Error:", error);
-                // Optionally show a message
-            }
-        });
-
-        // Listen for authentication state changes (this is key!)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // User is signed in, show the main content
-                authSection.classList.add('hidden');
-                mainContent.classList.remove('hidden');
-                console.log("User logged in:", user.email);
-                
-                // Call the function to fetch market data only when a user is logged in
-                fetchMarketData();
-
-            } else {
-                // User is signed out, show the auth forms
-                authSection.classList.remove('hidden');
-                mainContent.classList.add('hidden');
-            }
-        });
-
-        // =========================================================================
-        // YOUR ORIGINAL CODE FROM THE USER'S index.html
-        // =========================================================================
-
+    <script>
         // Custom function to show a styled message instead of alert()
         function showMessage(message, type, targetElementId) {
             const messageBox = document.getElementById(targetElementId);
-            const messageText = messageBox.querySelector('span');
+            messageBox.textContent = message;
+            
+            // Set colors based on message type
+            let bgColor, borderColor, textColor;
+            switch(type) {
+                case 'error':
+                    bgColor = 'bg-red-100';
+                    borderColor = 'border-red-400';
+                    textColor = 'text-red-700';
+                    break;
+                case 'success':
+                    bgColor = 'bg-green-100';
+                    borderColor = 'border-green-400';
+                    textColor = 'text-green-700';
+                    break;
+                default: // 'info' or default
+                    bgColor = 'bg-blue-100';
+                    borderColor = 'border-blue-400';
+                    textColor = 'text-blue-700';
+            }
 
-            messageText.textContent = message;
-            messageBox.className = `bg-${type}-100 border border-${type}-400 text-${type}-700 px-4 py-3 rounded-xl relative mt-6 transition-all duration-300 transform scale-100`;
+            messageBox.className = `${bgColor} ${borderColor} ${textColor} px-4 py-3 rounded-xl relative mt-6 transition-all duration-300 transform scale-100`;
             messageBox.classList.remove('hidden');
 
             setTimeout(() => {
@@ -355,13 +236,116 @@
             }, 5000); // Hide after 5 seconds
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // Set default date for the new calendar input field to today
             const today = new Date();
             document.getElementById('calendarDate').value = today.toISOString().split('T')[0];
 
+            // Firebase Initialization and Authentication
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const authSection = document.getElementById('authSection');
+            const mainContent = document.getElementById('mainContent');
+            const generalNewsSection = document.getElementById('generalNewsSection');
+            const marketSummarySection = document.getElementById('marketSummarySection');
+            const authStatusText = document.getElementById('authStatusText');
+            const signOutBtn = document.getElementById('signOutBtn');
+            const authMessage = document.getElementById('authMessage');
+
+            loadingIndicator.classList.remove('hidden');
+
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const firebaseApp = firebase.initializeApp(firebaseConfig);
+            const auth = firebase.getAuth(firebaseApp);
+
+            // Hide main content and sign out button initially
+            mainContent.classList.add('hidden');
+            generalNewsSection.classList.add('hidden');
+            marketSummarySection.classList.add('hidden');
+            signOutBtn.classList.add('hidden');
+
+            firebase.onAuthStateChanged(auth, async (user) => {
+                loadingIndicator.classList.add('hidden');
+                if (user) {
+                    console.log("User is authenticated:", user.uid);
+                    authStatusText.textContent = `Welcome! User ID: ${user.uid}`;
+                    authSection.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                    signOutBtn.classList.remove('hidden');
+                    fetchMarketData();
+                } else {
+                    console.log("User is not authenticated. Showing auth form.");
+                    authStatusText.textContent = 'Please sign in or sign up';
+                    authSection.classList.remove('hidden');
+                    mainContent.classList.add('hidden');
+                    generalNewsSection.classList.add('hidden');
+                    marketSummarySection.classList.add('hidden');
+                    signOutBtn.classList.add('hidden');
+                    // Attempt anonymous sign-in if no user is found
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined') {
+                            await firebase.signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await firebase.signInAnonymously(auth);
+                        }
+                    } catch (error) {
+                        console.error("Error during anonymous sign-in:", error);
+                    }
+                }
+            });
+
+            // Authentication Form Logic
+            const authForm = document.getElementById('authForm');
+            const emailInput = document.getElementById('emailInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const authBtn = document.getElementById('authBtn');
+            const toggleAuthModeBtn = document.getElementById('toggleAuthModeBtn');
+            let isLoginMode = true;
+
+            toggleAuthModeBtn.addEventListener('click', () => {
+                isLoginMode = !isLoginMode;
+                authBtn.textContent = isLoginMode ? 'Sign In' : 'Sign Up';
+                toggleAuthModeBtn.textContent = isLoginMode ? "Don't have an account? Sign up" : "Already have an account? Sign in";
+            });
+
+            authForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = emailInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                authMessage.classList.add('hidden');
+
+                if (!email || !password) {
+                    showMessage('Please enter both email and password.', 'error', 'authMessage');
+                    return;
+                }
+
+                try {
+                    if (isLoginMode) {
+                        await firebase.signInWithEmailAndPassword(auth, email, password);
+                        showMessage('Signed in successfully!', 'success', 'authMessage');
+                    } else {
+                        await firebase.createUserWithEmailAndPassword(auth, email, password);
+                        showMessage('Account created successfully!', 'success', 'authMessage');
+                    }
+                } catch (error) {
+                    let errorMessage = 'An error occurred. Please try again.';
+                    if (error.code === 'auth/email-already-in-use') {
+                        errorMessage = 'This email is already in use. Please sign in or use a different email.';
+                    } else if (error.code === 'auth/invalid-credential') {
+                        errorMessage = 'Invalid email or password.';
+                    } else if (error.code === 'auth/weak-password') {
+                        errorMessage = 'Password should be at least 6 characters.';
+                    }
+                    showMessage(errorMessage, 'error', 'authMessage');
+                }
+            });
+
+            signOutBtn.addEventListener('click', async () => {
+                await firebase.signOut(auth);
+            });
+
+
             // Stock Search Button Logic
-            // The logic has been updated to include an async fetch call for validation.
             document.getElementById('searchStockBtn').addEventListener('click', async () => {
                 const stockSymbolInput = document.getElementById('stockSymbolInput');
                 const symbol = stockSymbolInput.value.trim().toUpperCase();
@@ -375,9 +359,9 @@
                 // Show loading indicator while waiting for validation
                 const loadingIndicator = document.getElementById('loadingIndicator');
                 loadingIndicator.classList.remove('hidden');
+                loadingIndicator.querySelector('p').textContent = 'Validating stock symbol...';
 
                 try {
-                    // Endpoint for stock validation
                     const validationApiUrl = `https://stock-backend-0128.onrender.com/check?stock=${symbol}`;
                     
                     let response;
@@ -385,7 +369,6 @@
                     const maxAttempts = 3;
                     const baseDelay = 1000;
 
-                    // Implement exponential backoff for API calls
                     while (attempts < maxAttempts) {
                         try {
                             response = await fetch(validationApiUrl);
@@ -408,22 +391,17 @@
 
                     const data = await response.json();
 
-                    // Check the API response for validity
                     if (data['valid?'] === 1) {
-                        // If valid, navigate to the stock info page
                         window.location.href = `general_info.html?stock=${symbol}`;
                     } else if (data['error']) {
-                        // If there's an error message, display it
                         showMessage(data['error'], 'red', 'validationMessage');
                     } else {
-                        // Handle unexpected response
                         showMessage('Could not validate stock symbol. Please try again.', 'red', 'validationMessage');
                     }
                 } catch (error) {
                     console.error("Failed to validate stock symbol:", error);
                     showMessage('Invalid Stock Symbol. Please enter a valid symbol and try again.', 'red', 'validationMessage');
                 } finally {
-                    // Hide loading indicator after the request is complete
                     loadingIndicator.classList.add('hidden');
                 }
             });
@@ -449,7 +427,6 @@
                     return;
                 }
 
-                // Navigate to the selected calendar page, passing the date as a query parameter
                 window.location.href = `${selectedCalendarTypeFile}?date=${selectedDate}`;
             });
 
@@ -459,35 +436,32 @@
 
             const API_URL = "https://stock-backend-0128.onrender.com/tabzero";
 
-            const loadingIndicator = document.getElementById('loadingIndicator');
             const errorMessageDiv = document.getElementById('errorMessage');
             const errorTextSpan = document.getElementById('errorText');
             const newsContainer = document.getElementById('newsContainer');
             const gainersList = document.getElementById('gainersList');
             const losersList = document.getElementById('losersList');
             const mostActiveList = document.getElementById('mostActiveList');
-            const generalNewsSection = document.getElementById('generalNewsSection');
-            // Changed section id to be more general since it now contains three tables
-            const marketSummarySection = document.getElementById('marketSummarySection'); 
-
+            
             /**
-             * Formats a number to a specified number of decimal places.
-             * @param {number} num The number to format.
-             * @param {number} decimals The number of decimal places.
-             * @returns {string} The formatted number as a string.
-             */
+            * Formats a number to a specified number of decimal places.
+            * @param {number} num The number to format.
+            * @param {number} decimals The number of decimal places.
+            * @returns {string} The formatted number as a string.
+            */
             function formatNumber(num, decimals) {
                 return parseFloat(num).toFixed(decimals);
             }
 
             /**
-             * Renders a list of stocks (gainers, losers, or most active) into a table.
-             * @param {Array} stockData An array of stock objects.
-             * @param {HTMLElement} containerElement The element to render the list into.
-             */
+            * Renders a list of stocks (gainers, losers, or most active) into a table.
+            * @param {Array} stockData An array of stock objects.
+            * @param {HTMLElement} containerElement The element to render the list into.
+            */
             function renderStocks(stockData, containerElement) {
                 containerElement.innerHTML = ''; // Clear previous content
                 if (stockData && stockData.length > 0) {
+                    marketSummarySection.classList.remove('hidden');
                     stockData.slice(0, 10).forEach(stock => {
                         const changeColor = stock['Change (%)'] >= 0 ? 'text-green-600' : 'text-red-600';
                         const changeSign = stock['Change (%)'] >= 0 ? '+' : '';
@@ -504,9 +478,9 @@
             }
             
             /**
-             * Renders the general market news cards.
-             * @param {Array} newsData An array of news objects.
-             */
+            * Renders the general market news cards.
+            * @param {Array} newsData An array of news objects.
+            */
             function renderNews(newsData) {
                 newsContainer.innerHTML = ''; // Clear previous content
                 if (newsData && newsData.length > 0) {
@@ -525,12 +499,16 @@
                 }
             }
 
+
             /**
-             * Fetches and displays the market data from the backend.
-             */
+            * Fetches and displays the market data from the backend.
+            */
             async function fetchMarketData() {
                 loadingIndicator.classList.remove('hidden');
+                loadingIndicator.querySelector('p').textContent = 'Loading Market Data...';
                 errorMessageDiv.classList.add('hidden');
+                
+                // Hide sections before fetching
                 generalNewsSection.classList.add('hidden');
                 marketSummarySection.classList.add('hidden');
 
@@ -576,15 +554,6 @@
                         renderStocks(data['Most Active'], mostActiveList);
                     }
 
-                    // Show the sections if data was successfully rendered
-                    if (data['General News'] && data['General News'].length > 0) {
-                        generalNewsSection.classList.remove('hidden');
-                    }
-                    if (data['Top Gainers'] && data['Top Gainers'].length > 0 || 
-                        data['Top Losers'] && data['Top Losers'].length > 0 || 
-                        data['Most Active'] && data['Most Active'].length > 0) {
-                        marketSummarySection.classList.remove('hidden');
-                    }
                 } catch (error) {
                     console.error("Failed to fetch market data:", error);
                     errorTextSpan.textContent = `An error occurred: ${error.message}. Please try again later.`;
