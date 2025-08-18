@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockSight Pro – Login / Signup</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+  <!-- Card Container -->
+  <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+    <h1 class="text-2xl font-bold text-center mb-6">StockSight Pro</h1>
+    <p class="text-center text-gray-600 mb-6">Login or create an account to continue</p>
+
+    <!-- Auth form -->
+    <div class="space-y-4">
+      <input 
+        id="authEmail" 
+        type="email" 
+        placeholder="Email" 
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-400"
+      />
+      <input 
+        id="authPassword" 
+        type="password" 
+        placeholder="Password" 
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-400"
+      />
+
+      <button 
+        id="loginBtn"
+        class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+      >
+        Log In
+      </button>
+
+      <button 
+        id="signupBtn"
+        class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition"
+      >
+        Sign Up
+      </button>
+
+      <!-- Error messages -->
+      <p id="authMessage" class="hidden text-red-500 text-center text-sm"></p>
+    </div>
+  </div>
+
+  <!-- Firebase Auth -->
+  <script type="module">
+    import { 
+      initializeApp 
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { 
+      getAuth, 
+      onAuthStateChanged,
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword,
+      setPersistence,
+      browserLocalPersistence
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
+      authDomain: "stocksight-pro-2e52a.firebaseapp.com",
+      projectId: "stocksight-pro-2e52a",
+      storageBucket: "stocksight-pro-2e52a.appspot.com",
+      messagingSenderId: "440324765765",
+      appId: "1:440324765765:web:a26430d5f773f91079cb2c",
+      measurementId: "G-DQTYB9FW2K"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const loginBtn = document.getElementById("loginBtn");
+    const signupBtn = document.getElementById("signupBtn");
+    const authMessage = document.getElementById("authMessage");
+
+    async function login(email, password) {
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "index.html"; // ✅ go to home
+      } catch (err) {
+        authMessage.textContent = `Login failed: ${err.code}`;
+        authMessage.classList.remove("hidden");
+      }
+    }
+
+    async function signup(email, password) {
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+        await createUserWithEmailAndPassword(auth, email, password);
+        window.location.href = "index.html"; // ✅ go to home
+      } catch (err) {
+        authMessage.textContent = `Signup failed: ${err.code}`;
+        authMessage.classList.remove("hidden");
+      }
+    }
+
+    loginBtn.addEventListener("click", () => {
+      const email = document.getElementById("authEmail").value;
+      const password = document.getElementById("authPassword").value;
+      login(email, password);
+    });
+
+    signupBtn.addEventListener("click", () => {
+      const email = document.getElementById("authEmail").value;
+      const password = document.getElementById("authPassword").value;
+      signup(email, password);
+    });
+
+    // 👇 Redirect logged-in users away from auth page
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+</body>
+</html>
