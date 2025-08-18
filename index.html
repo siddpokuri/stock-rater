@@ -43,6 +43,9 @@
         <!-- Header Section with a subtle gradient and shadow -->
         <header class="w-full text-center py-8 rounded-2xl bg-gradient-to-r from-gray-50 to-gray-200 card-shadow">
             <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 mb-2">Stock Info Hub</h1>
+            <button onclick="signOutUser()" class="absolute top-6 right-6 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
+              Sign Out
+            </button>
         </header>
 
         <!-- Main Content Grid -->
@@ -171,6 +174,42 @@
         </section>
 
     </div>
+    <!-- Firebase -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    
+      const firebaseConfig = {
+        apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
+        authDomain: "stocksight-pro-2e52a.firebaseapp.com",
+        projectId: "stocksight-pro-2e52a",
+        storageBucket: "stocksight-pro-2e52a.appspot.com",
+        messagingSenderId: "440324765765",
+        appId: "1:440324765765:web:a26430d5f773f91079cb2c",
+        measurementId: "G-DQTYB9FW2K"
+      };
+    
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+    
+      // Check if user is logged in
+      onAuthStateChanged(auth, (user) => {
+        if (!user) {
+          // Not logged in, redirect to auth page
+          window.location.href = "auth.html";
+        }
+      });
+    
+      // Sign out function
+      window.signOutUser = async function() {
+        try {
+          await signOut(auth);
+          window.location.href = "auth.html";
+        } catch (error) {
+          console.error("Error signing out:", error);
+        }
+      };
+    </script>
 
     <script>
         // Custom function to show a styled message instead of alert()
