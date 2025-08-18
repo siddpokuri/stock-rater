@@ -103,66 +103,80 @@
 
   <!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+  import { 
+    initializeApp 
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    signOut, 
+    setPersistence, 
+    browserLocalPersistence 
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
-      authDomain: "stocksight-pro-2e52a.firebaseapp.com",
-      projectId: "stocksight-pro-2e52a",
-      storageBucket: "stocksight-pro-2e52a.firebasestorage.app",
-      messagingSenderId: "440324765765",
-      appId: "1:440324765765:web:a26430d5f773f91079cb2c",
-      measurementId: "G-DQTYB9FW2K"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
+    authDomain: "stocksight-pro-2e52a.firebaseapp.com",
+    projectId: "stocksight-pro-2e52a",
+    storageBucket: "stocksight-pro-2e52a.firebasestorage.app",
+    messagingSenderId: "440324765765",
+    appId: "1:440324765765:web:a26430d5f773f91079cb2c",
+    measurementId: "G-DQTYB9FW2K"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    const authOverlay = document.getElementById("authOverlay");
-    const appContainer = document.getElementById("appContainer");
-    const loginBtn = document.getElementById("loginBtn");
-    const signupBtn = document.getElementById("signupBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const authMessage = document.getElementById("authMessage");
+  // 🔒 Make login persistent
+  setPersistence(auth, browserLocalPersistence);
 
-    loginBtn.addEventListener("click", async () => {
-      const email = document.getElementById("authEmail").value;
-      const password = document.getElementById("authPassword").value;
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (err) {
-        authMessage.textContent = err.message;
-        authMessage.classList.remove("hidden");
-      }
-    });
+  const authOverlay = document.getElementById("authOverlay");
+  const appContainer = document.getElementById("appContainer");
+  const loginBtn = document.getElementById("loginBtn");
+  const signupBtn = document.getElementById("signupBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const authMessage = document.getElementById("authMessage");
 
-    signupBtn.addEventListener("click", async () => {
-      const email = document.getElementById("authEmail").value;
-      const password = document.getElementById("authPassword").value;
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } catch (err) {
-        authMessage.textContent = err.message;
-        authMessage.classList.remove("hidden");
-      }
-    });
+  loginBtn.addEventListener("click", async () => {
+    const email = document.getElementById("authEmail").value;
+    const password = document.getElementById("authPassword").value;
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      authMessage.classList.add("hidden");
+    } catch (err) {
+      authMessage.textContent = `Login failed: ${err.code}`;
+      authMessage.classList.remove("hidden");
+    }
+  });
 
-    logoutBtn.addEventListener("click", async () => {
-      await signOut(auth);
-    });
+  signupBtn.addEventListener("click", async () => {
+    const email = document.getElementById("authEmail").value;
+    const password = document.getElementById("authPassword").value;
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      authMessage.classList.add("hidden");
+    } catch (err) {
+      authMessage.textContent = `Signup failed: ${err.code}`;
+      authMessage.classList.remove("hidden");
+    }
+  });
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        authOverlay.classList.add("hidden");
-        appContainer.classList.remove("hidden");
-      } else {
-        authOverlay.classList.remove("hidden");
-        appContainer.classList.add("hidden");
-      }
-    });
-  </script>
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+  });
 
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      authOverlay.classList.add("hidden");
+      appContainer.classList.remove("hidden");
+    } else {
+      authOverlay.classList.remove("hidden");
+      appContainer.classList.add("hidden");
+    }
+  });
+</script>
   <!-- Your existing app script -->
   <script>
     const loading = document.getElementById("loading");
