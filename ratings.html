@@ -126,7 +126,38 @@
             </div>
         </div>
     </main>
-
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    
+      const firebaseConfig = {
+        apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
+        authDomain: "stocksight-pro-2e52a.firebaseapp.com",
+        projectId: "stocksight-pro-2e52a",
+        storageBucket: "stocksight-pro-2e52a.appspot.com",
+        messagingSenderId: "440324765765",
+        appId: "1:440324765765:web:a26430d5f773f91079cb2c",
+        measurementId: "G-DQTYB9FW2K"
+      };
+    
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+    
+      onAuthStateChanged(auth, (user) => {
+        if (!user) {
+          window.location.href = "auth.html"; // redirect if not logged in
+        }
+      });
+    
+      window.signOutUser = async function() {
+        try {
+          await signOut(auth);
+          window.location.href = "auth.html"; // redirect after logout
+        } catch (error) {
+          console.error("Error signing out:", error);
+        }
+      };
+    </script>
     <script>
         let stockSymbol = '';
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
