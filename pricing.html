@@ -3,37 +3,161 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pricing - Premium Plan</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Pricing Plans</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9fafb;
+      color: #333;
+    }
+
+    header {
+      background: white;
+      padding: 15px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      color: #2563eb;
+      margin: 0;
+    }
+
+    nav a {
+      margin-left: 20px;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    nav a:hover {
+      color: #2563eb;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 60px 20px 40px;
+    }
+
+    .hero h2 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      color: #111;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #555;
+    }
+
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      padding: 40px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .plan {
+      background: white;
+      padding: 30px 20px;
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .plan:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+    }
+
+    .plan h3 {
+      margin-top: 0;
+      font-size: 1.6rem;
+      color: #2563eb;
+    }
+
+    .price {
+      font-size: 2rem;
+      font-weight: bold;
+      margin: 20px 0;
+      color: #111;
+    }
+
+    .plan ul {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+      color: #555;
+    }
+
+    .plan ul li {
+      margin: 10px 0;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #2563eb;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: #1e4fc1;
+    }
+  </style>
 </head>
 <body>
-  <header class="navbar">
-    <h1>Stock App</h1>
+  <header>
+    <h1>MyApp</h1>
     <nav>
       <a href="index.html">Home</a>
-      <a href="pricing.html" class="active">Pricing</a>
+      <a href="pricing.html">Pricing</a>
     </nav>
   </header>
 
-  <main class="pricing-container">
+  <section class="hero">
     <h2>Choose Your Plan</h2>
-    <div class="pricing-card">
-      <h3>Premium Plan</h3>
-      <p class="price">$9.99 / month</p>
-      <ul>
-        <li>✔ Unlimited stock searches</li>
-        <li>✔ Advanced stock ratings</li>
-        <li>✔ Priority customer support</li>
-        <li>✔ Access to exclusive insights</li>
-      </ul>
-      <form action="https://your-backend-url.onrender.com/create-checkout-session" method="POST">
-        <button type="submit" class="btn">Subscribe Now</button>
-      </form>
-    </div>
-  </main>
+    <p>Flexible options designed for everyone — whether you’re just starting or ready to go premium.</p>
+  </section>
 
-  <footer>
-    <p>© 2025 Stock App. All rights reserved.</p>
-  </footer>
+  <section class="plans">
+    <div class="plan">
+      <h3>Free</h3>
+      <div class="price">$0 <span style="font-size:1rem;">/ month</span></div>
+      <ul>
+        <li>Basic Features</li>
+        <li>Community Support</li>
+        <li>Access to Limited Tools</li>
+      </ul>
+      <a href="#" class="btn">Get Started</a>
+    </div>
+
+    <div class="plan">
+      <h3>Premium</h3>
+      <div class="price">$9.99 <span style="font-size:1rem;">/ month</span></div>
+      <ul>
+        <li>All Free Features</li>
+        <li>Priority Support</li>
+        <li>Exclusive Tools</li>
+        <li>Early Access Updates</li>
+      </ul>
+      <a href="/create-checkout-session" class="btn">Upgrade Now</a>
+    </div>
+  </section>
 </body>
 </html>
