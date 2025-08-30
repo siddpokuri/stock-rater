@@ -52,7 +52,7 @@
 
       <!-- Get Premium Button -->
       <button id="getPremiumBtn"
-        class="mt-4 bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition duration-300 ease-in-out transform hover:scale-105">
+        class="mt-4 bg-blue-800 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-900 transition duration-300 ease-in-out transform hover:scale-105">
         Get Premium
       </button>
     </header>
@@ -483,7 +483,8 @@
 
             // Call the function to fetch data on page load
             fetchMarketData();
-
+            document.getElementById('getPremiumBtn').addEventListener('click', () => {
+            window.location.href = "pricing.html";
         });
     </script>
 </body>
