@@ -52,6 +52,7 @@
 
       <!-- Get Premium Button -->
       <button id="getPremiumBtn"
+        onclick="goToPricing()"
         class="mt-4 bg-blue-800 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-900 transition duration-300 ease-in-out transform hover:scale-105">
         Get Premium
       </button>
@@ -237,6 +238,12 @@
     };
   </script>
 
+  <script>
+    function goToPricing() {
+      window.location.href = "pricing.html";
+    }
+  </script>
+  
   <script>
     // Custom function to show a styled message instead of alert()
     function showMessage(message, type, targetElementId) {
