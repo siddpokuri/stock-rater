@@ -4,159 +4,85 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pricing Plans</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f9fafb;
-      color: #333;
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
     }
-
-    header {
-      background: white;
-      padding: 15px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    header h1 {
-      font-size: 1.5rem;
-      color: #2563eb;
-      margin: 0;
-    }
-
-    nav a {
-      margin-left: 20px;
-      text-decoration: none;
-      color: #333;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-
-    nav a:hover {
-      color: #2563eb;
-    }
-
-    .hero {
-      text-align: center;
-      padding: 60px 20px 40px;
-    }
-
-    .hero h2 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      color: #111;
-    }
-
-    .hero p {
-      font-size: 1.1rem;
-      color: #555;
-    }
-
-    .plans {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 30px;
-      padding: 40px;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-
-    .plan {
-      background: white;
-      padding: 30px 20px;
-      border-radius: 15px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-      text-align: center;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .plan:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.12);
-    }
-
-    .plan h3 {
-      margin-top: 0;
-      font-size: 1.6rem;
-      color: #2563eb;
-    }
-
-    .price {
-      font-size: 2rem;
-      font-weight: bold;
-      margin: 20px 0;
-      color: #111;
-    }
-
-    .plan ul {
-      list-style: none;
-      padding: 0;
-      margin: 20px 0;
-      color: #555;
-    }
-
-    .plan ul li {
-      margin: 10px 0;
-    }
-
-    .btn {
-      display: inline-block;
-      background: #2563eb;
-      color: white;
-      padding: 12px 25px;
-      border-radius: 25px;
-      text-decoration: none;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-
-    .btn:hover {
-      background: #1e4fc1;
+    .card-shadow {
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
     }
   </style>
 </head>
-<body>
-  <header>
-    <h1>StockSight</h1>
+<body class="min-h-screen flex flex-col items-center p-6">
+
+  <!-- Header -->
+  <header class="w-full max-w-6xl flex justify-between items-center py-6 px-4 bg-white rounded-2xl card-shadow mb-10">
+    <h1 class="text-2xl font-bold text-blue-600">StockSight</h1>
     <nav>
-      <a href="index.html">Home</a>
+      <a href="index.html" class="text-gray-700 font-medium hover:text-blue-600 transition">Home</a>
     </nav>
   </header>
 
-  <section class="hero">
-    <h2>Choose Your Plan</h2>
-    <p>Flexible options designed for everyone — whether you’re just starting or ready to go premium.</p>
+  <!-- Hero -->
+  <section class="text-center mb-12">
+    <h2 class="text-4xl font-bold text-gray-800 mb-4">Choose Your Plan</h2>
+    <p class="text-gray-600 max-w-xl mx-auto">Flexible options designed for everyone — whether you’re just starting or ready to go premium.</p>
   </section>
 
-  <section class="plans">
-    <div class="plan">
-      <h3>Free</h3>
-      <div class="price">$0 <span style="font-size:1rem;">/ month</span></div>
-      <ul>
-        <li>UNLIMITED Stock Searches for general info, ratios, income statements, balance sheets, earnings info, and MORE</li>
-        <li>FULL access to Earnings/Dividends/IPOS/Split Calendars</li>
-        <li>General daily news</li>
-        <li>Daily top gainers/losers, and most actively traded</li>
+  <!-- Pricing Plans -->
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
+    
+    <!-- Free Plan -->
+    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col text-center">
+      <h3 class="text-2xl font-bold text-blue-600 mb-4">Free</h3>
+      <p class="text-3xl font-extrabold text-gray-900 mb-6">$0 <span class="text-lg font-medium">/month</span></p>
+      <ul class="text-gray-600 text-left space-y-3 mb-8">
+        <li>✔ UNLIMITED Stock Searches</li>
+        <li>✔ FULL access to Calendars (Earnings/Dividends/IPOs/Splits)</li>
+        <li>✔ General daily news</li>
+        <li>✔ Daily top gainers/losers, most active</li>
       </ul>
+      <button disabled class="bg-gray-300 text-gray-600 px-6 py-3 rounded-xl font-semibold cursor-not-allowed">Current Plan</button>
     </div>
 
-    <div class="plan">
-      <h3>Premium</h3>
-      <div class="price">$9.99 <span style="font-size:1rem;">/ month</span></div>
-      <ul>
-        <li>EVERYTHING in FREE, PLUS:</li>
-        <li>COMPREHENSIVE DAILY Ratings for individual stocks</li>
-        <li>LATEST insider trades</li>
-        <li>Last quarter earnings transcripts for individual stocks</li>
+    <!-- Premium Plan -->
+    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col text-center border-2 border-yellow-400">
+      <h3 class="text-2xl font-bold text-yellow-600 mb-4">Premium</h3>
+      <p class="text-3xl font-extrabold text-gray-900 mb-6">$9.99 <span class="text-lg font-medium">/month</span></p>
+      <ul class="text-gray-600 text-left space-y-3 mb-8">
+        <li>✔ Everything in FREE</li>
+        <li>✔ COMPREHENSIVE DAILY Ratings</li>
+        <li>✔ Latest insider trades</li>
+        <li>✔ Last quarter earnings transcripts</li>
       </ul>
-      <a href="/create-checkout-session" class="btn">Upgrade Now</a>
+      <button id="checkout-button" class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition duration-300 transform hover:scale-105">Upgrade Now</button>
     </div>
+
   </section>
+
+  <script>
+    document.getElementById("checkout-button").addEventListener("click", async () => {
+      try {
+        const response = await fetch("https://stock-backend-0128.onrender.com/create-checkout-session", {
+          method: "POST",
+        });
+
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url; // Redirect to Stripe Checkout
+        } else {
+          alert("Failed to create checkout session");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong");
+      }
+    });
+  </script>
 </body>
 </html>
