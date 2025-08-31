@@ -4,23 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pricing Plans</title>
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+
   <!-- Inter Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" type="module"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js" type="module"></script>
-  <!-- Stripe.js -->
+
+  <!-- Stripe.js (global Stripe function) -->
   <script src="https://js.stripe.com/v3/"></script>
+
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6;
-      }
-    .card-shadow {
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-    }
+    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    .card-shadow { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-6">
@@ -36,12 +32,13 @@
   <!-- Hero -->
   <section class="text-center mb-12">
     <h2 class="text-4xl font-bold text-gray-800 mb-4">Choose Your Plan</h2>
-    <p class="text-gray-600 max-w-xl mx-auto">Flexible options designed for everyone — whether you’re just starting or ready to go premium.</p>
+    <p class="text-gray-600 max-w-xl mx-auto">
+      Flexible options designed for everyone — whether you’re just starting or ready to go premium.
+    </p>
   </section>
 
   <!-- Pricing Plans -->
   <section class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
-    
     <!-- Free Plan -->
     <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col text-center">
       <h3 class="text-2xl font-bold text-blue-600 mb-4">Free</h3>
@@ -65,68 +62,99 @@
         <li>✔ Latest insider trades</li>
         <li>✔ Last quarter earnings transcripts</li>
       </ul>
-      <button id="checkout-button" 
-              class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition duration-300 transform hover:scale-105">
+      <button
+        id="checkout-button"
+        class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition duration-300 transform hover:scale-105">
         Upgrade Now
       </button>
     </div>
-    </section>
+  </section>
 
-  <script>
-    // Your Firebase config
+  <!-- Firebase + logic (modular v9) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+    // --- Firebase config (yours) ---
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
+      authDomain: "stocksight-pro-2e52a.firebaseapp.com",
+      projectId: "stocksight-pro-2e52a",
+      appId: "1:440324765765:web:a26430d5f773f91079cb2c"
     };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
 
-    const checkoutButton = document.getElementById("checkout-button");
+    // Init Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-    checkoutButton.addEventListener("click", async () => {
-      const user = auth.currentUser;
+    // Wait for auth to resolve at least once
+    let authReadyResolve;
+    const authReady = new Promise((res) => (authReadyResolve = res));
+    let currentUser = null;
 
-      if (!user) {
-        // Not signed in → go to auth.html
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      authReadyResolve();
+    });
+
+    const checkoutBtn = document.getElementById("checkout-button");
+
+    checkoutBtn.addEventListener("click", async () => {
+      // Ensure we know the real auth state
+      await authReady;
+
+      if (!currentUser) {
+        // Not logged in → take to auth.html
         window.location.href = "auth.html";
         return;
       }
 
       try {
-        // Call backend to create session
-        const response = await fetch("/create-checkout-session", {
+        // Optional: include Firebase ID token if your backend validates it
+        const idToken = await currentUser.getIdToken();
+
+        // Create checkout session on your backend
+        const response = await fetch("https://stock-backend-0128.onrender.com/create-checkout-session", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uid: user.uid })
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}` // safe to keep; backend can ignore if unused
+          },
+          body: JSON.stringify({ plan: "premium", uid: currentUser.uid })
         });
 
+        const raw = await response.text();
+        console.log("Raw backend response:", raw);
+
         if (!response.ok) {
-          console.error("Backend returned error:", response.status, response.statusText);
-          alert("Error creating checkout session. Please try again.");
+          throw new Error(`Backend error ${response.status}: ${raw}`);
+        }
+
+        let data;
+        try { data = JSON.parse(raw); } catch (e) {
+          throw new Error("Backend did not return valid JSON.");
+        }
+
+        // Support either a direct URL or a session ID
+        if (data.url) {
+          window.location.href = data.url;
           return;
         }
 
-        const data = await response.json();
-        console.log("Checkout session response:", data);
-
-        if (!data.id) {
-          console.error("No session ID returned:", data);
-          alert("Invalid checkout session response. Please try again.");
+        if (data.id) {
+          const stripe = Stripe("pk_test_51Rxdlv4KLwrGOtmyxhLfG9WwzKSNiDsswb5n7zfQpknrTw1tYrcvkYT4edmvlj9OXUENm6W7CkGZ5Ux1Xrk5z8OF000YZi22il"); /* replace with your publishable key */
+          const { error } = await stripe.redirectToCheckout({ sessionId: data.id });
+          if (error) {
+            console.error("Stripe redirectToCheckout error:", error);
+            alert(`Stripe error: ${error.message}`);
+          }
           return;
         }
 
-        const stripe = Stripe("YOUR_PUBLISHABLE_KEY");
-        const { error } = await stripe.redirectToCheckout({ sessionId: data.id });
-
-        if (error) {
-          console.error("Stripe redirect error:", error);
-          alert("Could not redirect to checkout. Please try again.");
-        }
+        throw new Error(`Unexpected response shape: ${raw}`);
       } catch (err) {
-        console.error("Unexpected error:", err);
-        alert("Something went wrong. Check console for details.");
+        console.error("Checkout flow error:", err);
+        alert("Checkout failed. See console for details.");
       }
     });
   </script>
