@@ -78,10 +78,10 @@
 
     // TODO: Replace with your Firebase config
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
+      authDomain: "stocksight-pro-2e52a.firebaseapp.com",
+      projectId: "stocksight-pro-2e52a",
+      appId: "1:440324765765:web:a26430d5f773f91079cb2c"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -109,6 +109,10 @@
         const data = await response.json();
         if (data.url) {
           window.location.href = data.url; // Redirect to Stripe Checkout
+        } else if (data.id) {
+          // If your backend returns session.id instead of session.url
+          const stripe = Stripe("pk_test_51Rxdlv4KLwrGOtmyxhLfG9WwzKSNiDsswb5n7zfQpknrTw1tYrcvkYT4edmvlj9OXUENm6W7CkGZ5Ux1Xrk5z8OF000YZi22il"); // Replace with real key
+          await stripe.redirectToCheckout({ sessionId: data.id });
         } else {
           alert("Failed to create checkout session");
         }
