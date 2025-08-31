@@ -35,6 +35,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
       authDomain: "stocksight-pro-2e52a.firebaseapp.com",
@@ -45,6 +46,7 @@
       measurementId: "G-DQTYB9FW2K"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
@@ -55,8 +57,7 @@
     googleSignInBtn.addEventListener("click", async () => {
       try {
         await signInWithPopup(auth, provider);
-        // ✅ Redirect after successful login
-        window.location.href = "index.html";
+        window.location.href = "index.html"; // Redirect after login
       } catch (err) {
         authMessage.textContent = `Sign-in failed: ${err.message}`;
         authMessage.classList.remove("hidden");
@@ -64,11 +65,9 @@
       }
     });
 
-    // Redirect already logged-in users away from auth page
+    // Redirect logged-in users away from auth page
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.location.href = "index.html";
-      }
+      if (user) window.location.href = "index.html";
     });
   </script>
 </body>
