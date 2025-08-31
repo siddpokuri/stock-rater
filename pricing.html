@@ -73,46 +73,64 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  
     const firebaseConfig = {
       apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
       authDomain: "stocksight-pro-2e52a.firebaseapp.com",
       projectId: "stocksight-pro-2e52a",
       appId: "1:440324765765:web:a26430d5f773f91079cb2c"
     };
+  
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-
+  
     let currentUser = null;
-
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
     });
+  
     document.getElementById("checkout-button").addEventListener("click", async () => {
       if (!currentUser) {
         // Not logged in → send to login/signup
         window.location.href = "auth.html";
         return;
       }
-
-      // Logged in → create Stripe checkout session
+  
       try {
+        // Get Firebase ID token
+        const idToken = await currentUser.getIdToken();
+  
+        // Call backend to create Stripe Checkout session
         const response = await fetch("https://stock-backend-0128.onrender.com/create-checkout-session", {
-          });
-
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}` // optional, if your backend validates Firebase auth
+          },
+          body: JSON.stringify({ plan: "premium" }) // optional payload if your backend needs it
+        });
+  
         const data = await response.json();
+  
         if (data.url) {
-          window.location.href = data.url; // Redirect to Stripe Checkout
+          // Some backends return a direct checkout URL
+          window.location.href = data.url;
         } else if (data.id) {
-          // If your backend returns session.id instead of session.url
-          const stripe = Stripe("pk_test_51Rxdlv4KLwrGOtmyxhLfG9WwzKSNiDsswb5n7zfQpknrTw1tYrcvkYT4edmvlj9OXUENm6W7CkGZ5Ux1Xrk5z8OF000YZi22il"); // Replace with real key
-          await stripe.redirectToCheckout({ sessionId: data.id });
-          } else {
-          alert("Failed to create checkout session");
+          // Some return only sessionId
+          const stripe = Stripe("pk_test_51Rxdlv4KLwrGOtmyxhLfG9WwzKSNiDsswb5n7zfQpknrTw1tYrcvkYT4edmvlj9OXUENm6W7CkGZ5Ux1Xrk5z8OF000YZi22il"); 
+          const { error } = await stripe.redirectToCheckout({ sessionId: data.id });
+          if (error) {
+            console.error("Stripe error:", error);
+            alert("Stripe checkout failed: " + error.message);
+          }
+        } else {
+          alert("Invalid response from server.");
+          console.error("Response:", data);
         }
-        } catch (err) {
-        console.error(err);
+      } catch (err) {
+        console.error("Checkout error:", err);
         alert("Something went wrong");
-        }
+      }
     });
   </script>
 </body>
