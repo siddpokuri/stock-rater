@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StockSight Pro – Login / Signup</title>
+  <title>StockSight Pro – Login with Google</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -11,55 +11,29 @@
   <!-- Card Container -->
   <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
     <h1 class="text-2xl font-bold text-center mb-6">StockSight Pro</h1>
-    <p class="text-center text-gray-600 mb-6">Login or create an account to continue</p>
+    <p class="text-center text-gray-600 mb-6">Sign in with your Google account to continue</p>
 
-    <!-- Auth form -->
-    <div class="space-y-4">
-      <input 
-        id="authEmail" 
-        type="email" 
-        placeholder="Email" 
-        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-400"
-      />
-      <input 
-        id="authPassword" 
-        type="password" 
-        placeholder="Password" 
-        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-400"
-      />
-
+    <!-- Google Sign-In Button -->
+    <div class="flex justify-center">
       <button 
-        id="loginBtn"
-        class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+        id="googleSignInBtn"
+        class="flex items-center justify-center w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition"
       >
-        Log In
+        <svg class="w-6 h-6 mr-2" viewBox="0 0 533.5 544.3">
+          <path fill="#fff" d="M533.5 278.4c0-17.6-1.5-34.5-4.4-50.8H272v95.7h147c-6.3 34.3-25.2 63.3-53.8 82.7v68h86.9c50.9-46.9 81.4-116 81.4-195.6z"/>
+        </svg>
+        Sign in with Google
       </button>
-
-      <button 
-        id="signupBtn"
-        class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition"
-      >
-        Sign Up
-      </button>
-
-      <!-- Error messages -->
-      <p id="authMessage" class="hidden text-red-500 text-center text-sm"></p>
     </div>
+
+    <!-- Error messages -->
+    <p id="authMessage" class="hidden text-red-500 text-center text-sm mt-4"></p>
   </div>
 
   <!-- Firebase Auth -->
   <script type="module">
-    import { 
-      initializeApp 
-    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-    import { 
-      getAuth, 
-      onAuthStateChanged,
-      signInWithEmailAndPassword, 
-      createUserWithEmailAndPassword,
-      setPersistence,
-      browserLocalPersistence
-    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
@@ -73,46 +47,24 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-    const loginBtn = document.getElementById("loginBtn");
-    const signupBtn = document.getElementById("signupBtn");
+    const googleSignInBtn = document.getElementById("googleSignInBtn");
     const authMessage = document.getElementById("authMessage");
 
-    async function login(email, password) {
+    googleSignInBtn.addEventListener("click", async () => {
       try {
-        await setPersistence(auth, browserLocalPersistence);
-        await signInWithEmailAndPassword(auth, email, password);
-        window.location.href = "index.html"; // ✅ go to home
+        await signInWithPopup(auth, provider);
+        // ✅ Redirect after successful login
+        window.location.href = "index.html";
       } catch (err) {
-        authMessage.textContent = `Login failed: ${err.code}`;
+        authMessage.textContent = `Sign-in failed: ${err.message}`;
         authMessage.classList.remove("hidden");
+        console.error("Google Sign-In error:", err);
       }
-    }
-
-    async function signup(email, password) {
-      try {
-        await setPersistence(auth, browserLocalPersistence);
-        await createUserWithEmailAndPassword(auth, email, password);
-        window.location.href = "index.html"; // ✅ go to home
-      } catch (err) {
-        authMessage.textContent = `Signup failed: ${err.code}`;
-        authMessage.classList.remove("hidden");
-      }
-    }
-
-    loginBtn.addEventListener("click", () => {
-      const email = document.getElementById("authEmail").value;
-      const password = document.getElementById("authPassword").value;
-      login(email, password);
     });
 
-    signupBtn.addEventListener("click", () => {
-      const email = document.getElementById("authEmail").value;
-      const password = document.getElementById("authPassword").value;
-      signup(email, password);
-    });
-
-    // 👇 Redirect logged-in users away from auth page
+    // Redirect already logged-in users away from auth page
     onAuthStateChanged(auth, (user) => {
       if (user) {
         window.location.href = "index.html";
@@ -121,3 +73,4 @@
   </script>
 </body>
 </html>
+\
