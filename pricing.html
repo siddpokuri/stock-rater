@@ -1,101 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pricing</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://js.stripe.com/v3/"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pricing Plans</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js" type="module"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-    }
-    .pricing-container {
-      max-width: 400px;
-      margin: 0 auto;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    button {
-      padding: 12px 20px;
-      border: none;
-      background-color: #6772e5;
-      color: white;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #5469d4;
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+      }
+    .card-shadow {
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
     }
   </style>
 </head>
-<body>
-  <div class="pricing-container">
-    <h1>Premium Plan</h1>
-    <p>$9.99 / month</p>
-    <button id="checkoutBtn">Subscribe</button>
-  </div>
+<body class="min-h-screen flex flex-col items-center p-6">
 
-  <script>
-    // ---- Firebase Config ----
+  <!-- Header -->
+  <header class="w-full max-w-6xl flex justify-between items-center py-6 px-4 bg-white rounded-2xl card-shadow mb-10">
+    <h1 class="text-2xl font-bold text-blue-600">StockSight</h1>
+    <nav>
+      <a href="index.html" class="text-gray-700 font-medium hover:text-blue-600 transition">Home</a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="text-center mb-12">
+    <h2 class="text-4xl font-bold text-gray-800 mb-4">Choose Your Plan</h2>
+    <p class="text-gray-600 max-w-xl mx-auto">Flexible options designed for everyone — whether you’re just starting or ready to go premium.</p>
+  </section>
+
+  <!-- Pricing Plans -->
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
+    
+    <!-- Free Plan -->
+    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col text-center">
+      <h3 class="text-2xl font-bold text-blue-600 mb-4">Free</h3>
+      <p class="text-3xl font-extrabold text-gray-900 mb-6">$0 <span class="text-lg font-medium">/month</span></p>
+      <ul class="text-gray-600 text-left space-y-3 mb-8">
+        <li>✔ UNLIMITED Stock Searches</li>
+        <li>✔ FULL access to Calendars (Earnings/Dividends/IPOs/Splits)</li>
+        <li>✔ General daily news</li>
+        <li>✔ Daily top gainers/losers, most active</li>
+      </ul>
+      <button disabled class="bg-gray-300 text-gray-600 px-6 py-3 rounded-xl font-semibold cursor-not-allowed">Current Plan</button>
+    </div>
+
+    <!-- Premium Plan -->
+    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col text-center border-2 border-yellow-400">
+      <h3 class="text-2xl font-bold text-yellow-600 mb-4">Premium</h3>
+      <p class="text-3xl font-extrabold text-gray-900 mb-6">$9.99 <span class="text-lg font-medium">/month</span></p>
+      <ul class="text-gray-600 text-left space-y-3 mb-8">
+        <li>✔ Everything in FREE</li>
+        <li>✔ COMPREHENSIVE DAILY Ratings</li>
+        <li>✔ Latest insider trades</li>
+        <li>✔ Last quarter earnings transcripts</li>
+      </ul>
+      <button id="checkout-button" 
+              class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition duration-300 transform hover:scale-105">
+        Upgrade Now
+      </button>
+    </div>
+    </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
     const firebaseConfig = {
       apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
       authDomain: "stocksight-pro-2e52a.firebaseapp.com",
       projectId: "stocksight-pro-2e52a",
       appId: "1:440324765765:web:a26430d5f773f91079cb2c"
     };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-    // ---- Stripe Setup ----
-    const stripe = Stripe("pk_test_51Rxdlv4KLwrGOtmyxhLfG9WwzKSNiDsswb5n7zfQpknrTw1tYrcvkYT4edmvlj9OXUENm6W7CkGZ5Ux1Xrk5z8OF000YZi22il"); 
+    let currentUser = null;
 
-    document.getElementById("checkoutBtn").addEventListener("click", async () => {
-      const user = auth.currentUser;
-
-      if (!user) {
-        // User not signed in → go to auth page
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+    });
+    document.getElementById("checkout-button").addEventListener("click", async () => {
+      if (!currentUser) {
+        // Not logged in → send to login/signup
         window.location.href = "auth.html";
         return;
       }
 
+      // Logged in → create Stripe checkout session
       try {
-        // Get Firebase ID token for authentication with backend
-        const idToken = await user.getIdToken();
+        const response = await fetch("https://stock-backend-0128.onrender.com/create-checkout-session", {
+          });
 
-        // Call backend to create checkout session
-        const res = await fetch("https://your-backend.onrender.com/create-checkout-session", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${idToken}`
-          },
-          body: JSON.stringify({})
-        });
-
-        const data = await res.json();
-
-        if (data.id) {
-          // Redirect to Stripe Checkout
-          const { error } = await stripe.redirectToCheckout({ sessionId: data.id });
-          if (error) {
-            console.error("Stripe redirect error:", error.message);
-            alert("Something went wrong, please try again.");
-          }
-        } else {
-          alert("Failed to create checkout session.");
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url; // Redirect to Stripe Checkout
+        } else if (data.id) {
+          // If your backend returns session.id instead of session.url
+          const stripe = Stripe("pk_test_51Rxdlv4KLwrGOtmyxhLfG9WwzKSNiDsswb5n7zfQpknrTw1tYrcvkYT4edmvlj9OXUENm6W7CkGZ5Ux1Xrk5z8OF000YZi22il"); // Replace with real key
+          await stripe.redirectToCheckout({ sessionId: data.id });
+          } else {
+          alert("Failed to create checkout session");
         }
-
-      } catch (err) {
-        console.error("Checkout error:", err);
-        alert("Something went wrong, please try again.");
-      }
+        } catch (err) {
+        console.error(err);
+        alert("Something went wrong");
+        }
     });
   </script>
 </body>
