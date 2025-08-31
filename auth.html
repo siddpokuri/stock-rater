@@ -30,10 +30,11 @@
     <p id="authMessage" class="hidden text-red-500 text-center text-sm mt-4"></p>
   </div>
 
-  <!-- Firebase Auth -->
+  <!-- Firebase Auth + Firestore -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
     // Firebase config
     const firebaseConfig = {
@@ -49,6 +50,7 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
     const googleSignInBtn = document.getElementById("googleSignInBtn");
@@ -56,8 +58,20 @@
 
     googleSignInBtn.addEventListener("click", async () => {
       try {
-        await signInWithPopup(auth, provider);
-        window.location.href = "index.html"; // Redirect after login
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        // ✅ Create or update Firestore document for the user
+        const userRef = doc(db, "users", user.uid);
+        await setDoc(userRef, {
+          email: user.email,
+          name: user.displayName,
+          subscribed: false // default subscription status
+        }, { merge: true });
+
+        // Redirect to homepage
+        window.location.href = "index.html";
+
       } catch (err) {
         authMessage.textContent = `Sign-in failed: ${err.message}`;
         authMessage.classList.remove("hidden");
@@ -65,7 +79,7 @@
       }
     });
 
-    // Redirect logged-in users away from auth page
+    // Redirect already logged-in users
     onAuthStateChanged(auth, (user) => {
       if (user) window.location.href = "index.html";
     });
