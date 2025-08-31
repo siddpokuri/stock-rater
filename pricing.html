@@ -8,6 +8,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Inter Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js" type="module"></script>
+
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -60,13 +64,43 @@
         <li>✔ Latest insider trades</li>
         <li>✔ Last quarter earnings transcripts</li>
       </ul>
-      <button id="checkout-button" class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition duration-300 transform hover:scale-105">Upgrade Now</button>
+      <button id="checkout-button" 
+              class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition duration-300 transform hover:scale-105">
+        Upgrade Now
+      </button>
     </div>
 
   </section>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+    // TODO: Replace with your Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+    });
+
     document.getElementById("checkout-button").addEventListener("click", async () => {
+      if (!currentUser) {
+        // Not logged in → send to login/signup
+        window.location.href = "auth.html";
+        return;
+      }
+
+      // Logged in → create Stripe checkout session
       try {
         const response = await fetch("https://stock-backend-0128.onrender.com/create-checkout-session", {
           method: "POST",
