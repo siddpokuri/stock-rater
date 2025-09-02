@@ -34,7 +34,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
     // Firebase config
     const firebaseConfig = {
@@ -61,13 +61,20 @@
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
-        // ✅ Create or update Firestore document for the user
+        // Reference to Firestore document for this user
         const userRef = doc(db, "users", user.uid);
-        await setDoc(userRef, {
-          email: user.email,
-          name: user.displayName,
-          subscribed: false // default subscription status
-        }, { merge: true });
+        const userSnap = await getDoc(userRef);
+
+        // If user doc doesn't exist, create it
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            user_email: user.email,
+            subscription_status: false
+          });
+          console.log("New user document created:", user.email);
+        } else {
+          console.log("User already exists, skipping creation:", user.email);
+        }
 
         // Redirect to homepage
         window.location.href = "index.html";
