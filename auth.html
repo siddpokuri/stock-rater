@@ -32,74 +32,68 @@
 
   <!-- Firebase Auth + Firestore -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
-      authDomain: "stocksight-pro-2e52a.firebaseapp.com",
-      projectId: "stocksight-pro-2e52a",
-      storageBucket: "stocksight-pro-2e52a.appspot.com",
-      messagingSenderId: "440324765765",
-      appId: "1:440324765765:web:a26430d5f773f91079cb2c",
-      measurementId: "G-DQTYB9FW2K"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
-
-    const googleSignInBtn = document.getElementById("googleSignInBtn");
-    const authMessage = document.getElementById("authMessage");
-
-    googleSignInBtn.addEventListener("click", async () => {
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+  
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
+    authDomain: "stocksight-pro-2e52a.firebaseapp.com",
+    projectId: "stocksight-pro-2e52a",
+    storageBucket: "stocksight-pro-2e52a.appspot.com",
+    messagingSenderId: "440324765765",
+    appId: "1:440324765765:web:a26430d5f773f91079cb2c",
+    measurementId: "G-DQTYB9FW2K"
+  };
+  
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+  
+  const googleSignInBtn = document.getElementById("googleSignInBtn");
+  const authMessage = document.getElementById("authMessage");
+  
+  googleSignInBtn.addEventListener("click", async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      console.log("User signed in:", user.email, "UID:", user.uid);
+  
+      const userRef = doc(db, "users", user.uid);
+  
       try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-
-        console.log("User signed in:", user.email, "UID:", user.uid);
-
-        const userRef = doc(db, "users", user.uid);
-
-        try {
-          const userSnap = await getDoc(userRef);
-
-          if (!userSnap.exists()) {
-            // Create a new document
-            await setDoc(userRef, {
-              user_email: user.email,
-              subscription_status: false
-            });
-            console.log("New user document created:", user.email);
-          } else {
-            console.log("User document already exists:", user.email);
-          }
-
-        } catch (firestoreErr) {
-          console.error("Error accessing Firestore:", firestoreErr);
-          authMessage.textContent = `Firestore error: ${firestoreErr.message}`;
-          authMessage.classList.remove("hidden");
-          return;
-        }
-
-        // Redirect to homepage
-        window.location.href = "index.html";
-
-      } catch (err) {
-        console.error("Google Sign-In error:", err);
-        authMessage.textContent = `Sign-in failed: ${err.message}`;
+        // Create or merge the document
+        await setDoc(userRef, {
+          user_email: user.email,
+          subscription_status: false
+        }, { merge: true });
+  
+        console.log("User document created/updated:", user.email);
+  
+      } catch (firestoreErr) {
+        console.error("Error accessing Firestore:", firestoreErr);
+        authMessage.textContent = `Firestore error: ${firestoreErr.message}`;
         authMessage.classList.remove("hidden");
+        return;
       }
-    });
-
-    // Redirect already logged-in users
-    onAuthStateChanged(auth, (user) => {
-      if (user) window.location.href = "index.html";
-    });
+  
+      // Redirect to homepage
+      window.location.href = "index.html";
+  
+    } catch (err) {
+      console.error("Google Sign-In error:", err);
+      authMessage.textContent = `Sign-in failed: ${err.message}`;
+      authMessage.classList.remove("hidden");
+    }
+  });
+  
+  // Redirect already logged-in users
+  onAuthStateChanged(auth, (user) => {
+    if (user) window.location.href = "index.html";
+  });
   </script>
 </body>
 </html>
