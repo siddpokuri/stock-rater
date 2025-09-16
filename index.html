@@ -203,19 +203,25 @@
 
   <!-- Firebase -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
     const firebaseConfig = {
-      apiKey: "AIzaSyAK9XKEE92upczqbbcGS3OngPXuPycoJbM",
-      authDomain: "stocksight-pro-2e52a.firebaseapp.com",
-      projectId: "stocksight-pro-2e52a",
-      storageBucket: "stocksight-pro-2e52a.appspot.com",
-      messagingSenderId: "440324765765",
-      appId: "1:440324765765:web:a26430d5f773f91079cb2c",
-      measurementId: "G-DQTYB9FW2K"
+      apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
+      authDomain: "stocksight-75940.firebaseapp.com",
+      projectId: "stocksight-75940",
+      storageBucket: "stocksight-75940.firebasestorage.app",
+      messagingSenderId: "223645254786",
+      appId: "1:223645254786:web:14c980e559d9090f89e09b",
+      measurementId: "G-8JGEEE9KD1"
     };
-
+  
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
