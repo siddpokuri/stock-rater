@@ -314,12 +314,12 @@
           } else if (data['error']) {
             showMessage(data['error'], 'red', 'validationMessage');
           } else {
-            showMessage('Could not validate stock symbol. Please try again.', 'red', 'validationMessage');
+            showMessage('Please enter a valid stock symbol.', 'red', 'validationMessage');
           }
         } catch (error) {
           console.error("Failed to validate stock symbol:", error);
           showMessage(
-            'Network error: Could not connect to validation service. Please check your connection and try again.',
+            'error: please enter a valid stock symbol.',
             'red',
             'validationMessage'
           );
