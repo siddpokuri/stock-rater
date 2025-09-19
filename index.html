@@ -202,300 +202,320 @@
   </div>
 
   <!-- Firebase -->
-  <script type="module">
-    // Import the functions you need from the SDKs
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-  
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
-      authDomain: "stocksight-75940.firebaseapp.com",
-      projectId: "stocksight-75940",
-      storageBucket: "stocksight-75940.firebasestorage.app",
-      messagingSenderId: "223645254786",
-      appId: "1:223645254786:web:14c980e559d9090f89e09b",
-      measurementId: "G-8JGEEE9KD1"
-    };
-  
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-  
-    // Check if user is logged in
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        // Not logged in, redirect to auth page
-        //window.location.href = "auth.html";
-      }
-    });
-  
-    // Sign out function
-    window.signOutUser = async function() {
-      try {
-        await signOut(auth);
-        window.location.href = "auth.html";
-      } catch (error) {
-        console.error("Error signing out:", error);
-      }
-    };
-  </script>
-
-  <script>
-    function goToPricing() {
-      window.location.href = "pricing.html";
-    }
-  </script>
-  
-  <script>
-    // Custom function to show a styled message instead of alert()
-    function showMessage(message, type, targetElementId) {
-      const messageBox = document.getElementById(targetElementId);
-      const messageText = messageBox.querySelector('span');
-      messageText.textContent = message;
-      messageBox.className = `bg-${type}-100 border border-${type}-400 text-${type}-700 px-4 py-3 rounded-xl relative mt-6 transition-all duration-300 transform scale-100`;
-      messageBox.classList.remove('hidden');
-      setTimeout(() => {
-        messageBox.classList.add('hidden');
-      }, 5000); // Hide after 5 seconds
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // Set default date for the new calendar input field to today
-      const today = new Date();
-      document.getElementById('calendarDate').value = today.toISOString().split('T')[0];
-
-      // Stock Search Button Logic
-      document.getElementById('searchStockBtn').addEventListener('click', async () => {
-        const stockSymbolInput = document.getElementById('stockSymbolInput');
-        const symbol = stockSymbolInput.value.trim().toUpperCase();
-
-        if (symbol.length === 0) {
-          showMessage('Please enter a stock symbol.', 'red', 'validationMessage');
-          return;
+    <script type="module">
+      // Import the functions you need from the SDKs
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+      // Import Firestore functions
+      import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+    
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
+        authDomain: "stocksight-75940.firebaseapp.com",
+        projectId: "stocksight-75940",
+        storageBucket: "stocksight-75940.firebasestorage.app",
+        messagingSenderId: "223645254786",
+        appId: "1:223645254786:web:14c980e559d9090f89e09b",
+        measurementId: "G-8JGEEE9KD1"
+      };
+    
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+    
+      // Check if user is logged in
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          console.log("User is signed in:", user.email);
+    
+          // Create a document reference in a 'users' collection using the user's UID as the document ID
+          const userDocRef = doc(db, "users", user.uid);
+    
+          // Data to save to Firestore. This will set isPremium to false for new users.
+          const userData = {
+            email: user.email,
+            lastLoginAt: user.metadata.lastSignInTime,
+            isPremium: false
+          };
+    
+          try {
+            // Use setDoc with { merge: true } to create the document with isPremium: false
+            // for new users, but only update the lastLoginAt for returning users,
+            // leaving their existing isPremium status untouched.
+            await setDoc(userDocRef, userData, { merge: true });
+            console.log("User data successfully saved to Firestore!");
+          } catch (e) {
+            console.error("Error writing user data to Firestore:", e);
+          }
+    
+        } else {
+          // Not logged in, redirect to auth page
+          window.location.href = "auth.html";
         }
-
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        loadingIndicator.classList.remove('hidden');
-
+      });
+    
+      // Sign out function
+      window.signOutUser = async function() {
         try {
-          const validationApiUrl = `https://stock-backend-0128.onrender.com/check?stock=${symbol}`;
-          let response;
-          let attempts = 0;
-          const maxAttempts = 3;
-          const baseDelay = 1000;
-
-          while (attempts < maxAttempts) {
-            try {
-              response = await fetch(validationApiUrl);
-              if (response.ok) {
-                break;
-              } else {
-                throw new Error(`HTTP Error: ${response.status}`);
-              }
-            } catch (error) {
-              attempts++;
-              if (attempts < maxAttempts) {
-                const delay = baseDelay * (2 ** attempts);
-                console.error(`Attempt ${attempts} failed. Retrying in ${delay / 1000}s...`, error);
-                await new Promise(res => setTimeout(res, delay));
-              } else {
-                throw error;
-              }
-            }
-          }
-
-          const data = await response.json();
-
-          if (data['valid?'] === 1) {
-            window.location.href = `general_info.html?stock=${symbol}`;
-          } else if (data['error']) {
-            showMessage(data['error'], 'red', 'validationMessage');
-          } else {
-            showMessage('Please enter a valid stock symbol.', 'red', 'validationMessage');
-          }
+          await signOut(auth);
+          window.location.href = "auth.html";
         } catch (error) {
-          console.error("Failed to validate stock symbol:", error);
-          showMessage(
-            'error: please enter a valid stock symbol.',
-            'red',
-            'validationMessage'
-          );
-        } finally {
-          loadingIndicator.classList.add('hidden');
+          console.error("Error signing out:", error);
         }
-      });
-
-      // View Calendar Button Logic
-      document.getElementById('viewCalendarBtn').addEventListener('click', () => {
-        const selectedDate = document.getElementById('calendarDate').value;
-        const selectedCalendarTypeFile = document.getElementById('calendarTypeSelect').value;
-        const errorMessageDiv = document.getElementById('calendarErrorMessage');
-        const errorTextSpan = document.getElementById('calendarErrorText');
-
-        errorMessageDiv.classList.add('hidden');
-
-        if (!selectedDate) {
-          errorTextSpan.textContent = 'Please select a date for the calendar.';
-          errorMessageDiv.classList.remove('hidden');
-          return;
-        }
-
-        if (!selectedCalendarTypeFile) {
-          errorTextSpan.textContent = 'Please select a calendar type.';
-          errorMessageDiv.classList.remove('hidden');
-          return;
-        }
-
-        window.location.href = `${selectedCalendarTypeFile}?date=${selectedDate}`;
-      });
-
-      // =========================================================================
-      // CODE FOR DYNAMIC MARKET DATA
-      // =========================================================================
-      const API_URL = "https://stock-backend-0128.onrender.com/tabzero";
-      const loadingIndicator = document.getElementById('loadingIndicator');
-      const errorMessageDiv = document.getElementById('errorMessage');
-      const errorTextSpan = document.getElementById('errorText');
-      const newsContainer = document.getElementById('newsContainer');
-      const gainersList = document.getElementById('gainersList');
-      const losersList = document.getElementById('losersList');
-      const mostActiveList = document.getElementById('mostActiveList');
-      const generalNewsSection = document.getElementById('generalNewsSection');
-      const marketSummarySection = document.getElementById('marketSummarySection');
-
-      function formatNumber(num, decimals) {
-        return parseFloat(num).toFixed(decimals);
+      };
+    
+      function goToPricing() {
+        window.location.href = "pricing.html";
       }
-
-      function renderStocks(stockData, containerElement) {
-        containerElement.innerHTML = '';
-        if (stockData && stockData.length > 0) {
-          stockData.slice(0, 10).forEach(stock => {
-            const changeColor = stock['Change (%)'] >= 0 ? 'text-green-600' : 'text-red-600';
-            const changeSign = stock['Change (%)'] >= 0 ? '+' : '';
-            const stockRowHtml = `
-              <tr class="border-b last:border-b-0 border-gray-200 hover:bg-gray-50 transition-colors duration-150">
-                <td class="px-4 py-3 font-medium text-gray-800 w-1/2">
-                  ${stock.Stock} <span class="text-xs text-gray-400">(${stock.Exchange})</span>
-                </td>
-                <td class="px-4 py-3 text-gray-700 w-1/4">${formatNumber(stock.Price, 2)}</td>
-                <td class="px-4 py-3 text-right font-semibold ${changeColor} w-1/4">
-                  ${changeSign}${formatNumber(stock['Change (%)'], 2)}%
-                </td>
-              </tr>`;
-            containerElement.innerHTML += stockRowHtml;
-          });
-        }
+    
+      // Custom function to show a styled message instead of alert()
+      function showMessage(message, type, targetElementId) {
+        const messageBox = document.getElementById(targetElementId);
+        const messageText = messageBox.querySelector('span');
+        messageText.textContent = message;
+        messageBox.className = `bg-${type}-100 border border-${type}-400 text-${type}-700 px-4 py-3 rounded-xl relative mt-6 transition-all duration-300 transform scale-100`;
+        messageBox.classList.remove('hidden');
+        setTimeout(() => {
+          messageBox.classList.add('hidden');
+        }, 5000); // Hide after 5 seconds
       }
-
-      function renderNews(newsData) {
-        newsContainer.innerHTML = '';
-        if (newsData && newsData.length > 0) {
-          generalNewsSection.classList.remove('hidden');
-                    newsData.forEach(newsItem => {
-                        let newsCardHtml;
-                        if (newsItem.Image) {
-                            // Render with image if available
-                            newsCardHtml = `
-                                <div class="news-card">
-                                    <img src="${newsItem.Image}" alt="News image" onerror="this.onerror=null;this.src='https://placehold.co/400x200/e5e7eb/4b5563?text=Image+Not+Available';" class="w-full h-48 object-cover rounded-xl mb-4">
-                                    <h4 class="text-lg font-bold text-gray-800 line-clamp-2 mb-2"><a href="${newsItem.url}" target="_blank" class="hover:underline">${newsItem.Title}</a></h4>
-                                    <p class="text-sm text-gray-500 mb-2">${newsItem.Publisher}</p>
-                                    <p class="text-sm text-gray-400 mt-auto">${newsItem.Date.split(' ')[0]}</p>
-                                </div>
-                            `;
-                        } else {
-                            // Render a smaller card without an image
-                            newsCardHtml = `
-                                <div class="news-card">
-                                    <h4 class="text-lg font-bold text-gray-800 mb-2"><a href="${newsItem.url}" target="_blank" class="hover:underline">${newsItem.Title}</a></h4>
-                                    <p class="text-sm text-gray-500 mb-2">${newsItem.Publisher}</p>
-                                    <p class="text-sm text-gray-400 mt-auto">${newsItem.Date.split(' ')[0]}</p>
-                                </div>
-                            `;
-                        }
-                        newsContainer.innerHTML += newsCardHtml;
-                    });
+    
+      document.addEventListener('DOMContentLoaded', () => {
+        // Set default date for the new calendar input field to today
+        const today = new Date();
+        document.getElementById('calendarDate').value = today.toISOString().split('T')[0];
+    
+        // Stock Search Button Logic
+        document.getElementById('searchStockBtn').addEventListener('click', async () => {
+          const stockSymbolInput = document.getElementById('stockSymbolInput');
+          const symbol = stockSymbolInput.value.trim().toUpperCase();
+    
+          if (symbol.length === 0) {
+            showMessage('Please enter a stock symbol.', 'red', 'validationMessage');
+            return;
+          }
+    
+          const loadingIndicator = document.getElementById('loadingIndicator');
+          loadingIndicator.classList.remove('hidden');
+    
+          try {
+            const validationApiUrl = `https://stock-backend-0128.onrender.com/check?stock=${symbol}`;
+            let response;
+            let attempts = 0;
+            const maxAttempts = 3;
+            const baseDelay = 1000;
+    
+            while (attempts < maxAttempts) {
+              try {
+                response = await fetch(validationApiUrl);
+                if (response.ok) {
+                  break;
+                } else {
+                  throw new Error(`HTTP Error: ${response.status}`);
                 }
-            }
-
-
-            /**
-             * Fetches and displays the market data from the backend.
-             */
-            async function fetchMarketData() {
-                loadingIndicator.classList.remove('hidden');
-                errorMessageDiv.classList.add('hidden');
-                generalNewsSection.classList.add('hidden');
-                marketSummarySection.classList.add('hidden');
-
-                try {
-                    let response;
-                    let attempts = 0;
-                    const maxAttempts = 3;
-                    const baseDelay = 1000;
-
-                    // Implement exponential backoff for API calls
-                    while (attempts < maxAttempts) {
-                        try {
-                            response = await fetch(API_URL);
-                            if (response.ok) {
-                                break;
-                            } else {
-                                throw new Error(`HTTP Error: ${response.status}`);
-                            }
-                        } catch (error) {
-                            attempts++;
-                            if (attempts < maxAttempts) {
-                                const delay = baseDelay * (2 ** attempts);
-                                console.error(`Attempt ${attempts} failed. Retrying in ${delay / 1000}s...`, error);
-                                await new Promise(res => setTimeout(res, delay));
-                            } else {
-                                throw error;
-                            }
-                        }
-                    }
-
-                    const data = await response.json();
-
-                    if (data['General News'] && data['General News'].length > 0) {
-                        renderNews(data['General News']);
-                    }
-                    if (data['Top Gainers'] && data['Top Gainers'].length > 0) {
-                        renderStocks(data['Top Gainers'], gainersList);
-                    }
-                    if (data['Top Losers'] && data['Top Losers'].length > 0) {
-                        renderStocks(data['Top Losers'], losersList);
-                    }
-                    if (data['Most Active'] && data['Most Active'].length > 0) {
-                        renderStocks(data['Most Active'], mostActiveList);
-                    }
-
-
-                    // Show the sections if data was successfully rendered
-                    if (data['General News'] && data['General News'].length > 0) {
-                        generalNewsSection.classList.remove('hidden');
-                    }
-                    if (data['Top Gainers'] && data['Top Gainers'].length > 0 ||
-                        data['Top Losers'] && data['Top Losers'].length > 0 ||
-                        data['Most Active'] && data['Most Active'].length > 0) {
-                        marketSummarySection.classList.remove('hidden');
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch market data:", error);
-                    errorTextSpan.textContent = `An error occurred: ${error.message}. Please try again later.`;
-                    errorMessageDiv.classList.remove('hidden');
-                } finally {
-                    loadingIndicator.classList.add('hidden');
+              } catch (error) {
+                attempts++;
+                if (attempts < maxAttempts) {
+                  const delay = baseDelay * (2 ** attempts);
+                  console.error(`Attempt ${attempts} failed. Retrying in ${delay / 1000}s...`, error);
+                  await new Promise(res => setTimeout(res, delay));
+                } else {
+                  throw error;
                 }
+              }
             }
-
-            // Call the function to fetch data on page load
-            fetchMarketData();
+    
+            const data = await response.json();
+    
+            if (data['valid?'] === 1) {
+              window.location.href = `general_info.html?stock=${symbol}`;
+            } else if (data['error']) {
+              showMessage(data['error'], 'red', 'validationMessage');
+            } else {
+              showMessage('Please enter a valid stock symbol.', 'red', 'validationMessage');
+            }
+          } catch (error) {
+            console.error("Failed to validate stock symbol:", error);
+            showMessage(
+              'error: please enter a valid stock symbol.',
+              'red',
+              'validationMessage'
+            );
+          } finally {
+            loadingIndicator.classList.add('hidden');
+          }
         });
+    
+        // View Calendar Button Logic
+        document.getElementById('viewCalendarBtn').addEventListener('click', () => {
+          const selectedDate = document.getElementById('calendarDate').value;
+          const selectedCalendarTypeFile = document.getElementById('calendarTypeSelect').value;
+          const errorMessageDiv = document.getElementById('calendarErrorMessage');
+          const errorTextSpan = document.getElementById('calendarErrorText');
+    
+          errorMessageDiv.classList.add('hidden');
+    
+          if (!selectedDate) {
+            errorTextSpan.textContent = 'Please select a date for the calendar.';
+            errorMessageDiv.classList.remove('hidden');
+            return;
+          }
+    
+          if (!selectedCalendarTypeFile) {
+            errorTextSpan.textContent = 'Please select a calendar type.';
+            errorMessageDiv.classList.remove('hidden');
+            return;
+          }
+    
+          window.location.href = `${selectedCalendarTypeFile}?date=${selectedDate}`;
+        });
+    
+        // =========================================================================
+        // CODE FOR DYNAMIC MARKET DATA
+        // =========================================================================
+        const API_URL = "https://stock-backend-0128.onrender.com/tabzero";
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessageDiv = document.getElementById('errorMessage');
+        const errorTextSpan = document.getElementById('errorText');
+        const newsContainer = document.getElementById('newsContainer');
+        const gainersList = document.getElementById('gainersList');
+        const losersList = document.getElementById('losersList');
+        const mostActiveList = document.getElementById('mostActiveList');
+        const generalNewsSection = document.getElementById('generalNewsSection');
+        const marketSummarySection = document.getElementById('marketSummarySection');
+    
+        function formatNumber(num, decimals) {
+          return parseFloat(num).toFixed(decimals);
+        }
+    
+        function renderStocks(stockData, containerElement) {
+          containerElement.innerHTML = '';
+          if (stockData && stockData.length > 0) {
+            stockData.slice(0, 10).forEach(stock => {
+              const changeColor = stock['Change (%)'] >= 0 ? 'text-green-600' : 'text-red-600';
+              const changeSign = stock['Change (%)'] >= 0 ? '+' : '';
+              const stockRowHtml = `
+                <tr class="border-b last:border-b-0 border-gray-200 hover:bg-gray-50 transition-colors duration-150">
+                  <td class="px-4 py-3 font-medium text-gray-800 w-1/2">
+                    ${stock.Stock} <span class="text-xs text-gray-400">(${stock.Exchange})</span>
+                  </td>
+                  <td class="px-4 py-3 text-gray-700 w-1/4">${formatNumber(stock.Price, 2)}</td>
+                  <td class="px-4 py-3 text-right font-semibold ${changeColor} w-1/4">
+                    ${changeSign}${formatNumber(stock['Change (%)'], 2)}%
+                  </td>
+                </tr>`;
+              containerElement.innerHTML += stockRowHtml;
+            });
+          }
+        }
+    
+        function renderNews(newsData) {
+          newsContainer.innerHTML = '';
+          if (newsData && newsData.length > 0) {
+            generalNewsSection.classList.remove('hidden');
+            newsData.forEach(newsItem => {
+              let newsCardHtml;
+              if (newsItem.Image) {
+                // Render with image if available
+                newsCardHtml = `
+                  <div class="news-card">
+                    <img src="${newsItem.Image}" alt="News image" onerror="this.onerror=null;this.src='https://placehold.co/400x200/e5e7eb/4b5563?text=Image+Not+Available';" class="w-full h-48 object-cover rounded-xl mb-4">
+                    <h4 class="text-lg font-bold text-gray-800 line-clamp-2 mb-2"><a href="${newsItem.url}" target="_blank" class="hover:underline">${newsItem.Title}</a></h4>
+                    <p class="text-sm text-gray-500 mb-2">${newsItem.Publisher}</p>
+                    <p class="text-sm text-gray-400 mt-auto">${newsItem.Date.split(' ')[0]}</p>
+                  </div>
+                `;
+              } else {
+                // Render a smaller card without an image
+                newsCardHtml = `
+                  <div class="news-card">
+                    <h4 class="text-lg font-bold text-gray-800 mb-2"><a href="${newsItem.url}" target="_blank" class="hover:underline">${newsItem.Title}</a></h4>
+                    <p class="text-sm text-gray-500 mb-2">${newsItem.Publisher}</p>
+                    <p class="text-sm text-gray-400 mt-auto">${newsItem.Date.split(' ')[0]}</p>
+                  </div>
+                `;
+              }
+              newsContainer.innerHTML += newsCardHtml;
+            });
+          }
+        }
+    
+        /**
+         * Fetches and displays the market data from the backend.
+         */
+        async function fetchMarketData() {
+          loadingIndicator.classList.remove('hidden');
+          errorMessageDiv.classList.add('hidden');
+          generalNewsSection.classList.add('hidden');
+          marketSummarySection.classList.add('hidden');
+    
+          try {
+            let response;
+            let attempts = 0;
+            const maxAttempts = 3;
+            const baseDelay = 1000;
+    
+            // Implement exponential backoff for API calls
+            while (attempts < maxAttempts) {
+              try {
+                response = await fetch(API_URL);
+                if (response.ok) {
+                  break;
+                } else {
+                  throw new Error(`HTTP Error: ${response.status}`);
+                }
+              } catch (error) {
+                attempts++;
+                if (attempts < maxAttempts) {
+                  const delay = baseDelay * (2 ** attempts);
+                  console.error(`Attempt ${attempts} failed. Retrying in ${delay / 1000}s...`, error);
+                  await new Promise(res => setTimeout(res, delay));
+                } else {
+                  throw error;
+                }
+              }
+            }
+    
+            const data = await response.json();
+    
+            if (data['General News'] && data['General News'].length > 0) {
+              renderNews(data['General News']);
+            }
+            if (data['Top Gainers'] && data['Top Gainers'].length > 0) {
+              renderStocks(data['Top Gainers'], gainersList);
+            }
+            if (data['Top Losers'] && data['Top Losers'].length > 0) {
+              renderStocks(data['Top Losers'], losersList);
+            }
+            if (data['Most Active'] && data['Most Active'].length > 0) {
+              renderStocks(data['Most Active'], mostActiveList);
+            }
+    
+            // Show the sections if data was successfully rendered
+            if (data['General News'] && data['General News'].length > 0) {
+              generalNewsSection.classList.remove('hidden');
+            }
+            if (data['Top Gainers'] && data['Top Gainers'].length > 0 ||
+              data['Top Losers'] && data['Top Losers'].length > 0 ||
+              data['Most Active'] && data['Most Active'].length > 0) {
+              marketSummarySection.classList.remove('hidden');
+            }
+          } catch (error) {
+            console.error("Failed to fetch market data:", error);
+            errorTextSpan.textContent = `An error occurred: ${error.message}. Please try again later.`;
+            errorMessageDiv.classList.remove('hidden');
+          } finally {
+            loadingIndicator.classList.add('hidden');
+          }
+        }
+    
+        // Call the function to fetch data on page load
+        fetchMarketData();
+      });
     </script>
 </body>
 </html>
