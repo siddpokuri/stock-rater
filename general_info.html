@@ -68,6 +68,7 @@
                 <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
                 <!-- === END OF NEW CODE === -->
                 <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
+                <!-- Premium Links - HREFs will be set by JS or blocked if not premium -->
                 <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
                 <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
@@ -146,9 +147,10 @@
         </div>
     </main>
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-    
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
+
       const firebaseConfig = {
         apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
         authDomain: "stocksight-75940.firebaseapp.com",
@@ -158,16 +160,36 @@
         appId: "1:223645254786:web:14c980e559d9090f89e09b",
         measurementId: "G-8JGEEE9KD1"
       };
-    
+
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
-    
-      onAuthStateChanged(auth, (user) => {
+      const db = getFirestore(app); // Initialize Firestore
+
+      // Global variable to store user's premium status
+      window.currentUserIsPremium = false;
+
+      onAuthStateChanged(auth, async (user) => { // Made async to use await
         if (!user) {
           window.location.href = "auth.html"; // redirect if not logged in
+        } else {
+          // Fetch user's premium status from Firestore
+          const userDocRef = doc(db, "users", user.uid);
+          try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
+            } else {
+              console.warn("User document not found for UID:", user.uid);
+              window.currentUserIsPremium = false;
+            }
+          } catch (e) {
+            console.error("Error fetching user premium status:", e);
+            window.currentUserIsPremium = false;
+          }
+          console.log("Current user premium status:", window.currentUserIsPremium);
         }
       });
-    
+
       window.signOutUser = async function() {
         try {
           await signOut(auth);
@@ -184,7 +206,7 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
-        
+
         let stockSymbol = '';
         let generalData = null; // Stores the entire response from /tab1
         let priceChartInstance = null; // To manage Chart.js instance
@@ -196,19 +218,17 @@
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
 
-            // === UPDATED CODE: Added nav-cash-flow link to the array ===
             const navLinks = [
                 { id: 'nav-general-info', file: 'general_info.html' },
                 { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' }, // New link for Cash Flow
+                { id: 'nav-cash-flow', file: 'cash_flow.html' },
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html' },
+                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
                 { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html' },
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
-                { id: 'nav-recent-news', file: 'recent_news.html' }, // New link for Recent News
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
+                { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
-            // === END OF UPDATED CODE ===
 
             if (!stockSymbol) {
                 showError('No stock symbol provided in the URL.');
@@ -219,10 +239,24 @@
             navLinks.forEach(link => {
                 const navElement = document.getElementById(link.id);
                 if (navElement) {
-                    navElement.href = `${link.file}?stock=${stockSymbol}`;
+                    if (link.premium) {
+                        // For premium links, attach an event listener
+                        navElement.href = '#'; // Set a dummy href for styling/accessibility
+                        navElement.addEventListener('click', (event) => {
+                            event.preventDefault(); // Prevent default navigation
+                            if (window.currentUserIsPremium) {
+                                window.location.href = `${link.file}?stock=${stockSymbol}`;
+                            } else {
+                                showPremiumMessage();
+                            }
+                        });
+                    } else {
+                        // For non-premium links, set href directly as before
+                        navElement.href = `${link.file}?stock=${stockSymbol}`;
+                    }
                 }
             });
-            
+
             fetchGeneralInfo(stockSymbol);
         });
 
@@ -424,7 +458,7 @@
 
             let percentageChangeText = 'N/A';
             let changeColorClass = 'text-gray-800';
-            
+
             // Define chart colors based on the percentage change
             let chartBorderColor = 'rgb(75, 192, 192)'; // Default color
             let chartBackgroundColor = 'rgba(75, 192, 192, 0.2)'; // Default color
@@ -528,6 +562,21 @@
             document.getElementById('generalContent').classList.add('hidden');
             document.getElementById('errorText').textContent = message;
             document.getElementById('errorMessage').classList.remove('hidden');
+        }
+
+        // New function to show premium message
+        function showPremiumMessage() {
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const errorTextSpan = document.getElementById('errorText');
+
+            // Clear previous error message and set the premium message
+            errorTextSpan.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
+            errorMessageDiv.classList.remove('hidden');
+
+            // Hide the message after 5 seconds
+            setTimeout(() => {
+                errorMessageDiv.classList.add('hidden');
+            }, 5000);
         }
     </script>
 </body>
