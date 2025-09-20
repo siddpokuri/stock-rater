@@ -46,7 +46,7 @@
                 <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
                 <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
                 <!-- New "Cash Flow" button -->
-                <a href="cash_flow.html" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
+                <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
                 <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
                 <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
                 <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
@@ -64,6 +64,9 @@
             <!-- Dynamic Title -->
             <h1 id="stock-title" class="text-3xl font-bold text-gray-800 mb-8">Stock - Recent News</h1>
             
+            <!-- This is the new message box for premium access -->
+            <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
+
             <!-- Container for news cards -->
             <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-7xl">
                 <!-- News articles will be dynamically inserted here -->
@@ -71,8 +74,9 @@
         </div>
     </main>
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
     
       const firebaseConfig = {
         apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
@@ -86,10 +90,30 @@
     
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
+      const db = getFirestore(app); // Initialize Firestore
+
+      // Global variable to store user's premium status
+      window.currentUserIsPremium = false;
     
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(auth, async (user) => { // Made async to use await
         if (!user) {
           window.location.href = "auth.html"; // redirect if not logged in
+        } else {
+          // Fetch user's premium status from Firestore
+          const userDocRef = doc(db, "users", user.uid);
+          try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
+            } else {
+              console.warn("User document not found for UID:", user.uid);
+              window.currentUserIsPremium = false;
+            }
+          } catch (e) {
+            console.error("Error fetching user premium status:", e);
+            window.currentUserIsPremium = false;
+          }
+          console.log("Current user premium status:", window.currentUserIsPremium);
         }
       });
     
@@ -105,10 +129,12 @@
     <script>
         let stockSymbol = '';
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+        const premiumMessage = document.getElementById('premium-message'); // Get the premium message element
 
         // Function to fetch and render recent news articles
         async function fetchNews(ticker) {
             const newsContainer = document.getElementById('news-container');
+            premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
             newsContainer.innerHTML = `
                 <div class="col-span-full flex flex-col items-center justify-center my-8">
                     <div class="loading-spinner"></div>
@@ -178,6 +204,17 @@
             }
         }
 
+        // Function to show premium message
+        function showPremiumMessage() {
+            premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
+            premiumMessage.classList.remove('hidden');
+
+            // Hide the message after 5 seconds
+            setTimeout(() => {
+                premiumMessage.classList.add('hidden');
+            }, 5000);
+        }
+
         // Initial setup on page load
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -186,12 +223,12 @@
             const navLinks = [
                 { id: 'nav-general-info', file: 'general_info.html' },
                 { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' }, // Added new link
+                { id: 'nav-cash-flow', file: 'cash_flow.html' },
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html' },
+                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
                 { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html' },
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
                 { id: 'nav-recent-news', file: 'recent_news.html' }
             ];
 
@@ -201,7 +238,22 @@
                 navLinks.forEach(link => {
                     const navElement = document.getElementById(link.id);
                     if (navElement) {
-                        navElement.href = `${link.file}?stock=${stockSymbol}`;
+                        if (link.premium) {
+                            // For premium links, attach an event listener
+                            navElement.href = '#'; // Set a dummy href for styling/accessibility
+                            navElement.addEventListener('click', (event) => {
+                                event.preventDefault(); // Prevent default navigation
+                                // Use window.currentUserIsPremium from the Firebase script
+                                if (window.currentUserIsPremium) {
+                                    window.location.href = `${link.file}?stock=${stockSymbol}`;
+                                } else {
+                                    showPremiumMessage();
+                                }
+                            });
+                        } else {
+                            // For non-premium links, set href directly as before
+                            navElement.href = `${link.file}?stock=${stockSymbol}`;
+                        }
                     }
                 });
             } else {
