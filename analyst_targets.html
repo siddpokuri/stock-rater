@@ -21,6 +21,27 @@
             color: #2563eb; /* A nice blue color */
             font-weight: 700;
         }
+        /* Loading spinner animation */
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3b82f6;
+            width: 40px;
+            height: 40px;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+            display: none; /* Initially hidden */
+        }
+
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -33,14 +54,14 @@
                 <a href="#" id="nav-general-info" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">General Info</a>
                 <a href="#" id="nav-income-statement" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Income Statement</a>
                 <!-- The new "Cash Flow" button is added here -->
-                <a href="cash_flow.html" id="nav-cash-flow" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
+                <a href="#" id="nav-cash-flow" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
                 <a href="#" id="nav-balance-sheet" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
                 <a href="#" id="nav-ratings" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Ratings</a>
                 <a href="#" id="nav-earnings" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
                 <a href="#" id="nav-analyst-targets" class="nav-link active hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
                 <!-- The new "Recent News" button is added here -->
-                <a href="recent_news.html" id="nav-recent-news" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Recent News</a>
+                <a href="#" id="nav-recent-news" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Recent News</a>
             </div>
         </div>
     </nav>
@@ -49,7 +70,7 @@
         <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
         
         <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
+        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10 hidden">
             <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -62,6 +83,9 @@
             <strong class="font-bold">Error!</strong>
             <span class="block sm:inline" id="errorText"></span>
         </div>
+
+        <!-- This is the new message box for premium access -->
+        <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
 
         <!-- Container for the analyst targets content -->
         <div id="analystTargetsContent" class="hidden bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl mx-auto mb-8">
@@ -95,8 +119,9 @@
 
     </main>
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
     
       const firebaseConfig = {
         apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
@@ -110,10 +135,35 @@
     
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
+      const db = getFirestore(app); // Initialize Firestore
+
+      // Global variable to store user's premium status
+      window.currentUserIsPremium = false;
     
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(auth, async (user) => { // Made async to use await
         if (!user) {
           window.location.href = "auth.html"; // redirect if not logged in
+        } else {
+          // Fetch user's premium status from Firestore
+          const userDocRef = doc(db, "users", user.uid);
+          try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
+            } else {
+              console.warn("User document not found for UID:", user.uid);
+              window.currentUserIsPremium = false;
+            }
+          } catch (e) {
+            console.error("Error fetching user premium status:", e);
+            window.currentUserIsPremium = false;
+          }
+          console.log("Current user premium status:", window.currentUserIsPremium);
+
+          // After authentication check, and currentUserIsPremium is set,
+          // then check if the user can access this premium page.
+          // This ensures currentUserIsPremium is available when needed.
+          checkPremiumAccessForPage();
         }
       });
     
@@ -125,53 +175,92 @@
           console.error("Error signing out:", error);
         }
       };
+
+      // Function to check premium access specifically for this page
+      function checkPremiumAccessForPage() {
+          // Since Analyst Targets is a premium page itself, we check it here
+          if (!window.currentUserIsPremium) {
+              showPremiumMessage();
+              // Hide all content containers and loading indicators
+              document.getElementById('loadingIndicator').classList.add('hidden');
+              document.getElementById('errorMessage').classList.add('hidden');
+              document.getElementById('analystTargetsContent').classList.add('hidden');
+              document.getElementById('analystFinancialsContent').classList.add('hidden');
+              document.getElementById('stockTitle').textContent = 'Premium Feature'; // Update title
+          } else {
+              // If premium, then fetch data as usual
+              const urlParams = new URLSearchParams(window.location.search);
+              stockSymbol = urlParams.get('stock');
+              if (stockSymbol) {
+                  document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Analyst Targets`;
+                  fetchAnalystTargets(stockSymbol);
+              } else {
+                  showError('No stock symbol provided in the URL.');
+              }
+          }
+      }
     </script>
     <script>
         let stockSymbol = '';
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+        const premiumMessage = document.getElementById('premium-message'); // Get the premium message element
 
         document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock');
+            // No longer directly fetching analyst targets here;
+            // `checkPremiumAccessForPage` in the module script handles it after auth state is determined.
             
             // Define navigation links and their corresponding files
             const navLinks = [
                 { id: 'nav-home', file: 'index.html' },
                 { id: 'nav-general-info', file: 'general_info.html' },
                 { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' }, // Added new link
+                { id: 'nav-cash-flow', file: 'cash_flow.html' },
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html' },
+                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
                 { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html' },
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // This page is premium
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
-            if (stockSymbol) {
-                // Update the page title
-                document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Analyst Targets`;
-                fetchAnalystTargets(stockSymbol);
-                
-                // Set up the href for each navigation link
-                navLinks.forEach(link => {
-                    const navElement = document.getElementById(link.id);
-                    if (navElement) {
-                        if (link.id !== 'nav-analyst-targets') {
-                            navElement.classList.add('text-gray-600');
-                        } else {
-                            navElement.classList.remove('text-gray-600');
-                        }
+            const urlParams = new URLSearchParams(window.location.search);
+            stockSymbol = urlParams.get('stock'); // Ensure stockSymbol is set for nav links
+
+            // Update navigation bar hrefs
+            navLinks.forEach(link => {
+                const navElement = document.getElementById(link.id);
+                if (navElement) {
+                    if (link.premium) {
+                        // For premium links, attach an event listener
+                        navElement.href = '#'; // Set a dummy href for styling/accessibility
+                        navElement.addEventListener('click', (event) => {
+                            event.preventDefault(); // Prevent default navigation
+                            // Use window.currentUserIsPremium from the Firebase script
+                            if (window.currentUserIsPremium) {
+                                window.location.href = `${link.file}?stock=${stockSymbol}`;
+                            } else {
+                                showPremiumMessage();
+                            }
+                        });
+                    } else {
+                        // For non-premium links, set href directly as before
                         navElement.href = `${link.file}?stock=${stockSymbol}`;
                     }
-                });
-            } else {
-                showError('No stock symbol provided in the URL. Please return to the main page and select a stock.');
-            }
+                    // Handle active state for the current page
+                    if (link.id === 'nav-analyst-targets') {
+                        navElement.classList.remove('text-gray-600');
+                        navElement.classList.add('active'); // Keep it active
+                    } else {
+                        navElement.classList.remove('active');
+                        navElement.classList.add('text-gray-600'); // Ensure other non-active links are gray
+                    }
+                }
+            });
         });
 
         async function fetchAnalystTargets(symbol) {
             showLoading(true);
+            premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
             try {
                 // Implementing exponential backoff for the API call
                 let response = null;
@@ -287,6 +376,7 @@
             document.getElementById('analystTargetsContent').classList.toggle('hidden', show);
             document.getElementById('analystFinancialsContent').classList.toggle('hidden', show);
             document.getElementById('errorMessage').classList.add('hidden'); // Hide error when loading
+            premiumMessage.classList.add('hidden'); // Hide premium message when loading
         }
 
         function showError(message) {
@@ -296,6 +386,18 @@
             document.getElementById('analystFinancialsContent').classList.add('hidden');
             document.getElementById('errorMessage').classList.remove('hidden');
             document.getElementById('errorText').textContent = message;
+            premiumMessage.classList.add('hidden'); // Hide premium message if an error occurs
+        }
+
+        // Function to show premium message
+        function showPremiumMessage() {
+            premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
+            premiumMessage.classList.remove('hidden');
+
+            // Hide the message after 5 seconds
+            setTimeout(() => {
+                premiumMessage.classList.add('hidden');
+            }, 5000);
         }
     </script>
 </body>
