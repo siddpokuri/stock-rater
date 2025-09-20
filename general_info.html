@@ -89,6 +89,9 @@
             <span class="block sm:inline" id="errorText"></span>
         </div>
 
+        <!-- This is the new message box for premium access -->
+        <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
+
         <div id="generalContent" class="hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <!-- Company Overview Box -->
@@ -214,6 +217,12 @@
 
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
+        // DOM elements for messages
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessageDiv = document.getElementById('errorMessage');
+        const errorTextSpan = document.getElementById('errorText');
+        const premiumMessage = document.getElementById('premium-message'); // Defined globally now
+
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
@@ -262,6 +271,8 @@
 
         async function fetchGeneralInfo(symbol) {
             showLoading(true);
+            errorMessageDiv.classList.add('hidden'); // Hide error message on new fetch
+            premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
             try {
                 const response = await fetch(`${backendBaseUrl}/tab1?stock=${symbol}`);
                 if (!response.ok) {
@@ -552,30 +563,28 @@
         }
 
         function showLoading(show) {
-            document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
+            loadingIndicator.classList.toggle('hidden', !show);
             document.getElementById('generalContent').classList.toggle('hidden', show);
-            document.getElementById('errorMessage').classList.add('hidden');
+            errorMessageDiv.classList.add('hidden'); // Hide error message when loading
+            premiumMessage.classList.add('hidden'); // Hide premium message when loading
         }
 
         function showError(message) {
-            document.getElementById('loadingIndicator').classList.add('hidden');
+            loadingIndicator.classList.add('hidden');
             document.getElementById('generalContent').classList.add('hidden');
-            document.getElementById('errorText').textContent = message;
-            document.getElementById('errorMessage').classList.remove('hidden');
+            errorTextSpan.textContent = message;
+            errorMessageDiv.classList.remove('hidden');
+            premiumMessage.classList.add('hidden'); // Hide premium message if an error occurs
         }
 
         // New function to show premium message
         function showPremiumMessage() {
-            const errorMessageDiv = document.getElementById('errorMessage');
-            const errorTextSpan = document.getElementById('errorText');
-
-            // Clear previous error message and set the premium message
-            errorTextSpan.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
-            errorMessageDiv.classList.remove('hidden');
+            premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
+            premiumMessage.classList.remove('hidden');
 
             // Hide the message after 5 seconds
             setTimeout(() => {
-                errorMessageDiv.classList.add('hidden');
+                premiumMessage.classList.add('hidden');
             }, 5000);
         }
     </script>
