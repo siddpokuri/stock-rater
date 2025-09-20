@@ -135,6 +135,9 @@
             <span class="block sm:inline" id="errorText"></span>
         </div>
 
+        <!-- This is the new message box for premium access -->
+        <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
+
         <!-- Container for both views. Only one will be visible at a time. -->
         <div id="earningsContent" class="hidden">
             <!-- View 1: Existing Earnings Data -->
@@ -196,8 +199,9 @@
         </div>
     </main>
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
     
       const firebaseConfig = {
         apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
@@ -211,10 +215,30 @@
     
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
+      const db = getFirestore(app); // Initialize Firestore
+
+      // Global variable to store user's premium status
+      window.currentUserIsPremium = false;
     
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(auth, async (user) => { // Made async to use await
         if (!user) {
           window.location.href = "auth.html"; // redirect if not logged in
+        } else {
+          // Fetch user's premium status from Firestore
+          const userDocRef = doc(db, "users", user.uid);
+          try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
+            } else {
+              console.warn("User document not found for UID:", user.uid);
+              window.currentUserIsPremium = false;
+            }
+          } catch (e) {
+            console.error("Error fetching user premium status:", e);
+            window.currentUserIsPremium = false;
+          }
+          console.log("Current user premium status:", window.currentUserIsPremium);
         }
       });
     
@@ -227,13 +251,13 @@
         }
       };
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let stockSymbol = '';
         let epsChartInstance = null;
         let activeView = 'earningsData'; // State to track the active view
         let backendData = null; // Store the fetched data to avoid re-fetching
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+        const premiumMessage = document.getElementById('premium-message'); // Get the premium message element
 
         // Helper function to format numbers
         function formatNumber(num) {
@@ -268,6 +292,7 @@
 
         async function fetchEarnings(symbol) {
             showLoading(true);
+            premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
             try {
                 // Fetch data with exponential backoff
                 let response = null;
@@ -480,6 +505,18 @@
             document.getElementById('earningsContent').classList.add('hidden');
             document.getElementById('errorText').textContent = message;
             document.getElementById('errorMessage').classList.remove('hidden');
+            premiumMessage.classList.add('hidden'); // Also hide premium message if an error occurs
+        }
+
+        // Function to show premium message
+        function showPremiumMessage() {
+            premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
+            premiumMessage.classList.remove('hidden');
+
+            // Hide the message after 5 seconds
+            setTimeout(() => {
+                premiumMessage.classList.add('hidden');
+            }, 5000);
         }
 
         // Add event listeners for the new toggle buttons
@@ -508,10 +545,10 @@
                 { id: 'nav-income-statement', file: 'income_statement.html' },
                 { id: 'nav-cash-flow', file: 'cash_flow.html' },
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html' },
+                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
                 { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html' },
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
@@ -520,7 +557,22 @@
                 navLinks.forEach(link => {
                     const navElement = document.getElementById(link.id);
                     if (navElement) {
-                        navElement.href = `${link.file}?stock=${stockSymbol}`;
+                        if (link.premium) {
+                            // For premium links, attach an event listener
+                            navElement.href = '#'; // Set a dummy href for styling/accessibility
+                            navElement.addEventListener('click', (event) => {
+                                event.preventDefault(); // Prevent default navigation
+                                // Use window.currentUserIsPremium from the Firebase script
+                                if (window.currentUserIsPremium) {
+                                    window.location.href = `${link.file}?stock=${stockSymbol}`;
+                                } else {
+                                    showPremiumMessage();
+                                }
+                            });
+                        } else {
+                            // For non-premium links, set href directly as before
+                            navElement.href = `${link.file}?stock=${stockSymbol}`;
+                        }
                     }
                 });
             } else {
