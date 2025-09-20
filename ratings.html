@@ -36,6 +36,27 @@
             color: #2563eb; /* A nice blue color */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+        /* Loading spinner animation */
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3b82f6;
+            width: 40px;
+            height: 40px;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+            display: none; /* Initially hidden */
+        }
+
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -69,16 +90,18 @@
             <button id="showPastRatings" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">Past-to-Current Ratings</button>
         </div>
 
-        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
-            <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-blue-500 motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
-                <span class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
-            </div>
+        <div id="loadingIndicator" class="flex flex-col items-center my-8 hidden">
+            <div class="loading-spinner"></div>
+            <p class="text-gray-600 mt-4 text-lg">Loading ratings data...</p>
         </div>
 
         <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10" role="alert">
             <strong class="font-bold">Error!</strong>
             <span class="block sm:inline" id="errorText"></span>
         </div>
+
+        <!-- This is the new message box for premium access -->
+        <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
 
         <!-- Container for Current Ratings -->
         <div id="currentRatingsContainer" class="hidden max-w-4xl mx-auto space-y-8">
@@ -127,8 +150,9 @@
         </div>
     </main>
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
     
       const firebaseConfig = {
         apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
@@ -142,10 +166,35 @@
     
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
+      const db = getFirestore(app); // Initialize Firestore
+
+      // Global variable to store user's premium status
+      window.currentUserIsPremium = false;
     
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(auth, async (user) => { // Made async to use await
         if (!user) {
           window.location.href = "auth.html"; // redirect if not logged in
+        } else {
+          // Fetch user's premium status from Firestore
+          const userDocRef = doc(db, "users", user.uid);
+          try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
+            } else {
+              console.warn("User document not found for UID:", user.uid);
+              window.currentUserIsPremium = false;
+            }
+          } catch (e) {
+            console.error("Error fetching user premium status:", e);
+            window.currentUserIsPremium = false;
+          }
+          console.log("Current user premium status:", window.currentUserIsPremium);
+
+          // After authentication check, and currentUserIsPremium is set,
+          // then check if the user can access this premium page.
+          // This ensures currentUserIsPremium is available when needed.
+          checkPremiumAccessForPage();
         }
       });
     
@@ -157,49 +206,82 @@
           console.error("Error signing out:", error);
         }
       };
+
+      // Function to check premium access specifically for this page
+      function checkPremiumAccessForPage() {
+          // Since ratings is a premium page itself, we check it here
+          if (!window.currentUserIsPremium) {
+              showPremiumMessage();
+              // Hide all content containers and loading indicators
+              document.getElementById('loadingIndicator').classList.add('hidden');
+              document.getElementById('errorMessage').classList.add('hidden');
+              document.getElementById('currentRatingsContainer').classList.add('hidden');
+              document.getElementById('pastRatingsContainer').classList.add('hidden');
+              document.getElementById('stockTitle').textContent = 'Premium Feature'; // Update title
+          } else {
+              // If premium, then fetch data as usual
+              const urlParams = new URLSearchParams(window.location.search);
+              stockSymbol = urlParams.get('stock');
+              if (stockSymbol) {
+                  document.title = `${stockSymbol.toUpperCase()} - Ratings`;
+                  document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Ratings`;
+                  fetchRatings(stockSymbol);
+              } else {
+                  showError('No stock symbol provided in the URL.');
+              }
+          }
+      }
     </script>
     <script>
         let stockSymbol = '';
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+        // Get the premium message element
+        const premiumMessage = document.getElementById('premium-message');
+
 
         document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock');
-            
-            // NEW: Set the page title dynamically
-            if (stockSymbol) {
-                document.title = `${stockSymbol.toUpperCase()} - Ratings`;
-                document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Ratings`;
-            }
+            // No longer directly fetching ratings here, instead, the checkPremiumAccessForPage
+            // in the module script handles it after auth state is determined.
 
             const navLinks = [
                 { id: 'nav-general-info', file: 'general_info.html' },
                 { id: 'nav-income-statement', file: 'income_statement.html' },
                 { id: 'nav-cash-flow', file: 'cash_flow.html' },
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html' },
+                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
                 { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html' },
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
-            if (!stockSymbol) {
-                showError('No stock symbol provided in the URL.');
-                return;
-            }
+            const urlParams = new URLSearchParams(window.location.search);
+            stockSymbol = urlParams.get('stock'); // Ensure stockSymbol is set for nav links
 
             // Update navigation bar hrefs
             navLinks.forEach(link => {
                 const navElement = document.getElementById(link.id);
                 if (navElement) {
-                    navElement.href = `${link.file}?stock=${stockSymbol}`;
+                    if (link.premium) {
+                        // For premium links, attach an event listener
+                        navElement.href = '#'; // Set a dummy href for styling/accessibility
+                        navElement.addEventListener('click', (event) => {
+                            event.preventDefault(); // Prevent default navigation
+                            // Use window.currentUserIsPremium from the Firebase script
+                            if (window.currentUserIsPremium) {
+                                window.location.href = `${link.file}?stock=${stockSymbol}`;
+                            } else {
+                                showPremiumMessage();
+                            }
+                        });
+                    } else {
+                        // For non-premium links, set href directly as before
+                        navElement.href = `${link.file}?stock=${stockSymbol}`;
+                    }
                 }
             });
             
-            fetchRatings(stockSymbol);
-
-            // Add event listeners for the toggle buttons
+            // Add event listeners for the toggle buttons (always active)
             document.getElementById('showCurrentRatings').addEventListener('click', () => switchRatingsView('current'));
             document.getElementById('showPastRatings').addEventListener('click', () => switchRatingsView('past'));
         });
@@ -253,6 +335,7 @@
         // Main function to fetch and display all rating data
         async function fetchRatings(symbol) {
             showLoading(true);
+            premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
             try {
                 let response = null;
                 let delay = 1000;
@@ -488,6 +571,7 @@
             document.getElementById('currentRatingsContainer').classList.toggle('hidden', show);
             document.getElementById('pastRatingsContainer').classList.toggle('hidden', show);
             document.getElementById('errorMessage').classList.add('hidden');
+            premiumMessage.classList.add('hidden'); // Also hide premium message when loading
         }
 
         function showError(message) {
@@ -496,6 +580,18 @@
             document.getElementById('pastRatingsContainer').classList.add('hidden');
             document.getElementById('errorText').textContent = message;
             document.getElementById('errorMessage').classList.remove('hidden');
+            premiumMessage.classList.add('hidden'); // Also hide premium message if an error occurs
+        }
+
+        // Function to show premium message (newly added)
+        function showPremiumMessage() {
+            premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
+            premiumMessage.classList.remove('hidden');
+
+            // Hide the message after 5 seconds
+            setTimeout(() => {
+                premiumMessage.classList.add('hidden');
+            }, 5000);
         }
     </script>
 </body>
