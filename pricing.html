@@ -4,11 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pricing Plans</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Inter Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Stripe.js -->
   <script src="https://js.stripe.com/v3/"></script>
   <style>
     body {
@@ -22,7 +19,6 @@
 </head>
 <body class="min-h-screen flex flex-col items-center p-6">
 
-  <!-- Header -->
   <header class="w-full max-w-6xl flex justify-between items-center py-6 px-4 bg-white rounded-2xl card-shadow mb-10">
     <h1 class="text-2xl font-bold text-blue-600">StockSight</h1>
     <nav>
@@ -30,16 +26,13 @@
     </nav>
   </header>
 
-  <!-- Hero -->
   <section class="text-center mb-12">
     <h2 class="text-4xl font-bold text-gray-800 mb-4">Choose Your Plan</h2>
     <p class="text-gray-600 max-w-xl mx-auto">Flexible options designed for everyone — whether you’re just starting or ready to go premium.</p>
   </section>
 
-  <!-- Pricing Plans -->
   <section class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
     
-    <!-- Free Plan -->
     <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col text-center">
       <h3 class="text-2xl font-bold text-blue-600 mb-4">Free</h3>
       <p class="text-3xl font-extrabold text-gray-900 mb-6">$0 <span class="text-lg font-medium">/month</span></p>
@@ -52,7 +45,6 @@
       <button disabled class="bg-gray-300 text-gray-600 px-6 py-3 rounded-xl font-semibold cursor-not-allowed">Current Plan</button>
     </div>
 
-    <!-- Premium Plan -->
     <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col text-center border-2 border-yellow-400">
       <h3 class="text-2xl font-bold text-yellow-600 mb-4">Premium</h3>
       <p class="text-3xl font-extrabold text-gray-900 mb-6">$9.99 <span class="text-lg font-medium">/month</span></p>
@@ -62,8 +54,7 @@
         <li>✔ Latest insider trades</li>
         <li>✔ Last quarter earnings transcripts</li>
       </ul>
-      <button id="checkout-button" 
-              class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition duration-300 transform hover:scale-105">
+      <button id="checkout-button" class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition duration-300 transform hover:scale-105">
         Upgrade Now
       </button>
     </div>
@@ -72,6 +63,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
     // Your Firebase config
     const firebaseConfig = {
@@ -87,28 +79,59 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    // Stripe publishable key
+    // Stripe publishable key and backend URL
     const stripe = Stripe("pk_test_51Rxdlv4KLwrGOtmyxhLfG9WwzKSNiDsswb5n7zfQpknrTw1tYrcvkYT4edmvlj9OXUENm6W7CkGZ5Ux1Xrk5z8OF000YZi22il");
+    const backendUrl = "https://stock-backend-0128.onrender.com";
+
+    const checkoutButton = document.getElementById("checkout-button");
+    const freePlanButton = document.querySelector(".bg-gray-300");
 
     let currentUser = null;
-    onAuthStateChanged(auth, (user) => {
+
+    // Listen for authentication state changes
+    onAuthStateChanged(auth, async (user) => {
       currentUser = user;
+      if (user) {
+        // Check user's subscription status
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          if (userData.subscribed) {
+            // User is subscribed, disable premium button and enable free plan button
+            checkoutButton.disabled = true;
+            checkoutButton.textContent = "Current Plan";
+            checkoutButton.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
+            checkoutButton.classList.add("bg-gray-300", "text-gray-600", "cursor-not-allowed");
+
+            freePlanButton.disabled = true;
+            freePlanButton.textContent = "Premium User";
+          }
+        }
+      } else {
+        // Not logged in, disable premium button
+        checkoutButton.disabled = true;
+        checkoutButton.textContent = "Sign in to Upgrade";
+        checkoutButton.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
+        checkoutButton.classList.add("bg-gray-300", "text-gray-600", "cursor-not-allowed");
+      }
     });
 
-    document.getElementById("checkout-button").addEventListener("click", async () => {
+    // Handle checkout button click
+    checkoutButton.addEventListener("click", async () => {
       if (!currentUser) {
-        // Not logged in → send to login
         window.location.href = "auth.html";
         return;
       }
 
       try {
-        // Call backend
-        const response = await fetch("https://stock-backend-0128.onrender.com/create-checkout-session", {
+        const response = await fetch(`${backendUrl}/create-checkout-session`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uid: currentUser.uid }) // optional: pass UID
+          body: JSON.stringify({ email: currentUser.email })
         });
 
         const session = await response.json();
@@ -117,7 +140,6 @@
           throw new Error("Invalid session response: " + JSON.stringify(session));
         }
 
-        // Redirect to Stripe Checkout
         const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
 
         if (error) {
