@@ -83,40 +83,66 @@
 
     // Stripe publishable key and backend URL
     const stripe = Stripe("pk_test_51Rxdlv4KLwrGOtmyxhLfG9WwzKSNiDsswb5n7zfQpknrTw1tYrcvkYT4edmvlj9OXUENm6W7CkGZ5Ux1Xrk5z8OF000YZi22il");
-    const backendUrl = "https://stock-backend-0128.onrender.com";
+    const backendUrl = "https://stock-backend-0128.onrender.com"; // Your Python backend URL
 
     const checkoutButton = document.getElementById("checkout-button");
-    const freePlanButton = document.querySelector(".bg-gray-300");
+    const freePlanButton = document.querySelector(".bg-gray-300"); // Refers to the "Current Plan" button for the Free tier
 
     let currentUser = null;
+
+    // Function to reset button states to default (non-logged in/non-premium)
+    function resetButtons() {
+        checkoutButton.disabled = false;
+        checkoutButton.textContent = "Upgrade Now";
+        checkoutButton.classList.remove("bg-gray-300", "text-gray-600", "cursor-not-allowed");
+        checkoutButton.classList.add("bg-yellow-500", "text-white", "hover:bg-yellow-600");
+
+        freePlanButton.disabled = true; // Free plan button is always 'Current Plan' if free, or 'Premium User' if premium
+        freePlanButton.textContent = "Current Plan"; // Default at no cost plan
+        freePlanButton.classList.remove("text-gray-600", "cursor-not-allowed"); // Remove text-gray-600 if it was 'Premium User' state
+        freePlanButton.classList.add("bg-gray-300", "text-gray-600"); // Ensure default styling for current plan
+    }
 
     // Listen for authentication state changes
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
+      resetButtons(); // Start with default states
+
       if (user) {
-        // Check user's subscription status
+        // User is logged in, check their subscription status
         const userDocRef = doc(db, "users", user.uid);
         const userDocSnap = await getDoc(userDocRef);
         
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
-          if (userData.subscribed) {
-            // User is subscribed, disable premium button and enable free plan button
+          // CRITICAL FIX: Check for 'isPremium' instead of 'subscribed'
+          if (userData.isPremium === true) { 
+            // User is premium, disable premium button and indicate current plan
             checkoutButton.disabled = true;
             checkoutButton.textContent = "Current Plan";
             checkoutButton.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
             checkoutButton.classList.add("bg-gray-300", "text-gray-600", "cursor-not-allowed");
 
+            // Update free plan button to indicate premium status
             freePlanButton.disabled = true;
             freePlanButton.textContent = "Premium User";
-          }
-        }
+            freePlanButton.classList.remove("bg-gray-300", "text-gray-600"); // Remove default gray styling
+            // Optionally, add a custom styling for "Premium User" on the Free button if desired
+            // freePlanButton.classList.add("bg-yellow-200", "text-yellow-800"); 
+          } 
+          // If user exists but is not premium (isPremium is false or undefined), 
+          // 'resetButtons' already correctly enables the upgrade button.
+        } 
+        // If user document doesn't exist, they are not premium. 'resetButtons' handles this.
       } else {
-        // Not logged in, disable premium button
+        // Not logged in, disable premium button and prompt sign-in
         checkoutButton.disabled = true;
         checkoutButton.textContent = "Sign in to Upgrade";
         checkoutButton.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
         checkoutButton.classList.add("bg-gray-300", "text-gray-600", "cursor-not-allowed");
+        
+        // Free plan button remains "Current Plan" as it's the default state for non-logged-in users
+        // No change needed at no costPlanButton from resetButtons() here.
       }
     });
 
@@ -131,7 +157,10 @@
         const response = await fetch(`${backendUrl}/create-checkout-session`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: currentUser.email })
+          body: JSON.stringify({
+            email: currentUser.email,
+            uid: currentUser.uid // CRITICAL ADDITION: Send Firebase UID
+          })
         });
 
         const session = await response.json();
