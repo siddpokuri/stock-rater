@@ -64,7 +64,9 @@
                 <!-- Navigation items, with dynamic hrefs set by JavaScript -->
                 <a href="#" id="nav-general-info" class="text-blue-700 font-bold transition-colors duration-300">General Info</a>
                 <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
+                <!-- === NEW CODE: Cash Flow Tab === -->
                 <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
+                <!-- === END OF NEW CODE === -->
                 <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
                 <!-- Premium Links - HREFs will be set by JS or blocked if not premium -->
                 <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
@@ -148,9 +150,9 @@
         </div>
     </main>
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
-      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
@@ -164,55 +166,12 @@
 
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
-      const db = getFirestore(app); // Initialize Firestore
+      const db = getFirestore(app);
 
       // Global variable to store user's premium status. Initialize to false.
-      // It will be updated by onAuthStateChanged.
       window.currentUserIsPremium = false;
 
-      // Define all navigation links once
-      const allNavLinks = [
-          { id: 'nav-general-info', file: 'general_info.html', premium: false },
-          { id: 'nav-income-statement', file: 'income_statement.html', premium: false },
-          { id: 'nav-cash-flow', file: 'cash_flow.html', premium: false },
-          { id: 'nav-balance-sheet', file: 'balance_sheet.html', premium: false },
-          { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
-          { id: 'nav-earnings', file: 'earnings.html', premium: false },
-          { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
-          { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
-          { id: 'nav-recent-news', file: 'recent_news.html', premium: false },
-      ];
-
-
-      // Function to update navigation links based on current premium status
-      function updateNavigationLinks(currentStockSymbol) {
-          allNavLinks.forEach(link => {
-              const navElement = document.getElementById(link.id);
-              if (navElement) {
-                  // Remove any previously attached click listeners to avoid duplicates
-                  // This is crucial as this function will be called multiple times.
-                  navElement.onclick = null; // Clear previous handler if any
-
-                  if (link.premium) {
-                      if (window.currentUserIsPremium) {
-                          navElement.href = `${link.file}?stock=${currentStockSymbol}`;
-                      } else {
-                          navElement.href = '#'; // Keep dummy href
-                          navElement.onclick = (event) => {
-                              event.preventDefault(); // Prevent default navigation
-                              showPremiumMessage();
-                          };
-                      }
-                  } else {
-                      // For non-premium links, always set href directly
-                      navElement.href = `${link.file}?stock=${currentStockSymbol}`;
-                  }
-              }
-          });
-      }
-
-
-      onAuthStateChanged(auth, async (user) => { // Made async to use await
+      onAuthStateChanged(auth, async (user) => {
         if (!user) {
           window.location.href = "auth.html"; // redirect if not logged in
         } else {
@@ -221,7 +180,7 @@
           try {
             const userDoc = await getDoc(userDocRef);
             if (userDoc.exists()) {
-              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
+              window.currentUserIsPremium = userDoc.data().isPremium || false;
             } else {
               console.warn("User document not found for UID:", user.uid);
               window.currentUserIsPremium = false;
@@ -231,14 +190,8 @@
             window.currentUserIsPremium = false;
           }
           console.log("Current user premium status:", window.currentUserIsPremium);
-
-          // CRITICAL: Update navigation links AFTER premium status is loaded
-          // Ensure stockSymbol is available when calling this.
-          const urlParams = new URLSearchParams(window.location.search);
-          const currentStockSymbol = urlParams.get('stock');
-          if (currentStockSymbol) {
-               updateNavigationLinks(currentStockSymbol);
-          }
+          // IMPORTANT: No need to call updateNavigationLinks here anymore.
+          // The click handlers will check window.currentUserIsPremium directly.
         }
       });
 
@@ -253,11 +206,12 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Global variables for Firebase, though not used in this specific script.
-        // They are included as part of a standard template for a web application.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
+        // Global variables for Firebase (from the module script, now used here)
+        // These are just for consistency and might not be used directly in this script block
+        // as Firebase is initialized in the module script.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // This might not be needed if firebaseConfig is not re-used.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {}; // This might not be needed.
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : ''; // This might not be needed.
 
         let stockSymbol = '';
         let generalData = null; // Stores the entire response from /tab1
@@ -272,6 +226,20 @@
         const errorTextSpan = document.getElementById('errorText');
         const premiumMessage = document.getElementById('premium-message'); // Defined globally now
 
+        // Define all navigation links once
+        const navLinks = [ // Moved this array to the main script block
+            { id: 'nav-general-info', file: 'general_info.html', premium: false },
+            { id: 'nav-income-statement', file: 'income_statement.html', premium: false },
+            { id: 'nav-cash-flow', file: 'cash_flow.html', premium: false },
+            { id: 'nav-balance-sheet', file: 'balance_sheet.html', premium: false },
+            { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
+            { id: 'nav-earnings', file: 'earnings.html', premium: false },
+            { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
+            { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
+            { id: 'nav-recent-news', file: 'recent_news.html', premium: false },
+        ];
+
+
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
@@ -281,10 +249,29 @@
                 return;
             }
 
-            // Initial setup for navigation links. Non-premium links will get their hrefs.
-            // Premium links will be set to '#' initially, and their final state
-            // will be configured once currentUserIsPremium is known.
-            updateNavigationLinks(stockSymbol); // Call it here too, to set initial non-premium links and premium placeholders
+            // --- Simplified Navigation Link Setup ---
+            navLinks.forEach(link => {
+                const navElement = document.getElementById(link.id);
+                if (navElement) {
+                    if (link.premium) {
+                        // For premium links, always set a dummy href and attach a click listener
+                        // The listener will check window.currentUserIsPremium at the time of click.
+                        navElement.href = '#';
+                        navElement.addEventListener('click', (event) => {
+                            event.preventDefault(); // Stop default navigation
+                            if (window.currentUserIsPremium) {
+                                window.location.href = `${link.file}?stock=${stockSymbol}`;
+                            } else {
+                                showPremiumMessage();
+                            }
+                        });
+                    } else {
+                        // For non-premium links, set href directly as before
+                        navElement.href = `${link.file}?stock=${stockSymbol}`;
+                    }
+                }
+            });
+            // --- End Simplified Navigation Link Setup ---
 
             fetchGeneralInfo(stockSymbol);
         });
@@ -437,7 +424,7 @@
                     button.classList.remove('bg-gray-300', 'text-gray-800', 'hover:bg-gray-400');
                     button.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700');
                 } else {
-                    button.classList.remove('bg-green-600', 'text-white', 'hover:bg-green-700');
+                    button.classList.remove('bg-green-600', 'text-white', 'hover:bg-gray-400');
                     button.classList.add('bg-gray-300', 'text-gray-800', 'hover:bg-gray-400');
                 }
             });
