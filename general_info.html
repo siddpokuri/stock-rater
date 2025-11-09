@@ -64,9 +64,7 @@
                 <!-- Navigation items, with dynamic hrefs set by JavaScript -->
                 <a href="#" id="nav-general-info" class="text-blue-700 font-bold transition-colors duration-300">General Info</a>
                 <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
-                <!-- === NEW CODE: Cash Flow Tab === -->
                 <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
-                <!-- === END OF NEW CODE === -->
                 <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
                 <!-- Premium Links - HREFs will be set by JS or blocked if not premium -->
                 <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
@@ -168,8 +166,51 @@
       const auth = getAuth(app);
       const db = getFirestore(app); // Initialize Firestore
 
-      // Global variable to store user's premium status
+      // Global variable to store user's premium status. Initialize to false.
+      // It will be updated by onAuthStateChanged.
       window.currentUserIsPremium = false;
+
+      // Define all navigation links once
+      const allNavLinks = [
+          { id: 'nav-general-info', file: 'general_info.html', premium: false },
+          { id: 'nav-income-statement', file: 'income_statement.html', premium: false },
+          { id: 'nav-cash-flow', file: 'cash_flow.html', premium: false },
+          { id: 'nav-balance-sheet', file: 'balance_sheet.html', premium: false },
+          { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
+          { id: 'nav-earnings', file: 'earnings.html', premium: false },
+          { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
+          { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
+          { id: 'nav-recent-news', file: 'recent_news.html', premium: false },
+      ];
+
+
+      // Function to update navigation links based on current premium status
+      function updateNavigationLinks(currentStockSymbol) {
+          allNavLinks.forEach(link => {
+              const navElement = document.getElementById(link.id);
+              if (navElement) {
+                  // Remove any previously attached click listeners to avoid duplicates
+                  // This is crucial as this function will be called multiple times.
+                  navElement.onclick = null; // Clear previous handler if any
+
+                  if (link.premium) {
+                      if (window.currentUserIsPremium) {
+                          navElement.href = `${link.file}?stock=${currentStockSymbol}`;
+                      } else {
+                          navElement.href = '#'; // Keep dummy href
+                          navElement.onclick = (event) => {
+                              event.preventDefault(); // Prevent default navigation
+                              showPremiumMessage();
+                          };
+                      }
+                  } else {
+                      // For non-premium links, always set href directly
+                      navElement.href = `${link.file}?stock=${currentStockSymbol}`;
+                  }
+              }
+          });
+      }
+
 
       onAuthStateChanged(auth, async (user) => { // Made async to use await
         if (!user) {
@@ -190,6 +231,14 @@
             window.currentUserIsPremium = false;
           }
           console.log("Current user premium status:", window.currentUserIsPremium);
+
+          // CRITICAL: Update navigation links AFTER premium status is loaded
+          // Ensure stockSymbol is available when calling this.
+          const urlParams = new URLSearchParams(window.location.search);
+          const currentStockSymbol = urlParams.get('stock');
+          if (currentStockSymbol) {
+               updateNavigationLinks(currentStockSymbol);
+          }
         }
       });
 
@@ -227,44 +276,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
 
-            const navLinks = [
-                { id: 'nav-general-info', file: 'general_info.html' },
-                { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' },
-                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
-                { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
-                { id: 'nav-recent-news', file: 'recent_news.html' },
-            ];
-
             if (!stockSymbol) {
                 showError('No stock symbol provided in the URL.');
                 return;
             }
 
-            // Update navigation bar hrefs
-            navLinks.forEach(link => {
-                const navElement = document.getElementById(link.id);
-                if (navElement) {
-                    if (link.premium) {
-                        // For premium links, attach an event listener
-                        navElement.href = '#'; // Set a dummy href for styling/accessibility
-                        navElement.addEventListener('click', (event) => {
-                            event.preventDefault(); // Prevent default navigation
-                            if (window.currentUserIsPremium) {
-                                window.location.href = `${link.file}?stock=${stockSymbol}`;
-                            } else {
-                                showPremiumMessage();
-                            }
-                        });
-                    } else {
-                        // For non-premium links, set href directly as before
-                        navElement.href = `${link.file}?stock=${stockSymbol}`;
-                    }
-                }
-            });
+            // Initial setup for navigation links. Non-premium links will get their hrefs.
+            // Premium links will be set to '#' initially, and their final state
+            // will be configured once currentUserIsPremium is known.
+            updateNavigationLinks(stockSymbol); // Call it here too, to set initial non-premium links and premium placeholders
 
             fetchGeneralInfo(stockSymbol);
         });
