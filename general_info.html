@@ -26,19 +26,19 @@
             max-width: 100%;
             height: 100%;
         }
+        /* Fixed: Strong styles for the Header and Price */
+        #chartSectionTitle {
+            @apply text-2xl md:text-3xl font-extrabold text-gray-900 mb-2 text-center;
+        }
+        #currentPriceDisplay {
+            @apply text-4xl md:text-5xl font-black text-gray-800 mb-6;
+        }
         .no-chart-data-message {
             @apply text-center text-gray-500 text-lg;
             position: absolute;
             width: 100%;
             top: 50%;
             transform: translateY(-50%);
-        }
-        /* Fixed: Restored the prominent Price Display styling */
-        #currentPriceDisplay {
-            @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4;
-        }
-        #chartSectionTitle {
-            @apply text-2xl font-bold text-gray-800 mb-4 text-center;
         }
     </style>
 </head>
@@ -61,46 +61,43 @@
     </nav>
 
     <main class="container mx-auto p-6">
-        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">Fetching Data...</div>
-        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mt-10" role="alert">
-            <span id="errorText"></span>
-        </div>
-        <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mt-4 hidden text-center"></p>
-
+        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10 font-medium">Fetching Market Data...</div>
+        
         <div id="generalContent" class="hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Company Overview</h2>
-                    <div id="generalInfoDetails" class="divide-y divide-gray-200"></div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center border-b pb-4">Company Overview</h2>
+                    <div id="generalInfoDetails" class="divide-y divide-gray-100"></div>
                     <div id="companyDescriptionContainer" class="mt-4 pt-4 border-t border-gray-200"></div>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
-                    <h2 id="chartSectionTitle"></h2>
-                    <div id="currentPriceDisplay">Price: N/A</div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 flex flex-col items-center">
+                    <h2 id="chartSectionTitle">Company Name</h2>
+                    <div id="currentPriceDisplay">$0.00</div>
 
-                    <div class="flex flex-wrap justify-center gap-2 w-full mb-4">
-                        <button id="chartBtn1D" class="chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition bg-green-600 text-white">1 Day</button>
-                        <button id="chartBtn5D" class="chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition bg-gray-300 text-gray-800">5 Day</button>
-                        <button id="chartBtn1M" class="chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition bg-gray-300 text-gray-800">1 Month</button>
-                        <button id="chartBtn1Y" class="chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition bg-gray-300 text-gray-800">1 Year</button>
+                    <div class="flex flex-wrap justify-center gap-2 w-full mb-6">
+                        <button id="chartBtn1D" class="chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-green-600 text-white shadow-sm">1D</button>
+                        <button id="chartBtn5D" class="chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-gray-200 text-gray-700 hover:bg-gray-300">5D</button>
+                        <button id="chartBtn1M" class="chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-gray-200 text-gray-700 hover:bg-gray-300">1M</button>
+                        <button id="chartBtn1Y" class="chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-gray-200 text-gray-700 hover:bg-gray-300">1Y</button>
                     </div>
+
                     <div class="chart-container">
                         <canvas id="priceChart"></canvas>
-                        <p id="noChartDataMessage" class="no-chart-data-message hidden">No chart data available.</p>
+                        <p id="noChartDataMessage" class="no-chart-data-message hidden">Market data unavailable for this period.</p>
                     </div>
                     
-                    <div class="flex flex-col sm:flex-row justify-center items-center gap-4 w-full mt-4">
-                        <div id="chartPercentageChange" class="text-xl md:text-2xl font-semibold">Change: N/A</div>
-                        <div id="chartVolume" class="text-xl md:text-2xl font-semibold">Vol: N/A</div>
-                        <div id="chartAvgVolume" class="text-xl md:text-2xl font-semibold text-gray-400">Avg Vol: N/A</div>
+                    <div class="flex flex-wrap justify-center items-center gap-6 w-full mt-6">
+                        <div id="chartPercentageChange" class="text-2xl font-bold">0.00%</div>
+                        <div id="chartVolume" class="text-xl font-semibold text-gray-700">Vol: 0</div>
+                        <div id="chartAvgVolume" class="text-xl font-semibold text-gray-400">Avg: 0</div>
                     </div>
                 </div>
             </div>
 
             <div id="keyRatiosSection" class="bg-white p-6 rounded-xl shadow-md mt-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Key Ratios</h2>
-                <div id="keyRatiosDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center border-b pb-4">Key Ratios</h2>
+                <div id="keyRatiosDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
         </div>
     </main>
@@ -115,8 +112,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
-            if (!stockSymbol) return;
-            fetchGeneralInfo(stockSymbol);
+            if (stockSymbol) fetchGeneralInfo(stockSymbol);
         });
 
         async function fetchGeneralInfo(symbol) {
@@ -132,18 +128,15 @@
 
         function displayGeneralInfo() {
             const profile = generalData["Profile Info"] || {};
-            document.getElementById('chartSectionTitle').textContent = `${profile["Company Name"]} - (${profile["Exchange"]}: ${stockSymbol})`;
-            
-            // Fixed: Restored Price display format
-            document.getElementById('currentPriceDisplay').textContent = `Price: ${formatValue(profile["Price"], "Price")}`;
+            // Setting Big Bold Title and Price
+            document.getElementById('chartSectionTitle').textContent = `${profile["Company Name"]} (${stockSymbol})`;
+            document.getElementById('currentPriceDisplay').textContent = formatValue(profile["Price"], "Price");
             
             const details = document.getElementById('generalInfoDetails');
             details.innerHTML = '';
             
             const rows = [
                 ["Market Cap", profile["Market Cap"]],
-                ["EPS", generalData["EPS"]],
-                ["Beta", profile["Beta"]],
                 ["Industry", profile["Industry"]],
                 ["Sector", profile["Sector"]],
                 ["Country", profile["Country"]]
@@ -151,16 +144,14 @@
 
             rows.forEach(([label, val]) => {
                 const row = document.createElement('div');
-                row.className = 'flex justify-between py-2';
-                row.innerHTML = `<strong class="text-gray-700">${label}:</strong><span class="text-gray-800">${formatValue(val, label)}</span>`;
+                row.className = 'flex justify-between py-3';
+                row.innerHTML = `<strong class="text-gray-600">${label}</strong><span class="text-gray-900 font-medium">${formatValue(val, label)}</span>`;
                 details.appendChild(row);
             });
 
-            // Fixed: Restored Company Description
-            const descriptionContainer = document.getElementById('companyDescriptionContainer');
-            descriptionContainer.innerHTML = `
-                <strong class="text-gray-700">Company Description:</strong>
-                <p class="text-gray-800 mt-2 text-sm leading-relaxed">${profile["Company Description"] || 'N/A'}</p>
+            document.getElementById('companyDescriptionContainer').innerHTML = `
+                <strong class="text-gray-700 block mb-2">About the Company</strong>
+                <p class="text-gray-600 text-sm leading-relaxed">${profile["Company Description"] || 'No description available.'}</p>
             `;
 
             renderPriceChart('1D');
@@ -172,8 +163,8 @@
             container.innerHTML = '';
             Object.entries(ratios).forEach(([label, val]) => {
                 const div = document.createElement('div');
-                div.className = 'bg-gray-50 p-4 rounded-lg shadow-sm';
-                div.innerHTML = `<div class="text-sm font-semibold text-gray-600">${label}</div><div class="text-xl font-bold text-gray-800">${formatValue(val, label)}</div>`;
+                div.className = 'bg-gray-50 border border-gray-100 p-4 rounded-lg';
+                div.innerHTML = `<div class="text-xs uppercase tracking-wider font-bold text-gray-500 mb-1">${label}</div><div class="text-xl font-bold text-gray-900">${formatValue(val, label)}</div>`;
                 container.appendChild(div);
             });
         }
@@ -188,16 +179,15 @@
             const labels = chartData.map(d => d[dateKey]);
             const prices = chartData.map(d => parseFloat(d[priceKey]));
             const pctChange = generalData["Changes"] ? generalData["Changes"][period] : 0;
-            const color = pctChange >= 0 ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)';
-            const bgColor = pctChange >= 0 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+            const color = pctChange >= 0 ? '#10b981' : '#ef4444'; // Emerald and Red
 
-            document.getElementById('chartPercentageChange').textContent = `Change: ${pctChange.toFixed(2)}%`;
-            document.getElementById('chartPercentageChange').className = `text-xl md:text-2xl font-semibold ${pctChange >= 0 ? 'text-green-600' : 'text-red-600'}`;
+            document.getElementById('chartPercentageChange').textContent = `${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(2)}%`;
+            document.getElementById('chartPercentageChange').className = `text-2xl font-bold ${pctChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
 
             const volData = generalData["Volume (last trading day and average)"];
             if (volData) {
                 document.getElementById('chartVolume').textContent = `Vol: ${formatValue(volData["Volume"], "Volume")}`;
-                document.getElementById('chartAvgVolume').textContent = `Avg Vol: ${formatValue(volData["Average Volume"], "Volume")}`;
+                document.getElementById('chartAvgVolume').textContent = `Avg: ${formatValue(volData["Average Volume"], "Volume")}`;
             }
 
             const ctx = document.getElementById('priceChart').getContext('2d');
@@ -208,11 +198,12 @@
                     datasets: [{
                         data: prices,
                         borderColor: color,
-                        backgroundColor: bgColor,
+                        backgroundColor: pctChange >= 0 ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)',
                         fill: true,
                         pointRadius: 0,
                         pointHoverRadius: 6,
                         pointHoverBackgroundColor: color,
+                        borderWidth: 2,
                         tension: 0.1
                     }]
                 },
@@ -224,15 +215,17 @@
                         legend: { display: false },
                         tooltip: {
                             enabled: true,
-                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                            titleColor: '#1f2937',
-                            bodyColor: '#1f2937',
+                            backgroundColor: '#fff',
+                            titleColor: '#111827',
+                            bodyColor: '#111827',
                             borderColor: '#e5e7eb',
                             borderWidth: 1,
-                            padding: 10,
+                            padding: 12,
+                            cornerRadius: 8,
                             displayColors: false,
+                            bodyFont: { weight: 'bold' },
                             callbacks: {
-                                label: (ctx) => `Price: $${ctx.parsed.y.toFixed(2)}`,
+                                label: (ctx) => `Price: $${ctx.parsed.y.toLocaleString(undefined, {minimumFractionDigits: 2})}`,
                                 title: (ctx) => {
                                     const val = ctx[0].label;
                                     return period === '1D' ? val.substring(11, 16) : val.substring(0, 10);
@@ -244,15 +237,17 @@
                         x: { 
                             grid: { display: false },
                             ticks: { 
-                                maxTicksLimit: 5, // Maintains the "gaps" for cleanliness
+                                maxTicksLimit: 5, // Maintains the gaps
                                 maxRotation: 0,
+                                font: { weight: '600' },
+                                color: '#9ca3af',
                                 callback: function(v) {
                                     const lab = this.getLabelForValue(v);
                                     return period === '1D' ? lab.substring(11, 16) : lab.substring(0, 10);
                                 }
                             } 
                         },
-                        y: { grid: { color: '#f1f5f9' } }
+                        y: { grid: { color: '#f3f4f6' }, ticks: { font: { weight: '500' }, color: '#9ca3af' } }
                     }
                 }
             });
@@ -262,7 +257,7 @@
             if (v == null || v === 'N/A') return 'N/A';
             if (typeof v === 'number') {
                 if (l.includes("Market Cap") || l.includes("Volume") || l === "Price") {
-                    if (l === "Price") return "$" + v.toLocaleString(undefined, {minimumFractionDigits: 2});
+                    if (l === "Price") return "$" + v.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
                     if (Math.abs(v) >= 1e12) return (v / 1e12).toFixed(2) + 'T';
                     if (Math.abs(v) >= 1e9) return (v / 1e9).toFixed(2) + 'B';
                     if (Math.abs(v) >= 1e6) return (v / 1e6).toFixed(2) + 'M';
@@ -275,7 +270,9 @@
 
         function setActiveChartButton(btnId) {
             document.querySelectorAll('.chart-period-btn').forEach(btn => {
-                btn.className = btn.id === btnId ? "chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition bg-green-600 text-white" : "chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition bg-gray-300 text-gray-800";
+                btn.className = btn.id === btnId ? 
+                    "chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-green-600 text-white shadow-sm" : 
+                    "chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-gray-200 text-gray-700 hover:bg-gray-300";
             });
         }
 
