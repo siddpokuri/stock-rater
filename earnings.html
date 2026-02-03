@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Info - Earnings</title>
-    <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Chart.js for creating the bar graph -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Custom font for a modern look */
@@ -14,16 +12,6 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc; /* A very light gray background */
-        }
-        /* Custom styles for the toggle buttons */
-        .toggle-button {
-            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-        }
-        .toggle-button.active {
-            background-color: white;
-            color: #2563eb; /* A nice blue color */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         /* Loading spinner animation */
         .loading-spinner {
@@ -67,37 +55,10 @@
             max-width: 100%;
             height: 100%;
         }
-        /* Markdown styling for the AI Summary */
-        .markdown-content h2 {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .markdown-content ul, .markdown-content ol {
-            list-style-type: disc;
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .markdown-content li {
-            margin-bottom: 0.5rem;
-        }
-        .markdown-content strong {
-            font-weight: bold;
-        }
-        /* New styling for the Q&A box */
-        .qna-box h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #374151;
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-        }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <!-- Navigation Bar -->
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
             <div class="flex flex-wrap justify-center space-x-8 font-semibold">
@@ -118,13 +79,6 @@
     <main class="container mx-auto p-6">
         <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
         
-        <!-- Toggle buttons for Earnings Data / AI Summary -->
-        <!-- The 'max-w-sm' class was removed to make the container fit the button widths. -->
-        <div class="flex justify-center mb-6 bg-gray-200 rounded-full p-1 mx-auto w-fit">
-            <button id="earnings-data-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Earnings Data</button>
-            <button id="ai-summary-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">AI Summary</button>
-        </div>
-        
         <div id="loadingIndicator" class="flex flex-col items-center my-8 hidden">
             <div id="loading-spinner" class="loading-spinner"></div>
             <p class="text-gray-600 mt-4 text-lg">Fetching Earnings Data...</p>
@@ -135,24 +89,17 @@
             <span class="block sm:inline" id="errorText"></span>
         </div>
 
-        <!-- This is the new message box for premium access -->
         <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
 
-        <!-- Container for both views. Only one will be visible at a time. -->
         <div id="earningsContent" class="hidden">
-            <!-- View 1: Existing Earnings Data -->
             <div id="earningsDataView">
-                <!-- Top section: Next Quarter Estimates and EPS Chart -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <!-- Next Quarter Estimates Box (Left) -->
                     <div class="bg-white p-6 rounded-xl shadow-md">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Next Quarter Estimates</h2>
                         <div id="nextQuarterEstimates" class="space-y-2">
-                            <!-- Content populated by JS -->
-                        </div>
+                            </div>
                     </div>
 
-                    <!-- Last 4 Quarters' EPS Bar Graph (Right) -->
                     <div class="bg-white p-6 rounded-xl shadow-md flex flex-col">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Last 4 Quarters' EPS Results</h2>
                         <div class="relative h-40 w-full"> 
@@ -161,7 +108,6 @@
                     </div>
                 </div>
 
-                <!-- Bottom section: Past 4 Quarters' Earnings Table -->
                 <div class="bg-white p-6 rounded-xl shadow-md">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Past 4 Quarters' Earnings</h2>
                     <div class="overflow-x-auto">
@@ -178,30 +124,18 @@
                                 </tr>
                             </thead>
                             <tbody id="pastEarningsTableBody">
-                                <!-- Past earnings data will be inserted here -->
-                            </tbody>
+                                </tbody>
                         </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- View 2: AI Summary with single box -->
-            <div id="aiSummaryView" class="hidden flex flex-col items-center">
-                
-                <!-- AI Summary Box -->
-                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl mx-auto mb-6">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Earnings Transcript Summary</h2>
-                    <div id="aiSummaryContent" class="markdown-content prose max-w-none">
-                        <!-- AI Summary will be populated here -->
                     </div>
                 </div>
             </div>
         </div>
     </main>
+
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
-      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
     
       const firebaseConfig = {
         apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
@@ -215,74 +149,58 @@
     
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
-      const db = getFirestore(app); // Initialize Firestore
+      const db = getFirestore(app);
 
-      // Global variable to store user's premium status
       window.currentUserIsPremium = false;
     
-      onAuthStateChanged(auth, async (user) => { // Made async to use await
+      onAuthStateChanged(auth, async (user) => {
         if (!user) {
-          window.location.href = "auth.html"; // redirect if not logged in
+          window.location.href = "auth.html";
         } else {
-          // Fetch user's premium status from Firestore
           const userDocRef = doc(db, "users", user.uid);
           try {
             const userDoc = await getDoc(userDocRef);
             if (userDoc.exists()) {
-              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
+              window.currentUserIsPremium = userDoc.data().isPremium || false;
             } else {
-              console.warn("User document not found for UID:", user.uid);
               window.currentUserIsPremium = false;
             }
           } catch (e) {
             console.error("Error fetching user premium status:", e);
             window.currentUserIsPremium = false;
           }
-          console.log("Current user premium status:", window.currentUserIsPremium);
         }
       });
     
       window.signOutUser = async function() {
         try {
           await signOut(auth);
-          window.location.href = "auth.html"; // redirect after logout
+          window.location.href = "auth.html";
         } catch (error) {
           console.error("Error signing out:", error);
         }
       };
     </script>
+
     <script>
         let stockSymbol = '';
         let epsChartInstance = null;
-        let activeView = 'earningsData'; // State to track the active view
-        let backendData = null; // Store the fetched data to avoid re-fetching
+        let backendData = null;
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
-        const premiumMessage = document.getElementById('premium-message'); // Get the premium message element
+        const premiumMessage = document.getElementById('premium-message');
 
-        // Helper function to format numbers
         function formatNumber(num) {
             if (num === null || num === undefined || num === 'N/A' || num === 'TBA') return num;
-            if (typeof num === 'string' && num.match(/^[\d.]+[BMKT]?$/i)) {
-                return num;
-            }
-            
+            if (typeof num === 'string' && num.match(/^[\d.]+[BMKT]?$/i)) return num;
             let value = Number(num);
             if (isNaN(value)) return 'N/A';
-
             const absValue = Math.abs(value);
-            if (absValue >= 1.0e+9) {
-                return (value / 1.0e+9).toFixed(2) + "B";
-            }
-            if (absValue >= 1.0e+6) {
-                return (value / 1.0e+6).toFixed(2) + "M";
-            }
-            if (absValue >= 1.0e+3) {
-                return (value / 1.0e+3).toFixed(2) + "K";
-            }
+            if (absValue >= 1.0e+9) return (value / 1.0e+9).toFixed(2) + "B";
+            if (absValue >= 1.0e+6) return (value / 1.0e+6).toFixed(2) + "M";
+            if (absValue >= 1.0e+3) return (value / 1.0e+3).toFixed(2) + "K";
             return value.toFixed(2);
         }
 
-        // Helper function for percentages that are already scaled (e.g., 29.24)
         function formatPercentageDirect(num) {
             if (num === null || num === undefined) return 'N/A';
             num = Number(num);
@@ -292,19 +210,15 @@
 
         async function fetchEarnings(symbol) {
             showLoading(true);
-            premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
+            premiumMessage.classList.add('hidden');
             try {
-                // Fetch data with exponential backoff
                 let response = null;
                 let delay = 1000;
                 let maxRetries = 5;
                 for (let i = 0; i < maxRetries; i++) {
                     response = await fetch(`${backendBaseUrl}/tab5?stock=${symbol}`);
-                    if (response.ok) {
-                        break;
-                    }
+                    if (response.ok) break;
                     if (response.status === 429) {
-                        console.warn(`API call failed with status 429. Retrying in ${delay}ms...`);
                         await new Promise(resolve => setTimeout(resolve, delay));
                         delay *= 2;
                     } else {
@@ -312,35 +226,20 @@
                     }
                 }
                 
-                if (!response || !response.ok) {
-                    throw new Error('Max retries reached, failed to fetch data.');
-                }
+                if (!response || !response.ok) throw new Error('Max retries reached, failed to fetch data.');
                 
                 const data = await response.json();
-
                 if (data.error) {
                     showError(data.error);
                 } else {
                     backendData = data;
-                    renderView();
+                    renderEarningsDataView();
                     showLoading(false);
                     document.getElementById('earningsContent').classList.remove('hidden');
                 }
             } catch (error) {
-                console.error('Error fetching earnings (network or JSON parse error):', error);
-                if (error instanceof TypeError && error.message.includes('JSON')) {
-                    try {
-                        const responseClone = await fetch(`${backendBaseUrl}/tab5?stock=${symbol}`);
-                        const rawText = await responseClone.text();
-                        console.error('Raw response text that caused JSON parsing error:', rawText);
-                        showError('Failed to parse earnings data. The server might be returning non-JSON content. Check console for raw response.');
-                    } catch (reFetchError) {
-                        console.error('Error re-fetching for raw text:', reFetchError);
-                        showError('A network error occurred while fetching earnings. Please check your internet connection or try again later.');
-                    }
-                } else {
-                    showError('A network error occurred while fetching earnings. Please check your internet connection or try again later.');
-                }
+                console.error('Error:', error);
+                showError('A network error occurred while fetching earnings.');
             }
         }
         
@@ -348,7 +247,7 @@
             const pastEarnings = backendData["Past 4 Quarters' Earnings"] || [];
             const nextQuarter = backendData["Next Quarter Estimates"] || {};
             
-            // --- Display Next Quarter Estimates ---
+            // Next Quarter
             const nextQuarterEstimatesDiv = document.getElementById('nextQuarterEstimates');
             nextQuarterEstimatesDiv.innerHTML = '';
             if (nextQuarter && Object.keys(nextQuarter).length > 0) {
@@ -361,7 +260,7 @@
                 nextQuarterEstimatesDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No next quarter estimates available.</p>';
             }
 
-            // --- Display Past 4 Quarters' Earnings Table ---
+            // Past Table
             const pastEarningsTableBody = document.getElementById('pastEarningsTableBody');
             pastEarningsTableBody.innerHTML = '';
             if (pastEarnings.length > 0) {
@@ -382,71 +281,16 @@
                 pastEarningsTableBody.innerHTML = '<tr><td colspan="7" class="text-center text-gray-500 py-4">No past earnings data available.</td></tr>';
             }
 
-            // --- Render Last 4 Quarters' EPS Bar Graph ---
             renderEpsChart(pastEarnings);
-
-            // Show the Earnings Data view and hide the AI Summary view
-            document.getElementById('earningsDataView').classList.remove('hidden');
-            document.getElementById('aiSummaryView').classList.add('hidden');
-        }
-        
-        function renderAiSummaryView() {
-            const aiSummary = backendData["Most Recent Earnings Transcript AI Summary"];
-            const aiSummaryContentDiv = document.getElementById('aiSummaryContent');
-
-            // Clear previous content
-            aiSummaryContentDiv.innerHTML = '';
-            
-            if (aiSummary) {
-                // The new backend only returns a bullet point summary.
-                // We no longer need to split for Q&A.
-                const summaryText = aiSummary.trim();
-                
-                // Remove the header if it exists
-                const summaryHeader = '---Overall Summary---';
-                const content = summaryText.startsWith(summaryHeader)
-                    ? summaryText.substring(summaryHeader.length).trim()
-                    : summaryText;
-                
-                // Convert bullet points to a proper list
-                const listHtml = content.split('\n* ').filter(Boolean).map(item => `<li>${item.trim()}</li>`).join('');
-                if (listHtml) {
-                    aiSummaryContentDiv.innerHTML = `<ul>${listHtml}</ul>`;
-                } else {
-                    aiSummaryContentDiv.innerHTML = `<p>${content}</p>`;
-                }
-            } else {
-                aiSummaryContentDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No AI summary available for this stock.</p>';
-            }
-
-            // Show the AI Summary view and hide the Earnings Data view
-            document.getElementById('aiSummaryView').classList.remove('hidden');
-            document.getElementById('earningsDataView').classList.add('hidden');
-        }
-
-        function renderView() {
-            if (!backendData) return;
-
-            if (activeView === 'earningsData') {
-                renderEarningsDataView();
-            } else {
-                renderAiSummaryView();
-            }
         }
 
         function renderEpsChart(pastEarningsData) {
             const ctx = document.getElementById('epsChart');
+            if (epsChartInstance) epsChartInstance.destroy();
             
-            if (epsChartInstance) {
-                epsChartInstance.destroy();
-            }
-            
-            // Re-select the canvas element if it was replaced
             const chartParent = document.querySelector('#earningsDataView .relative');
             const existingMessage = chartParent.querySelector('p');
-            if (existingMessage) {
-                chartParent.innerHTML = '<canvas id="epsChart"></canvas>';
-            }
+            if (existingMessage) chartParent.innerHTML = '<canvas id="epsChart"></canvas>';
 
             if (!pastEarningsData || pastEarningsData.length === 0) {
                 chartParent.innerHTML = '<p class="text-center text-gray-500 mt-4">No EPS data for chart.</p>';
@@ -472,23 +316,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        title: { display: false },
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        x: {
-                            ticks: { color: '#4b5563' },
-                            grid: { display: false }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#4b5563',
-                                callback: function(value) { return value.toFixed(2); }
-                            },
-                            grid: { color: '#e5e7eb' }
-                        }
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true }
                     }
                 }
             });
@@ -497,86 +328,53 @@
         function showLoading(show) {
             document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
             document.getElementById('earningsContent').classList.toggle('hidden', show);
-            document.getElementById('errorMessage').classList.add('hidden');
         }
 
         function showError(message) {
             document.getElementById('loadingIndicator').classList.add('hidden');
-            document.getElementById('earningsContent').classList.add('hidden');
             document.getElementById('errorText').textContent = message;
             document.getElementById('errorMessage').classList.remove('hidden');
-            premiumMessage.classList.add('hidden'); // Also hide premium message if an error occurs
         }
 
-        // Function to show premium message
         function showPremiumMessage() {
             premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
             premiumMessage.classList.remove('hidden');
-
-            // Hide the message after 5 seconds
-            setTimeout(() => {
-                premiumMessage.classList.add('hidden');
-            }, 5000);
+            setTimeout(() => premiumMessage.classList.add('hidden'), 5000);
         }
 
-        // Add event listeners for the new toggle buttons
-        document.getElementById('earnings-data-btn').addEventListener('click', () => {
-            document.getElementById('ai-summary-btn').classList.remove('active');
-            document.getElementById('earnings-data-btn').classList.add('active');
-            activeView = 'earningsData';
-            renderView();
-        });
-
-        document.getElementById('ai-summary-btn').addEventListener('click', () => {
-            document.getElementById('earnings-data-btn').classList.remove('active');
-            document.getElementById('ai-summary-btn').classList.add('active');
-            activeView = 'aiSummary';
-            renderView();
-        });
-
-        // Initial setup
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
-            document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Earnings`;
-
-            const navLinks = [
-                { id: 'nav-general-info', file: 'general_info.html' },
-                { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' },
-                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
-                { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
-                { id: 'nav-recent-news', file: 'recent_news.html' },
-            ];
-
             if (stockSymbol) {
+                document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Earnings`;
                 fetchEarnings(stockSymbol);
+                
+                const navLinks = [
+                    { id: 'nav-general-info', file: 'general_info.html' },
+                    { id: 'nav-income-statement', file: 'income_statement.html' },
+                    { id: 'nav-cash-flow', file: 'cash_flow.html' },
+                    { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
+                    { id: 'nav-ratings', file: 'ratings.html', premium: true },
+                    { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
+                    { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
+                    { id: 'nav-recent-news', file: 'recent_news.html' },
+                ];
+
                 navLinks.forEach(link => {
                     const navElement = document.getElementById(link.id);
                     if (navElement) {
-                        if (link.premium) {
-                            // For premium links, attach an event listener
-                            navElement.href = '#'; // Set a dummy href for styling/accessibility
-                            navElement.addEventListener('click', (event) => {
-                                event.preventDefault(); // Prevent default navigation
-                                // Use window.currentUserIsPremium from the Firebase script
-                                if (window.currentUserIsPremium) {
-                                    window.location.href = `${link.file}?stock=${stockSymbol}`;
-                                } else {
-                                    showPremiumMessage();
-                                }
-                            });
-                        } else {
-                            // For non-premium links, set href directly as before
-                            navElement.href = `${link.file}?stock=${stockSymbol}`;
-                        }
+                        navElement.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            if (link.premium && !window.currentUserIsPremium) {
+                                showPremiumMessage();
+                            } else {
+                                window.location.href = `${link.file}?stock=${stockSymbol}`;
+                            }
+                        });
                     }
                 });
             } else {
-                showError('Please return to the main page and select a stock to view its earnings.');
+                showError('Please select a stock to view its earnings.');
             }
         });
     </script>
