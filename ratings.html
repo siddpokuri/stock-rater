@@ -4,236 +4,451 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Info - Ratings</title>
-    <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* Custom font for a modern look */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* A very light gray background */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
         }
-        /* Custom styles for the table header */
-        .table-header {
-            background-color: #f3f4f6; /* light gray background */
-            font-weight: 600; /* semi-bold */
-            color: #4b5563; /* darker gray text */
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 99, 210, 0.3), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
-        .table-row-odd {
-            background-color: #ffffff; /* white background */
+
+        .container-wrapper {
+            position: relative;
+            z-index: 1;
         }
-        .table-row-even {
-            background-color: #f9fafb; /* slightly off-white for striping */
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .nav-link.home-link {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .nav-link.home-link:hover {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
         .toggle-button {
-            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
+
         .toggle-button.active {
-            background-color: white;
-            color: #2563eb; /* A nice blue color */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
+
+        .toggle-button:not(.active) {
+            background: white;
+            color: #6b7280;
+        }
+
+        .toggle-button:not(.active):hover {
+            background: #f3f4f6;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            position: relative;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+        }
+
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .rating-item {
+            transition: all 0.2s ease;
+            padding: 0.75rem 0;
+        }
+
+        .rating-item:hover {
+            background: #f9fafb;
+            margin: 0 -1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+        }
+
+        .consensus-card {
+            transition: all 0.3s ease;
+        }
+
+        .consensus-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table thead tr {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        }
+
+        .data-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .data-table th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        .data-table th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        .data-table td {
+            padding: 0.875rem 1rem;
+            color: #6b7280;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .data-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
         .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 4px solid #3b82f6;
-            width: 40px;
-            height: 40px;
-            -webkit-animation: spin 1s linear infinite;
-            animation: spin 1s linear infinite;
-            display: none; /* Initially hidden */
+            border-top-color: #667eea;
         }
 
-        @-webkit-keyframes spin {
-            0% { -webkit-transform: rotate(0deg); }
-            100% { -webkit-transform: rotate(360deg); }
+        .alert-box {
+            animation: slideDown 0.3s ease-out;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive nav adjustments */
+        @media (max-width: 1024px) {
+            .nav-link {
+                font-size: 0.875rem;
+                padding: 0.4rem 0.75rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links-container {
+                overflow-x: auto;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
+            }
+            
+            .nav-links-container::-webkit-scrollbar {
+                height: 4px;
+            }
+            
+            .nav-links-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .nav-links-container::-webkit-scrollbar-thumb {
+                background: rgba(102, 126, 234, 0.3);
+                border-radius: 4px;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- Navigation Bar -->
-    <nav class="bg-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-6 py-4 flex justify-center items-center">
-            <div class="flex flex-wrap justify-center space-x-4 sm:space-x-8 text-gray-600 font-semibold">
-                <!-- Navigation items with dynamic hrefs set by JavaScript -->
-                <a href="index.html" class="text-green-600 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
-                <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
-                <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
-                <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
-                <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
-                <a href="#" id="nav-ratings" class="text-blue-700 font-bold transition-colors duration-300">Ratings</a>
-                <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
-                <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
-                <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
-                <a href="#" id="nav-recent-news" class="hover:text-blue-600 transition-colors duration-300">Recent News</a>
+<body>
+    <!-- Navigation -->
+    <nav class="glass-nav sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="nav-links-container flex justify-start items-center gap-2 overflow-x-auto whitespace-nowrap pb-2">
+                <a href="index.html" id="nav-home" class="nav-link home-link">Home</a>
+                <a href="#" id="nav-general-info" class="nav-link">General Info</a>
+                <a href="#" id="nav-income-statement" class="nav-link">Income Statement</a>
+                <a href="#" id="nav-cash-flow" class="nav-link">Cash Flow</a>
+                <a href="#" id="nav-balance-sheet" class="nav-link">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="nav-link active">Ratings</a>
+                <a href="#" id="nav-earnings" class="nav-link">Earnings</a>
+                <a href="#" id="nav-insider-trades" class="nav-link">Insider Trades</a>
+                <a href="#" id="nav-analyst-targets" class="nav-link">Analyst Targets</a>
+                <a href="#" id="nav-recent-news" class="nav-link">Recent News</a>
             </div>
         </div>
     </nav>
 
-    <main class="container mx-auto p-6">
-        <!-- Dynamic Title -->
-        <h1 id="stockTitle" class="text-3xl font-bold text-gray-800 mb-6 text-center">Stock Ratings</h1>
+    <main class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-5xl mx-auto">
 
-        <!-- Updated Toggle Buttons to match balance_sheet.html -->
-        <!-- Adjusted the container to have a max-width and be centered -->
-        <div class="flex justify-center max-w-md mx-auto mb-6 bg-gray-200 rounded-full p-1">
-            <button id="showCurrentRatings" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Current Ratings</button>
-            <button id="showPastRatings" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">Past-to-Current Ratings</button>
-        </div>
-
-        <div id="loadingIndicator" class="flex flex-col items-center my-8 hidden">
-            <div class="loading-spinner"></div>
-            <p class="text-gray-600 mt-4 text-lg">Loading ratings data...</p>
-        </div>
-
-        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10" role="alert">
-            <strong class="font-bold">Error!</strong>
-            <span class="block sm:inline" id="errorText"></span>
-        </div>
-
-        <!-- This is the new message box for premium access -->
-        <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
-
-        <!-- Container for Current Ratings -->
-        <div id="currentRatingsContainer" class="hidden max-w-4xl mx-auto space-y-8">
-            <!-- Overall Ratings Section -->
-            <div id="overallRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Core Ratings</h2>
-                <div id="coreRatings" class="divide-y divide-gray-200">
-                    <!-- Core ratings will be inserted here -->
+            <!-- Header with Title and Toggle -->
+            <div class="glass-card rounded-2xl p-8 mb-6 fade-in">
+                <h1 id="stockTitle" class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-6">Stock Ratings</h1>
+                
+                <!-- Toggle buttons -->
+                <div class="flex justify-center">
+                    <div class="inline-flex bg-gray-100 rounded-xl p-1">
+                        <button id="showCurrentRatings" class="toggle-button active px-6 py-3 rounded-lg text-base font-semibold">Current Ratings</button>
+                        <button id="showPastRatings" class="toggle-button px-6 py-3 rounded-lg text-base font-semibold">Past-to-Current Ratings</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Fundamental Ratings Section -->
-            <div id="fundamentalRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Fundamental Ratings</h2>
-                <div id="otherRatings" class="divide-y divide-gray-200">
-                    <!-- Other ratings will be inserted here -->
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="hidden mb-8">
+                <div class="glass-card rounded-2xl p-12 text-center fade-in">
+                    <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
+                    <p class="text-gray-700 font-medium">Loading ratings data...</p>
                 </div>
             </div>
 
-            <!-- Consensus Summary Section -->
-            <div id="consensusSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Consensus Summary</h2>
-                <div id="consensusSummary" class="flex flex-col md:flex-row justify-around text-center space-y-4 md:space-y-0">
-                    <!-- Consensus data will be inserted here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Container for Past-to-Current Ratings -->
-        <div id="pastRatingsContainer" class="hidden max-w-4xl mx-auto space-y-8">
-            <!-- Historical Ratings Section -->
-            <div id="historicalRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Historical Ratings</h2>
-                <div id="historicalRatingsTableContainer" class="overflow-x-auto">
-                    <!-- Historical Ratings table will be inserted here -->
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden mb-8 alert-box">
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
+                    <div class="flex items-start">
+                        <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
+                            <p id="errorText" class="text-red-700 text-sm"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Upgrades/Downgrades Section -->
-            <div id="upgradesDowngradesSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Analyst Upgrades/Downgrades</h2>
-                <div id="upgradesTableContainer" class="overflow-x-auto">
-                    <!-- Upgrades/Downgrades table will be inserted here -->
+            <!-- Premium Message -->
+            <div id="premium-message" class="hidden mb-8 alert-box">
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-yellow-500">
+                    <div class="flex items-start">
+                        <svg class="w-6 h-6 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <h3 class="text-yellow-900 font-semibold mb-1">Premium Feature</h3>
+                            <p class="text-yellow-800 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-900">Premium</a> to access this feature.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Current Ratings Container -->
+            <div id="currentRatingsContainer" class="hidden space-y-6">
+                <!-- Core Ratings Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Core Ratings</h2>
+                    </div>
+                    <div id="coreRatings" class="space-y-2">
+                        <!-- Core ratings will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Fundamental Ratings Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Fundamental Ratings</h2>
+                    </div>
+                    <div id="otherRatings" class="space-y-2">
+                        <!-- Other ratings will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Consensus Summary Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Consensus Summary</h2>
+                    </div>
+                    <div id="consensusSummary" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <!-- Consensus data will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Past Ratings Container -->
+            <div id="pastRatingsContainer" class="hidden space-y-6">
+                <!-- Historical Ratings Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Historical Ratings</h2>
+                    </div>
+                    <div id="historicalRatingsTableContainer" class="overflow-x-auto">
+                        <!-- Historical Ratings table will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Upgrades/Downgrades Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Analyst Upgrades/Downgrades</h2>
+                    </div>
+                    <div id="upgradesTableContainer" class="overflow-x-auto">
+                        <!-- Upgrades/Downgrades table will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
+
+    <!-- Firebase -->
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
-      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
-    
-      const firebaseConfig = {
-        apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
-        authDomain: "stocksight-75940.firebaseapp.com",
-        projectId: "stocksight-75940",
-        storageBucket: "stocksight-75940.firebasestorage.app",
-        messagingSenderId: "223645254786",
-        appId: "1:223645254786:web:14c980e559d9090f89e09b",
-        measurementId: "G-8JGEEE9KD1"
-      };
-    
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app); // Initialize Firestore
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-      // Global variable to store user's premium status
-      window.currentUserIsPremium = false;
-    
-      onAuthStateChanged(auth, async (user) => { // Made async to use await
-        if (!user) {
-          window.location.href = "auth.html"; // redirect if not logged in
-        } else {
-          // Fetch user's premium status from Firestore
-          const userDocRef = doc(db, "users", user.uid);
-          try {
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
+            authDomain: "stocksight-75940.firebaseapp.com",
+            projectId: "stocksight-75940",
+            storageBucket: "stocksight-75940.firebasestorage.app",
+            messagingSenderId: "223645254786",
+            appId: "1:223645254786:web:14c980e559d9090f89e09b",
+            measurementId: "G-8JGEEE9KD1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.currentUserIsPremium = false;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "auth.html";
             } else {
-              console.warn("User document not found for UID:", user.uid);
-              window.currentUserIsPremium = false;
+                const userDocRef = doc(db, "users", user.uid);
+                try {
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
+                        window.currentUserIsPremium = userDoc.data().isPremium || false;
+                    } else {
+                        console.warn("User document not found for UID:", user.uid);
+                        window.currentUserIsPremium = false;
+                    }
+                } catch (e) {
+                    console.error("Error fetching user premium status:", e);
+                    window.currentUserIsPremium = false;
+                }
+                console.log("Current user premium status:", window.currentUserIsPremium);
+                checkPremiumAccessForPage();
             }
-          } catch (e) {
-            console.error("Error fetching user premium status:", e);
-            window.currentUserIsPremium = false;
-          }
-          console.log("Current user premium status:", window.currentUserIsPremium);
+        });
 
-          // After authentication check, and currentUserIsPremium is set,
-          // then check if the user can access this premium page.
-          // This ensures currentUserIsPremium is available when needed.
-          checkPremiumAccessForPage();
-        }
-      });
-    
-      window.signOutUser = async function() {
-        try {
-          await signOut(auth);
-          window.location.href = "auth.html"; // redirect after logout
-        } catch (error) {
-          console.error("Error signing out:", error);
-        }
-      };
+        window.signOutUser = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = "auth.html";
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        };
 
-      // Function to check premium access specifically for this page
-      function checkPremiumAccessForPage() {
-          // Since ratings is a premium page itself, we check it here
-          if (!window.currentUserIsPremium) {
-              showPremiumMessage();
-              // Hide all content containers and loading indicators
-              document.getElementById('loadingIndicator').classList.add('hidden');
-              document.getElementById('errorMessage').classList.add('hidden');
-              document.getElementById('currentRatingsContainer').classList.add('hidden');
-              document.getElementById('pastRatingsContainer').classList.add('hidden');
-              document.getElementById('stockTitle').textContent = 'Premium Feature'; // Update title
-          } else {
-              // If premium, then fetch data as usual
-              const urlParams = new URLSearchParams(window.location.search);
-              stockSymbol = urlParams.get('stock');
-              if (stockSymbol) {
-                  document.title = `${stockSymbol.toUpperCase()} - Ratings`;
-                  document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Ratings`;
-                  fetchRatings(stockSymbol);
-              } else {
-                  showError('No stock symbol provided in the URL.');
-              }
-          }
-      }
+        function checkPremiumAccessForPage() {
+            if (!window.currentUserIsPremium) {
+                showPremiumMessage();
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('errorMessage').classList.add('hidden');
+                document.getElementById('currentRatingsContainer').classList.add('hidden');
+                document.getElementById('pastRatingsContainer').classList.add('hidden');
+                document.getElementById('stockTitle').textContent = 'Premium Feature';
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                stockSymbol = urlParams.get('stock');
+                if (stockSymbol) {
+                    document.title = `${stockSymbol.toUpperCase()} - Ratings`;
+                    document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Ratings`;
+                    fetchRatings(stockSymbol);
+                } else {
+                    showError('No stock symbol provided in the URL.');
+                }
+            }
+        }
     </script>
+
+    <!-- Main Script -->
     <script>
         let stockSymbol = '';
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
-        // Get the premium message element
         const premiumMessage = document.getElementById('premium-message');
-
 
         document.addEventListener('DOMContentLoaded', () => {
             const navLinks = [
@@ -241,26 +456,23 @@
                 { id: 'nav-income-statement', file: 'income_statement.html' },
                 { id: 'nav-cash-flow', file: 'cash_flow.html' },
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // This page is premium
+                { id: 'nav-ratings', file: 'ratings.html', premium: true },
                 { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
             const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock'); // Ensure stockSymbol is set for nav links
+            stockSymbol = urlParams.get('stock');
 
-            // Update navigation bar hrefs
             navLinks.forEach(link => {
                 const navElement = document.getElementById(link.id);
                 if (navElement) {
                     if (link.premium) {
-                        // For premium links, attach an event listener
-                        navElement.href = '#'; // Set a dummy href for styling/accessibility
+                        navElement.href = '#';
                         navElement.addEventListener('click', (event) => {
-                            event.preventDefault(); // Prevent default navigation
-                            // Use window.currentUserIsPremium from the Firebase script
+                            event.preventDefault();
                             if (window.currentUserIsPremium) {
                                 window.location.href = `${link.file}?stock=${stockSymbol}`;
                             } else {
@@ -268,18 +480,15 @@
                             }
                         });
                     } else {
-                        // For non-premium links, set href directly as before
                         navElement.href = `${link.file}?stock=${stockSymbol}`;
                     }
                 }
             });
             
-            // Add event listeners for the toggle buttons (always active)
             document.getElementById('showCurrentRatings').addEventListener('click', () => switchRatingsView('current'));
             document.getElementById('showPastRatings').addEventListener('click', () => switchRatingsView('past'));
         });
 
-        // Toggles between the two rating views
         function switchRatingsView(view) {
             const currentBtn = document.getElementById('showCurrentRatings');
             const pastBtn = document.getElementById('showPastRatings');
@@ -289,46 +498,40 @@
             if (view === 'current') {
                 currentContainer.classList.remove('hidden');
                 pastContainer.classList.add('hidden');
-                currentBtn.classList.add('active'); // Use the 'active' class
+                currentBtn.classList.add('active');
                 pastBtn.classList.remove('active');
             } else {
                 pastContainer.classList.remove('hidden');
                 currentContainer.classList.add('hidden');
-                pastBtn.classList.add('active'); // Use the 'active' class
+                pastBtn.classList.add('active');
                 currentBtn.classList.remove('active');
             }
         }
 
-        // Helper function to get Tailwind CSS color class based on rating text
         function getRatingColorClass(ratingText) {
             if (!ratingText) return 'text-gray-700';
 
             const lowerRating = String(ratingText).toLowerCase();
 
-            // Green for A grades and Strong Buy/Buy
             if (lowerRating === 'a' || lowerRating === 'a+' || lowerRating === 'a-' || lowerRating.includes('strong buy') || lowerRating.includes('buy') || lowerRating.includes('outperform') || lowerRating.includes('overweight') || lowerRating.includes('sector outperform') || lowerRating.includes('market outperform')) {
                 return 'text-green-600';
             }
-            // Yellow for B grades and Hold/Neutral
             if (lowerRating === 'b' || lowerRating === 'b+' || lowerRating === 'b-' || lowerRating.includes('hold') || lowerRating.includes('peer perform') || lowerRating.includes('market perform') || lowerRating.includes('neutral')) {
                 return 'text-yellow-500';
             }
-            // Orange for C grades
             if (lowerRating === 'c' || lowerRating === 'c+' || lowerRating === 'c-') {
                 return 'text-orange-500';
             }
-            // Red for D/F grades and Sell
             if (lowerRating === 'd' || lowerRating === 'f' || lowerRating.includes('sell') || lowerRating.includes('strong sell') || lowerRating.includes('underperform')) {
                 return 'text-red-600';
             }
             
-            return 'text-gray-700'; // Neutral gray
+            return 'text-gray-700';
         }
 
-        // Main function to fetch and display all rating data
         async function fetchRatings(symbol) {
             showLoading(true);
-            premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
+            premiumMessage.classList.add('hidden');
             try {
                 let response = null;
                 let delay = 1000;
@@ -360,7 +563,7 @@
                 } else {
                     displayAllRatings(data);
                     showLoading(false);
-                    switchRatingsView('current'); // Show current ratings by default
+                    switchRatingsView('current');
                 }
             } catch (error) {
                 console.error('Error fetching ratings:', error);
@@ -368,9 +571,7 @@
             }
         }
         
-        // New function to handle all display logic based on the updated JSON structure
         function displayAllRatings(data) {
-            // Display core ratings, including Overall Rating and Consensus
             const coreRatingsElement = document.getElementById('coreRatings');
             coreRatingsElement.innerHTML = '';
             
@@ -390,7 +591,6 @@
                 }
             });
 
-            // Display other fundamental ratings
             const otherRatingsElement = document.getElementById('otherRatings');
             otherRatingsElement.innerHTML = '';
 
@@ -408,20 +608,14 @@
                 });
             }
             
-            // Corrected line: Display consensus summary
             displayConsensusSummary(data['Consensus Summary']);
-
-            // Display upgrades and downgrades
             displayUpgradesDowngrades(data['Upgrades/Downgrades']);
-
-            // Display historical ratings
             displayHistoricalRatings(data['Historical Ratings']);
         }
 
-        // Creates a list item for a rating
         function appendRatingItem(parent, metric, value) {
             const listItem = document.createElement('div');
-            listItem.className = 'flex justify-between items-center py-3';
+            listItem.className = 'rating-item flex justify-between items-center';
             
             const metricNameSpan = document.createElement('span');
             metricNameSpan.textContent = `${metric}:`;
@@ -436,13 +630,12 @@
             parent.appendChild(listItem);
         }
 
-        // Displays the consensus summary from the backend data
         function displayConsensusSummary(data) {
             const consensusSummaryElement = document.getElementById('consensusSummary');
             consensusSummaryElement.innerHTML = '';
 
             if (!data || Object.keys(data).length === 0) {
-                consensusSummaryElement.innerHTML = '<p class="text-center text-gray-500 py-4">No consensus data available.</p>';
+                consensusSummaryElement.innerHTML = '<p class="text-center text-gray-500 py-4 col-span-full">No consensus data available.</p>';
                 return;
             }
 
@@ -452,15 +645,15 @@
                 const value = data[key];
                 if (value !== undefined) {
                     const item = document.createElement('div');
-                    item.className = 'flex flex-col items-center p-4 bg-gray-50 rounded-xl shadow-inner w-full md:w-auto';
+                    item.className = 'consensus-card bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center';
                     
                     const valueSpan = document.createElement('span');
                     valueSpan.textContent = value;
                     valueSpan.className = `text-3xl font-bold ${getRatingColorClass(key.replace('# ', ''))}`;
                     
                     const labelSpan = document.createElement('span');
-                    labelSpan.textContent = key.replace('# ', ''); // Remove the '#' for the label
-                    labelSpan.className = 'text-sm font-medium text-gray-600 mt-1';
+                    labelSpan.textContent = key.replace('# ', '');
+                    labelSpan.className = 'text-sm font-medium text-gray-600 mt-2';
                     
                     item.appendChild(valueSpan);
                     item.appendChild(labelSpan);
@@ -469,7 +662,6 @@
             });
         }
 
-        // Renders the table for analyst upgrades and downgrades
         function displayUpgradesDowngrades(data) {
             const container = document.getElementById('upgradesTableContainer');
             container.innerHTML = '';
@@ -480,26 +672,25 @@
             }
 
             let tableHtml = `
-                <table class="min-w-full table-auto rounded-xl overflow-hidden shadow">
+                <table class="data-table">
                     <thead>
-                        <tr class="table-header">
-                            <th class="py-3 px-4 text-left">Date</th>
-                            <th class="py-3 px-4 text-left">Company</th>
-                            <th class="py-3 px-4 text-left">Action</th>
-                            <th class="py-3 px-4 text-left">New Grade</th>
+                        <tr>
+                            <th>Date</th>
+                            <th>Company</th>
+                            <th>Action</th>
+                            <th>New Grade</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody>
             `;
             
-            data.forEach((item, index) => {
-                const rowClass = index % 2 === 0 ? 'table-row-even' : 'table-row-odd';
+            data.forEach((item) => {
                 tableHtml += `
-                    <tr class="${rowClass}">
-                        <td class="py-3 px-4">${item.Date}</td>
-                        <td class="py-3 px-4">${item.Company}</td>
-                        <td class="py-3 px-4">${item.Action}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['New Grade'])} font-bold">${item['New Grade']}</td>
+                    <tr>
+                        <td>${item.Date}</td>
+                        <td>${item.Company}</td>
+                        <td>${item.Action}</td>
+                        <td class="${getRatingColorClass(item['New Grade'])} font-bold">${item['New Grade']}</td>
                     </tr>
                 `;
             });
@@ -511,7 +702,6 @@
             container.innerHTML = tableHtml;
         }
 
-        // Renders the table for historical ratings
         function displayHistoricalRatings(data) {
             const container = document.getElementById('historicalRatingsTableContainer');
             container.innerHTML = '';
@@ -522,32 +712,31 @@
             }
 
             let tableHtml = `
-                <table class="min-w-full table-auto rounded-xl overflow-hidden shadow">
+                <table class="data-table">
                     <thead>
-                        <tr class="table-header">
-                            <th class="py-3 px-4 text-left">Date</th>
-                            <th class="py-3 px-4 text-left">Overall</th>
-                            <th class="py-3 px-4 text-left">ROE</th>
-                            <th class="py-3 px-4 text-left">ROA</th>
-                            <th class="py-3 px-4 text-left">P/E</th>
-                            <th class="py-3 px-4 text-left">D/E</th>
-                            <th class="py-3 px-4 text-left">P/B</th>
+                        <tr>
+                            <th>Date</th>
+                            <th>Overall</th>
+                            <th>ROE</th>
+                            <th>ROA</th>
+                            <th>P/E</th>
+                            <th>D/E</th>
+                            <th>P/B</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody>
             `;
             
-            data.forEach((item, index) => {
-                const rowClass = index % 2 === 0 ? 'table-row-even' : 'table-row-odd';
+            data.forEach((item) => {
                 tableHtml += `
-                    <tr class="${rowClass}">
-                        <td class="py-3 px-4">${item.Date}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['Overall Rating'])} font-bold">${item['Overall Rating']}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['ROE Score'])} font-bold">${item['ROE Score']}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['ROA Score'])} font-bold">${item['ROA Score']}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['Price-to-Earnings Score'])} font-bold">${item['Price-to-Earnings Score']}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['Debt-to-Equity Score'])} font-bold">${item['Debt-to-Equity Score']}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['Price-to-Book Score'])} font-bold">${item['Price-to-Book Score']}</td>
+                    <tr>
+                        <td>${item.Date}</td>
+                        <td class="${getRatingColorClass(item['Overall Rating'])} font-bold">${item['Overall Rating']}</td>
+                        <td class="${getRatingColorClass(item['ROE Score'])} font-bold">${item['ROE Score']}</td>
+                        <td class="${getRatingColorClass(item['ROA Score'])} font-bold">${item['ROA Score']}</td>
+                        <td class="${getRatingColorClass(item['Price-to-Earnings Score'])} font-bold">${item['Price-to-Earnings Score']}</td>
+                        <td class="${getRatingColorClass(item['Debt-to-Equity Score'])} font-bold">${item['Debt-to-Equity Score']}</td>
+                        <td class="${getRatingColorClass(item['Price-to-Book Score'])} font-bold">${item['Price-to-Book Score']}</td>
                     </tr>
                 `;
             });
@@ -564,7 +753,7 @@
             document.getElementById('currentRatingsContainer').classList.toggle('hidden', show);
             document.getElementById('pastRatingsContainer').classList.toggle('hidden', show);
             document.getElementById('errorMessage').classList.add('hidden');
-            premiumMessage.classList.add('hidden'); // Also hide premium message when loading
+            premiumMessage.classList.add('hidden');
         }
 
         function showError(message) {
@@ -573,15 +762,11 @@
             document.getElementById('pastRatingsContainer').classList.add('hidden');
             document.getElementById('errorText').textContent = message;
             document.getElementById('errorMessage').classList.remove('hidden');
-            premiumMessage.classList.add('hidden'); // Also hide premium message if an error occurs
+            premiumMessage.classList.add('hidden');
         }
 
-        // Function to show premium message (newly added)
         function showPremiumMessage() {
-            premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
             premiumMessage.classList.remove('hidden');
-
-            // Hide the message after 5 seconds
             setTimeout(() => {
                 premiumMessage.classList.add('hidden');
             }, 5000);
