@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Info - Ratings</title>
-    <!-- Load Tailwind CSS from CDN for styling -->
+    <title>Stock Info - Earnings</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Custom font for a modern look */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -13,26 +13,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc; /* A very light gray background */
         }
-        /* Custom styles for the table header */
-        .table-header {
-            background-color: #f3f4f6; /* light gray background */
-            font-weight: 600; /* semi-bold */
-            color: #4b5563; /* darker gray text */
-        }
-        .table-row-odd {
-            background-color: #ffffff; /* white background */
-        }
-        .table-row-even {
-            background-color: #f9fafb; /* slightly off-white for striping */
-        }
-        .toggle-button {
-            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
-        }
-        .toggle-button.active {
-            background-color: white;
-            color: #2563eb; /* A nice blue color */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
+        /* Loading spinner animation */
         .loading-spinner {
             border: 4px solid #f3f3f3;
             border-radius: 50%;
@@ -41,54 +22,66 @@
             height: 40px;
             -webkit-animation: spin 1s linear infinite;
             animation: spin 1s linear infinite;
-            display: none; /* Initially hidden */
         }
-
         @-webkit-keyframes spin {
             0% { -webkit-transform: rotate(0deg); }
             100% { -webkit-transform: rotate(360deg); }
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Existing table styling */
+        .earnings-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        .earnings-table thead {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .earnings-table th, .earnings-table td {
+            padding: 0.75rem 1rem;
+            text-align: center;
+        }
+        .earnings-table th:first-child, .earnings-table td:first-child {
+            text-align: left;
+        }
+        .earnings-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        /* Canvas styling to fill its container */
+        canvas {
+            max-width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- Navigation Bar -->
+<body class="min-h-screen">
+
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
-            <div class="flex flex-wrap justify-center space-x-4 sm:space-x-8 text-gray-600 font-semibold">
-                <!-- Navigation items with dynamic hrefs set by JavaScript -->
-                <a href="index.html" class="text-green-600 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
-                <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
-                <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
-                <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
-                <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
-                <a href="#" id="nav-ratings" class="text-blue-700 font-bold transition-colors duration-300">Ratings</a>
-                <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
-                <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
-                <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
-                <a href="#" id="nav-recent-news" class="hover:text-blue-600 transition-colors duration-300">Recent News</a>
+            <div class="flex flex-wrap justify-center space-x-8 font-semibold">
+                <a href="index.html" id="nav-home" class="text-green-600 hover:text-blue-600 transition-colors duration-300">Home</a>
+                <a href="#" id="nav-general-info" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">General Info</a>
+                <a href="#" id="nav-income-statement" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Income Statement</a>
+                <a href="#" id="nav-cash-flow" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
+                <a href="#" id="nav-balance-sheet" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Ratings</a>
+                <a href="#" id="nav-earnings" class="text-blue-700 font-bold transition-colors duration-300">Earnings</a>
+                <a href="#" id="nav-insider-trades" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
+                <a href="#" id="nav-analyst-targets" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+                <a href="#" id="nav-recent-news" class="text-gray-600 hover:text-blue-600 transition-colors duration-300">Recent News</a>
             </div>
         </div>
     </nav>
 
     <main class="container mx-auto p-6">
-        <!-- Dynamic Title -->
-        <h1 id="stockTitle" class="text-3xl font-bold text-gray-800 mb-6 text-center">Stock Ratings</h1>
-
-        <!-- Updated Toggle Buttons to match balance_sheet.html -->
-        <!-- Adjusted the container to have a max-width and be centered -->
-        <div class="flex justify-center max-w-md mx-auto mb-6 bg-gray-200 rounded-full p-1">
-            <button id="showCurrentRatings" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Current Ratings</button>
-            <button id="showPastRatings" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">Past-to-Current Ratings</button>
-        </div>
-
+        <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
+        
         <div id="loadingIndicator" class="flex flex-col items-center my-8 hidden">
-            <div class="loading-spinner"></div>
-            <p class="text-gray-600 mt-4 text-lg">Loading ratings data...</p>
+            <div id="loading-spinner" class="loading-spinner"></div>
+            <p class="text-gray-600 mt-4 text-lg">Fetching Earnings Data...</p>
         </div>
 
         <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10" role="alert">
@@ -96,59 +89,53 @@
             <span class="block sm:inline" id="errorText"></span>
         </div>
 
-        <!-- This is the new message box for premium access -->
         <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
 
-        <!-- Container for Current Ratings -->
-        <div id="currentRatingsContainer" class="hidden max-w-4xl mx-auto space-y-8">
-            <!-- Overall Ratings Section -->
-            <div id="overallRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Core Ratings</h2>
-                <div id="coreRatings" class="divide-y divide-gray-200">
-                    <!-- Core ratings will be inserted here -->
-                </div>
-            </div>
+        <div id="earningsContent" class="hidden">
+            <div id="earningsDataView">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Next Quarter Estimates</h2>
+                        <div id="nextQuarterEstimates" class="space-y-2">
+                            </div>
+                    </div>
 
-            <!-- Fundamental Ratings Section -->
-            <div id="fundamentalRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Fundamental Ratings</h2>
-                <div id="otherRatings" class="divide-y divide-gray-200">
-                    <!-- Other ratings will be inserted here -->
+                    <div class="bg-white p-6 rounded-xl shadow-md flex flex-col">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Last 4 Quarters' EPS Results</h2>
+                        <div class="relative h-40 w-full"> 
+                            <canvas id="epsChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Consensus Summary Section -->
-            <div id="consensusSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Consensus Summary</h2>
-                <div id="consensusSummary" class="flex flex-col md:flex-row justify-around text-center space-y-4 md:space-y-0">
-                    <!-- Consensus data will be inserted here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Container for Past-to-Current Ratings -->
-        <div id="pastRatingsContainer" class="hidden max-w-4xl mx-auto space-y-8">
-            <!-- Historical Ratings Section -->
-            <div id="historicalRatingsSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Historical Ratings</h2>
-                <div id="historicalRatingsTableContainer" class="overflow-x-auto">
-                    <!-- Historical Ratings table will be inserted here -->
-                </div>
-            </div>
-
-            <!-- Upgrades/Downgrades Section -->
-            <div id="upgradesDowngradesSection" class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Analyst Upgrades/Downgrades</h2>
-                <div id="upgradesTableContainer" class="overflow-x-auto">
-                    <!-- Upgrades/Downgrades table will be inserted here -->
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Past 4 Quarters' Earnings</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg earnings-table">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Date</th>
+                                    <th class="text-center">EPS Estimate</th>
+                                    <th class="text-center">EPS Result</th>
+                                    <th class="text-center">EPS Surprise (%)</th>
+                                    <th class="text-center">Revenue Estimate</th>
+                                    <th class="text-center">Revenue Result</th>
+                                    <th class="text-center">Revenue Surprise (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pastEarningsTableBody">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
+
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
-      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
     
       const firebaseConfig = {
         apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
@@ -162,184 +149,76 @@
     
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
-      const db = getFirestore(app); // Initialize Firestore
+      const db = getFirestore(app);
 
-      // Global variable to store user's premium status
       window.currentUserIsPremium = false;
     
-      onAuthStateChanged(auth, async (user) => { // Made async to use await
+      onAuthStateChanged(auth, async (user) => {
         if (!user) {
-          window.location.href = "auth.html"; // redirect if not logged in
+          window.location.href = "auth.html";
         } else {
-          // Fetch user's premium status from Firestore
           const userDocRef = doc(db, "users", user.uid);
           try {
             const userDoc = await getDoc(userDocRef);
             if (userDoc.exists()) {
-              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
+              window.currentUserIsPremium = userDoc.data().isPremium || false;
             } else {
-              console.warn("User document not found for UID:", user.uid);
               window.currentUserIsPremium = false;
             }
           } catch (e) {
             console.error("Error fetching user premium status:", e);
             window.currentUserIsPremium = false;
           }
-          console.log("Current user premium status:", window.currentUserIsPremium);
-
-          // After authentication check, and currentUserIsPremium is set,
-          // then check if the user can access this premium page.
-          // This ensures currentUserIsPremium is available when needed.
-          checkPremiumAccessForPage();
         }
       });
     
       window.signOutUser = async function() {
         try {
           await signOut(auth);
-          window.location.href = "auth.html"; // redirect after logout
+          window.location.href = "auth.html";
         } catch (error) {
           console.error("Error signing out:", error);
         }
       };
-
-      // Function to check premium access specifically for this page
-      function checkPremiumAccessForPage() {
-          // Since ratings is a premium page itself, we check it here
-          if (!window.currentUserIsPremium) {
-              showPremiumMessage();
-              // Hide all content containers and loading indicators
-              document.getElementById('loadingIndicator').classList.add('hidden');
-              document.getElementById('errorMessage').classList.add('hidden');
-              document.getElementById('currentRatingsContainer').classList.add('hidden');
-              document.getElementById('pastRatingsContainer').classList.add('hidden');
-              document.getElementById('stockTitle').textContent = 'Premium Feature'; // Update title
-          } else {
-              // If premium, then fetch data as usual
-              const urlParams = new URLSearchParams(window.location.search);
-              stockSymbol = urlParams.get('stock');
-              if (stockSymbol) {
-                  document.title = `${stockSymbol.toUpperCase()} - Ratings`;
-                  document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Ratings`;
-                  fetchRatings(stockSymbol);
-              } else {
-                  showError('No stock symbol provided in the URL.');
-              }
-          }
-      }
     </script>
+
     <script>
         let stockSymbol = '';
+        let epsChartInstance = null;
+        let backendData = null;
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
-        // Get the premium message element
         const premiumMessage = document.getElementById('premium-message');
 
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const navLinks = [
-                { id: 'nav-general-info', file: 'general_info.html' },
-                { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' },
-                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // This page is premium
-                { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
-                { id: 'nav-recent-news', file: 'recent_news.html' },
-            ];
-
-            const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock'); // Ensure stockSymbol is set for nav links
-
-            // Update navigation bar hrefs
-            navLinks.forEach(link => {
-                const navElement = document.getElementById(link.id);
-                if (navElement) {
-                    if (link.premium) {
-                        // For premium links, attach an event listener
-                        navElement.href = '#'; // Set a dummy href for styling/accessibility
-                        navElement.addEventListener('click', (event) => {
-                            event.preventDefault(); // Prevent default navigation
-                            // Use window.currentUserIsPremium from the Firebase script
-                            if (window.currentUserIsPremium) {
-                                window.location.href = `${link.file}?stock=${stockSymbol}`;
-                            } else {
-                                showPremiumMessage();
-                            }
-                        });
-                    } else {
-                        // For non-premium links, set href directly as before
-                        navElement.href = `${link.file}?stock=${stockSymbol}`;
-                    }
-                }
-            });
-            
-            // Add event listeners for the toggle buttons (always active)
-            document.getElementById('showCurrentRatings').addEventListener('click', () => switchRatingsView('current'));
-            document.getElementById('showPastRatings').addEventListener('click', () => switchRatingsView('past'));
-        });
-
-        // Toggles between the two rating views
-        function switchRatingsView(view) {
-            const currentBtn = document.getElementById('showCurrentRatings');
-            const pastBtn = document.getElementById('showPastRatings');
-            const currentContainer = document.getElementById('currentRatingsContainer');
-            const pastContainer = document.getElementById('pastRatingsContainer');
-
-            if (view === 'current') {
-                currentContainer.classList.remove('hidden');
-                pastContainer.classList.add('hidden');
-                currentBtn.classList.add('active'); // Use the 'active' class
-                pastBtn.classList.remove('active');
-            } else {
-                pastContainer.classList.remove('hidden');
-                currentContainer.classList.add('hidden');
-                pastBtn.classList.add('active'); // Use the 'active' class
-                currentBtn.classList.remove('active');
-            }
+        function formatNumber(num) {
+            if (num === null || num === undefined || num === 'N/A' || num === 'TBA') return num;
+            if (typeof num === 'string' && num.match(/^[\d.]+[BMKT]?$/i)) return num;
+            let value = Number(num);
+            if (isNaN(value)) return 'N/A';
+            const absValue = Math.abs(value);
+            if (absValue >= 1.0e+9) return (value / 1.0e+9).toFixed(2) + "B";
+            if (absValue >= 1.0e+6) return (value / 1.0e+6).toFixed(2) + "M";
+            if (absValue >= 1.0e+3) return (value / 1.0e+3).toFixed(2) + "K";
+            return value.toFixed(2);
         }
 
-        // Helper function to get Tailwind CSS color class based on rating text
-        function getRatingColorClass(ratingText) {
-            if (!ratingText) return 'text-gray-700';
-
-            const lowerRating = String(ratingText).toLowerCase();
-
-            // Green for A grades and Strong Buy/Buy
-            if (lowerRating === 'a' || lowerRating === 'a+' || lowerRating === 'a-' || lowerRating.includes('strong buy') || lowerRating.includes('buy') || lowerRating.includes('outperform') || lowerRating.includes('overweight') || lowerRating.includes('sector outperform') || lowerRating.includes('market outperform')) {
-                return 'text-green-600';
-            }
-            // Yellow for B grades and Hold/Neutral
-            if (lowerRating === 'b' || lowerRating === 'b+' || lowerRating === 'b-' || lowerRating.includes('hold') || lowerRating.includes('peer perform') || lowerRating.includes('market perform') || lowerRating.includes('neutral')) {
-                return 'text-yellow-500';
-            }
-            // Orange for C grades
-            if (lowerRating === 'c' || lowerRating === 'c+' || lowerRating === 'c-') {
-                return 'text-orange-500';
-            }
-            // Red for D/F grades and Sell
-            if (lowerRating === 'd' || lowerRating === 'f' || lowerRating.includes('sell') || lowerRating.includes('strong sell') || lowerRating.includes('underperform')) {
-                return 'text-red-600';
-            }
-            
-            return 'text-gray-700'; // Neutral gray
+        function formatPercentageDirect(num) {
+            if (num === null || num === undefined) return 'N/A';
+            num = Number(num);
+            if (isNaN(num)) return 'N/A';
+            return num.toFixed(2) + '%';
         }
 
-        // Main function to fetch and display all rating data
-        async function fetchRatings(symbol) {
+        async function fetchEarnings(symbol) {
             showLoading(true);
-            premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
+            premiumMessage.classList.add('hidden');
             try {
                 let response = null;
                 let delay = 1000;
-                const maxRetries = 5;
+                let maxRetries = 5;
                 for (let i = 0; i < maxRetries; i++) {
-                    response = await fetch(`${backendBaseUrl}/tab4?stock=${symbol}`);
-                    if (response.ok) {
-                        break;
-                    }
+                    response = await fetch(`${backendBaseUrl}/tab5?stock=${symbol}`);
+                    if (response.ok) break;
                     if (response.status === 429) {
-                        console.warn(`API call failed with status 429. Retrying in ${delay}ms...`);
                         await new Promise(resolve => setTimeout(resolve, delay));
                         delay *= 2;
                     } else {
@@ -347,245 +226,157 @@
                     }
                 }
                 
-                if (!response || !response.ok) {
-                    const errorBody = response ? await response.text() : 'No response';
-                    console.error('Backend responded with non-OK status:', response ? response.status : 'N/A', response ? response.statusText : 'N/A', errorBody);
-                    throw new Error(`Failed to fetch ratings data. Server responded with status: ${response ? response.status : 'N/A'}.`);
-                }
-
+                if (!response || !response.ok) throw new Error('Max retries reached, failed to fetch data.');
+                
                 const data = await response.json();
-
                 if (data.error) {
                     showError(data.error);
                 } else {
-                    displayAllRatings(data);
+                    backendData = data;
+                    renderEarningsDataView();
                     showLoading(false);
-                    switchRatingsView('current'); // Show current ratings by default
+                    document.getElementById('earningsContent').classList.remove('hidden');
                 }
             } catch (error) {
-                console.error('Error fetching ratings:', error);
-                showError('A network error occurred while fetching ratings. Please check your internet connection or try again later.');
+                console.error('Error:', error);
+                showError('A network error occurred while fetching earnings.');
             }
         }
         
-        // New function to handle all display logic based on the updated JSON structure
-        function displayAllRatings(data) {
-            // Display core ratings, including Overall Rating and Consensus
-            const coreRatingsElement = document.getElementById('coreRatings');
-            coreRatingsElement.innerHTML = '';
+        function renderEarningsDataView() {
+            const pastEarnings = backendData["Past 4 Quarters' Earnings"] || [];
+            const nextQuarter = backendData["Next Quarter Estimates"] || {};
             
-            const coreMetrics = [
-                { key: 'Overall Rating', source: data['Other Ratings'] },
-                { key: 'Consensus', source: data['Consensus Summary'] },
-                { key: 'Valuation', source: data['Core Ratings'] },
-                { key: 'Stability', source: data['Core Ratings'] },
-                { key: 'Profitability', source: data['Core Ratings'] },
-                { key: 'Growth', source: data['Core Ratings'] }
-            ];
-
-            coreMetrics.forEach(metric => {
-                const value = metric.source ? metric.source[metric.key] : 'N/A';
-                if (value !== undefined && value !== null) {
-                    appendRatingItem(coreRatingsElement, metric.key, value);
-                }
-            });
-
-            // Display other fundamental ratings
-            const otherRatingsElement = document.getElementById('otherRatings');
-            otherRatingsElement.innerHTML = '';
-
-            const otherMetricsOrder = ["Debt to Equity Rating", "PE Ratio Rating", "ROA Rating", "ROE Rating"];
-
-            const otherRatingsData = data['Other Ratings'];
-            if (!otherRatingsData || Object.keys(otherRatingsData).length === 0) {
-                otherRatingsElement.innerHTML = '<p class="text-center text-gray-500 py-4">No fundamental ratings data available.</p>';
+            // Next Quarter
+            const nextQuarterEstimatesDiv = document.getElementById('nextQuarterEstimates');
+            nextQuarterEstimatesDiv.innerHTML = '';
+            if (nextQuarter && Object.keys(nextQuarter).length > 0) {
+                nextQuarterEstimatesDiv.innerHTML = `
+                    <p><strong class="text-gray-700">Date:</strong> <span class="text-gray-800">${nextQuarter.Date || 'N/A'}</span></p>
+                    <p><strong class="text-gray-700">EPS Estimate:</strong> <span class="text-gray-800">${nextQuarter["EPS Estimate"] || 'N/A'}</span></p>
+                    <p><strong class="text-gray-700">Revenue Estimate:</strong> <span class="text-gray-800">${formatNumber(nextQuarter["Revenue Estimate"]) || 'N/A'}</span></p>
+                `;
             } else {
-                otherMetricsOrder.forEach(metric => {
-                    const value = otherRatingsData[metric];
-                    if (value !== undefined && value !== null) {
-                        appendRatingItem(otherRatingsElement, metric, value);
-                    }
-                });
+                nextQuarterEstimatesDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No next quarter estimates available.</p>';
             }
-            
-            // Corrected line: Display consensus summary
-            displayConsensusSummary(data['Consensus Summary']);
 
-            // Display upgrades and downgrades
-            displayUpgradesDowngrades(data['Upgrades/Downgrades']);
+            // Past Table
+            const pastEarningsTableBody = document.getElementById('pastEarningsTableBody');
+            pastEarningsTableBody.innerHTML = '';
+            if (pastEarnings.length > 0) {
+                pastEarnings.forEach(earning => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="text-left">${earning.Date || 'N/A'}</td>
+                        <td class="text-center">${earning["EPS Estimate"] || 'N/A'}</td>
+                        <td class="text-center">${earning["EPS Result"] || 'N/A'}</td>
+                        <td class="text-center">${formatPercentageDirect(earning["EPS Surprise (%)"]) || 'N/A'}</td>
+                        <td class="text-center">${formatNumber(earning["Revenue Estimate"]) || 'N/A'}</td>
+                        <td class="text-center">${formatNumber(earning["Revenue Result"]) || 'N/A'}</td>
+                        <td class="text-center">${formatPercentageDirect(earning["Revenue Surprise (%)"]) || 'N/A'}</td>
+                    `;
+                    pastEarningsTableBody.appendChild(row);
+                });
+            } else {
+                pastEarningsTableBody.innerHTML = '<tr><td colspan="7" class="text-center text-gray-500 py-4">No past earnings data available.</td></tr>';
+            }
 
-            // Display historical ratings
-            displayHistoricalRatings(data['Historical Ratings']);
+            renderEpsChart(pastEarnings);
         }
 
-        // Creates a list item for a rating
-        function appendRatingItem(parent, metric, value) {
-            const listItem = document.createElement('div');
-            listItem.className = 'flex justify-between items-center py-3';
+        function renderEpsChart(pastEarningsData) {
+            const ctx = document.getElementById('epsChart');
+            if (epsChartInstance) epsChartInstance.destroy();
             
-            const metricNameSpan = document.createElement('span');
-            metricNameSpan.textContent = `${metric}:`;
-            metricNameSpan.className = 'text-lg font-semibold text-gray-700';
-            
-            const ratingValueSpan = document.createElement('span');
-            ratingValueSpan.textContent = value;
-            ratingValueSpan.className = `text-xl font-bold ${getRatingColorClass(value)}`;
-            
-            listItem.appendChild(metricNameSpan);
-            listItem.appendChild(ratingValueSpan);
-            parent.appendChild(listItem);
-        }
+            const chartParent = document.querySelector('#earningsDataView .relative');
+            const existingMessage = chartParent.querySelector('p');
+            if (existingMessage) chartParent.innerHTML = '<canvas id="epsChart"></canvas>';
 
-        // Displays the consensus summary from the backend data
-        function displayConsensusSummary(data) {
-            const consensusSummaryElement = document.getElementById('consensusSummary');
-            consensusSummaryElement.innerHTML = '';
-
-            if (!data || Object.keys(data).length === 0) {
-                consensusSummaryElement.innerHTML = '<p class="text-center text-gray-500 py-4">No consensus data available.</p>';
+            if (!pastEarningsData || pastEarningsData.length === 0) {
+                chartParent.innerHTML = '<p class="text-center text-gray-500 mt-4">No EPS data for chart.</p>';
                 return;
             }
 
-            const consensusOrder = ["# Strong Buy", "# Buy", "# Hold", "# Sell", "# Strong Sell"];
-            
-            consensusOrder.forEach(key => {
-                const value = data[key];
-                if (value !== undefined) {
-                    const item = document.createElement('div');
-                    item.className = 'flex flex-col items-center p-4 bg-gray-50 rounded-xl shadow-inner w-full md:w-auto';
-                    
-                    const valueSpan = document.createElement('span');
-                    valueSpan.textContent = value;
-                    valueSpan.className = `text-3xl font-bold ${getRatingColorClass(key.replace('# ', ''))}`;
-                    
-                    const labelSpan = document.createElement('span');
-                    labelSpan.textContent = key.replace('# ', ''); // Remove the '#' for the label
-                    labelSpan.className = 'text-sm font-medium text-gray-600 mt-1';
-                    
-                    item.appendChild(valueSpan);
-                    item.appendChild(labelSpan);
-                    consensusSummaryElement.appendChild(item);
+            const chartData = pastEarningsData.slice(0, 4).reverse();
+            const labels = chartData.map(d => d.Date);
+            const epsResults = chartData.map(d => parseFloat(d["EPS Result"]));
+
+            epsChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'EPS Result',
+                        data: epsResults,
+                        backgroundColor: 'rgba(34, 139, 34, 0.8)',
+                        borderColor: 'rgba(34, 139, 34, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true }
+                    }
                 }
             });
-        }
-
-        // Renders the table for analyst upgrades and downgrades
-        function displayUpgradesDowngrades(data) {
-            const container = document.getElementById('upgradesTableContainer');
-            container.innerHTML = '';
-
-            if (!data || data.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 py-4">No recent upgrades or downgrades available.</p>';
-                return;
-            }
-
-            let tableHtml = `
-                <table class="min-w-full table-auto rounded-xl overflow-hidden shadow">
-                    <thead>
-                        <tr class="table-header">
-                            <th class="py-3 px-4 text-left">Date</th>
-                            <th class="py-3 px-4 text-left">Company</th>
-                            <th class="py-3 px-4 text-left">Action</th>
-                            <th class="py-3 px-4 text-left">New Grade</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-            `;
-            
-            data.forEach((item, index) => {
-                const rowClass = index % 2 === 0 ? 'table-row-even' : 'table-row-odd';
-                tableHtml += `
-                    <tr class="${rowClass}">
-                        <td class="py-3 px-4">${item.Date}</td>
-                        <td class="py-3 px-4">${item.Company}</td>
-                        <td class="py-3 px-4">${item.Action}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['New Grade'])} font-bold">${item['New Grade']}</td>
-                    </tr>
-                `;
-            });
-
-            tableHtml += `
-                    </tbody>
-                </table>
-            `;
-            container.innerHTML = tableHtml;
-        }
-
-        // Renders the table for historical ratings
-        function displayHistoricalRatings(data) {
-            const container = document.getElementById('historicalRatingsTableContainer');
-            container.innerHTML = '';
-
-            if (!data || data.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 py-4">No historical ratings data available.</p>';
-                return;
-            }
-
-            let tableHtml = `
-                <table class="min-w-full table-auto rounded-xl overflow-hidden shadow">
-                    <thead>
-                        <tr class="table-header">
-                            <th class="py-3 px-4 text-left">Date</th>
-                            <th class="py-3 px-4 text-left">Overall</th>
-                            <th class="py-3 px-4 text-left">ROE</th>
-                            <th class="py-3 px-4 text-left">ROA</th>
-                            <th class="py-3 px-4 text-left">P/E</th>
-                            <th class="py-3 px-4 text-left">D/E</th>
-                            <th class="py-3 px-4 text-left">P/B</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-            `;
-            
-            data.forEach((item, index) => {
-                const rowClass = index % 2 === 0 ? 'table-row-even' : 'table-row-odd';
-                tableHtml += `
-                    <tr class="${rowClass}">
-                        <td class="py-3 px-4">${item.Date}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['Overall Rating'])} font-bold">${item['Overall Rating']}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['ROE Score'])} font-bold">${item['ROE Score']}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['ROA Score'])} font-bold">${item['ROA Score']}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['Price-to-Earnings Score'])} font-bold">${item['Price-to-Earnings Score']}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['Debt-to-Equity Score'])} font-bold">${item['Debt-to-Equity Score']}</td>
-                        <td class="py-3 px-4 ${getRatingColorClass(item['Price-to-Book Score'])} font-bold">${item['Price-to-Book Score']}</td>
-                    </tr>
-                `;
-            });
-
-            tableHtml += `
-                    </tbody>
-                </table>
-            `;
-            container.innerHTML = tableHtml;
         }
 
         function showLoading(show) {
             document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
-            document.getElementById('currentRatingsContainer').classList.toggle('hidden', show);
-            document.getElementById('pastRatingsContainer').classList.toggle('hidden', show);
-            document.getElementById('errorMessage').classList.add('hidden');
-            premiumMessage.classList.add('hidden'); // Also hide premium message when loading
+            document.getElementById('earningsContent').classList.toggle('hidden', show);
         }
 
         function showError(message) {
             document.getElementById('loadingIndicator').classList.add('hidden');
-            document.getElementById('currentRatingsContainer').classList.add('hidden');
-            document.getElementById('pastRatingsContainer').classList.add('hidden');
             document.getElementById('errorText').textContent = message;
             document.getElementById('errorMessage').classList.remove('hidden');
-            premiumMessage.classList.add('hidden'); // Also hide premium message if an error occurs
         }
 
-        // Function to show premium message (newly added)
         function showPremiumMessage() {
             premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
             premiumMessage.classList.remove('hidden');
-
-            // Hide the message after 5 seconds
-            setTimeout(() => {
-                premiumMessage.classList.add('hidden');
-            }, 5000);
+            setTimeout(() => premiumMessage.classList.add('hidden'), 5000);
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            stockSymbol = urlParams.get('stock');
+            if (stockSymbol) {
+                document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Earnings`;
+                fetchEarnings(stockSymbol);
+                
+                const navLinks = [
+                    { id: 'nav-general-info', file: 'general_info.html' },
+                    { id: 'nav-income-statement', file: 'income_statement.html' },
+                    { id: 'nav-cash-flow', file: 'cash_flow.html' },
+                    { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
+                    { id: 'nav-ratings', file: 'ratings.html', premium: true },
+                    { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
+                    { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
+                    { id: 'nav-recent-news', file: 'recent_news.html' },
+                ];
+
+                navLinks.forEach(link => {
+                    const navElement = document.getElementById(link.id);
+                    if (navElement) {
+                        navElement.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            if (link.premium && !window.currentUserIsPremium) {
+                                showPremiumMessage();
+                            } else {
+                                window.location.href = `${link.file}?stock=${stockSymbol}`;
+                            }
+                        });
+                    }
+                });
+            } else {
+                showError('Please select a stock to view its earnings.');
+            }
+        });
     </script>
 </body>
 </html>
