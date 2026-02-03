@@ -326,16 +326,10 @@
                 }
             }
 
-            // UPDATED LOGIC: Pulling from "Volume (last trading day and average)"
             const volData = generalData["Volume (last trading day and average)"];
-            const chartVolumeElement = document.getElementById('chartVolume');
-            const chartAvgVolumeElement = document.getElementById('chartAvgVolume');
-
             if (volData) {
-                chartVolumeElement.textContent = `Vol: ${formatValue(volData["Volume"], "Volume")}`;
-                chartAvgVolumeElement.textContent = `Avg Vol: ${formatValue(volData["Average Volume"], "Volume")}`;
-                chartVolumeElement.classList.remove('hidden');
-                chartAvgVolumeElement.classList.remove('hidden');
+                document.getElementById('chartVolume').textContent = `Vol: ${formatValue(volData["Volume"], "Volume")}`;
+                document.getElementById('chartAvgVolume').textContent = `Avg Vol: ${formatValue(volData["Average Volume"], "Volume")}`;
             }
 
             priceChartInstance = new Chart(ctx, {
@@ -357,7 +351,19 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { 
+                                maxTicksLimit: 5, // REDUCED TICK LIMIT FOR CLEANER LOOK
+                                maxRotation: 0,   // REMOVED ROTATION
+                                minRotation: 0,
+                                callback: function(value, index, ticks) {
+                                    const datetimeStr = this.getLabelForValue(value);
+                                    if (period === '1D') return datetimeStr.substring(11, 16);
+                                    return datetimeStr.substring(0, 10);
+                                }
+                            } 
+                        },
                         y: { grid: { color: '#f1f5f9' } }
                     }
                 }
