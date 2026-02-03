@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Cash Flow Statement</title>
+    <title>Stock Balance Sheet</title>
     <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -16,7 +16,6 @@
         /* Custom styles for the toggle buttons */
         .toggle-button {
             transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
-            cursor: pointer;
         }
         .toggle-button.active {
             background-color: white;
@@ -52,17 +51,19 @@
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
             <div class="flex space-x-8 text-gray-600 font-semibold">
-                <!-- Navigation items with dynamic hrefs set by JavaScript -->
+                <!-- Home button added to match income_statement.html -->
                 <a href="index.html" class="text-green-600 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
+                <!-- Navigation items, with dynamic hrefs set by JavaScript -->
                 <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
                 <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
-                <a href="#" id="nav-cash-flow" class="text-blue-700 font-bold transition-colors duration-300">Cash Flow</a>
-                <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
+                <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
+                <a href="#" id="nav-balance-sheet" class="text-blue-700 font-bold transition-colors duration-300">Balance Sheet</a>
                 <!-- Premium Links - HREFs will be set by JS or blocked if not premium -->
                 <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
                 <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
                 <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+                <!-- The "Recent News" button has been added to the end of the navigation bar as requested. -->
                 <a href="#" id="nav-recent-news" class="hover:text-blue-600 transition-colors duration-300">Recent News</a>
             </div>
         </div>
@@ -72,12 +73,12 @@
     <main class="container mx-auto px-4 py-8">
         <div class="flex flex-col items-center">
             <!-- Dynamic Title -->
-            <h1 id="stock-title" class="text-3xl font-bold text-gray-800 mb-4">Stock - Cash Flow Statement</h1>
-
+            <h1 id="stock-title" class="text-3xl font-bold text-gray-800 mb-4">Stock - Balance Sheet</h1>
+            
             <!-- Toggle buttons for Quarterly/Yearly views -->
             <div class="flex justify-center mb-4 bg-gray-200 rounded-full p-1">
-                <button id="quarterly-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Quarterly</button>
-                <button id="yearly-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">Yearly</button>
+                <button id="toggleQuarterly" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Quarterly</button>
+                <button id="toggleYearly" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">Yearly</button>
             </div>
 
             <!-- Loading Spinner & Error Message -->
@@ -148,63 +149,52 @@
       };
     </script>
     <script>
-        // Global variables to store the fetched data
-        let currentBackendData = null;
-        let activeView = 'Quarterly';
-        let stockTicker = ''; // Define stockTicker globally for use in event listeners
+        // Global variables to store the fetched data and current view
+        let balanceSheetData = null;
+        let activeView = 'quarterly';
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+        let stockSymbol = '';
 
         // DOM elements
         const statementContainer = document.getElementById('statement-container');
-        const quarterlyBtn = document.getElementById('quarterly-btn');
-        const yearlyBtn = document.getElementById('yearly-btn');
+        const toggleQuarterlyBtn = document.getElementById('toggleQuarterly');
+        const toggleYearlyBtn = document.getElementById('toggleYearly');
         const stockTitle = document.getElementById('stock-title');
         const loadingSpinner = document.getElementById('loading-spinner');
         const errorMessage = document.getElementById('error-message');
         const premiumMessage = document.getElementById('premium-message'); // New premium message element
 
-
-        /**
-         * Renders the quarterly cash flow statement data.
-         * @param {object} data The API response data.
-         */
+        // Function to render the quarterly balance sheet data.
         function renderQuarterlyData(data) {
-            const info = data["Quarterly Cash Flow Statement"];
-            if (!info || info.length === 0) {
-                statementContainer.innerHTML = '<p class="text-center text-gray-500">No quarterly cash flow data available.</p>';
+            const quarterlyInfo = data['Quarterly Balance Sheet Info'];
+            
+            if (!quarterlyInfo || !quarterlyInfo.Date || quarterlyInfo.Date.length === 0) {
+                statementContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No quarterly data available.</p>';
                 return;
             }
 
-            // Extract dates from the first object, assuming they are consistent
-            const dates = info.map(item => item.Date);
-
-            // Metrics for the table, using a simplified list for clarity
             const metrics = [
-                { name: "Net Income", key: "Net Income" },
-                { name: "Net Cash from Operating Activities", key: "Net Cash Provided by Operating Activities" },
-                { name: "Net Cash from Investing Activities", key: "Net Cash Provided by Investing Activities" },
-                { name: "Net Cash from Financing Activities", key: "Net Cash Provided by Financing Activities" },
-                { name: "Net Change in Cash", key: "Net Change in Cash" },
-                { name: "Cash at Beginning of Period", key: "Cash at Beginning of Period" },
-                { name: "Cash at End of Period", key: "Cash at End of Period" },
+                'Cash/Cash Equivalents', 'Short Term Investments', 'Total Current Assets', 'Total Assets',
+                'Short Term Debt', 'Long Term Debt', 'Total Debt', 'Net Debt', 'Total Liabilities', "Total Stockholders' Equity"
             ];
 
             let html = `
-                <h2 class="text-xl font-bold text-gray-700 mb-6">Quarterly Cash Flow Statement</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-6">Quarterly Balance Sheet</h2>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto border-collapse">
+                    <table class="min-w-full table-auto">
                         <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-left">
-                                <th class="py-3 px-4 font-semibold text-left border-b border-gray-200">Metric</th>
-                                ${dates.map(date => `<th class="py-3 px-4 font-semibold text-right border-b border-gray-200">${date}</th>`).join('')}
+                            <tr class="bg-gray-50 text-gray-600">
+                                <th class="py-3 px-4 font-semibold text-left">Metric</th>
+                                ${quarterlyInfo.Date.map(date => `<th class="py-3 px-4 font-semibold text-right">${date}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${metrics.map(metric => `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-4 text-gray-800 font-medium text-left whitespace-nowrap">${metric.name}</td>
-                                    ${info.map(item => `
+                                <tr>
+                                    <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric}</td>
+                                    ${quarterlyInfo[metric].map(value => `
                                         <td class="py-3 px-4 text-gray-600 text-right">
-                                            ${item[metric.key] !== null && typeof item[metric.key] !== 'undefined' ? item[metric.key] : 'N/A'}
+                                            ${value !== null && value !== undefined ? formatNumber(value) : 'N/A'}
                                         </td>
                                     `).join('')}
                                 </tr>
@@ -216,52 +206,46 @@
             statementContainer.innerHTML = html;
         }
 
-        /**
-         * Renders the yearly cash flow statement data.
-         * @param {object} data The API response data.
-         */
+        // Function to render the yearly balance sheet data.
         function renderYearlyData(data) {
-            const info = data["Yearly Cash Flow Statement"];
-            if (!info || info.length === 0) {
-                statementContainer.innerHTML = '<p class="text-center text-gray-500">No yearly cash flow data available.</p>';
+            const yearlyInfo = data['Yearly Balance Sheet Info'];
+
+            if (!yearlyInfo || !yearlyInfo.Year || yearlyInfo.Year.length === 0) {
+                statementContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No yearly data available.</p>';
                 return;
             }
 
-            // Extract dates from the first object, assuming they are consistent
-            const dates = info.map(item => item.Date);
+            const years = yearlyInfo.Year;
 
-            // Metrics for the table, using a simplified list for clarity
             const metrics = [
-                { name: "Net Income", key: "Net Income" },
-                { name: "Net Cash from Operating Activities", key: "Net Cash Provided by Operating Activities" },
-                { name: "Net Cash from Investing Activities", key: "Net Cash Provided by Investing Activities" },
-                { name: "Net Cash from Financing Activities", key: "Net Cash Provided by Financing Activities" },
-                { name: "Net Change in Cash", key: "Net Change in Cash" },
-                { name: "Cash at Beginning of Period", key: "Cash at Beginning of Period" },
-                { name: "Cash at End of Period", key: "Cash at End of Period" },
+                'Cash/Cash Equivalents', 'Short Term Investments', 'Total Current Assets', 'Total Assets',
+                'Short Term Debt', 'Long Term Debt', 'Total Debt', 'Net Debt', 'Total Liabilities', "Total Stockholders' Equity"
             ];
-
+            
             let html = `
-                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Cash Flow Statement</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Balance Sheet</h2>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto border-collapse">
+                    <table class="min-w-full table-auto">
                         <thead>
-                            <tr class="bg-gray-100 text-gray-600">
-                                <th class="py-3 px-4 font-semibold text-left border-b border-gray-200">Metric</th>
-                                ${dates.map(date => `<th class="py-3 px-4 font-semibold text-right border-b border-gray-200">${date}</th>`).join('')}
+                            <tr class="bg-gray-50 text-gray-600">
+                                <th class="py-3 px-4 font-semibold text-left">Metric</th>
+                                ${years.map(year => `<th class="py-3 px-4 font-semibold text-right">${year}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            ${metrics.map(metric => `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-4 text-gray-800 font-medium text-left whitespace-nowrap">${metric.name}</td>
-                                    ${info.map(item => `
-                                        <td class="py-3 px-4 text-gray-600 text-right">
-                                            ${item[metric.key] !== null && typeof item[metric.key] !== 'undefined' ? item[metric.key] : 'N/A'}
-                                        </td>
-                                    `).join('')}
-                                </tr>
-                            `).join('')}
+                            ${metrics.map(metric => {
+                                const values = yearlyInfo[metric] || [];
+                                return `
+                                    <tr>
+                                        <td class="py-3 px-4 text-gray-800 font-medium text-left">${metric}</td>
+                                        ${values.map(value => `
+                                            <td class="py-3 px-4 text-gray-600 text-right">
+                                                ${value !== null && value !== undefined ? formatNumber(value) : 'N/A'}
+                                            </td>
+                                        `).join('')}
+                                    </tr>
+                                `;
+                            }).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -271,25 +255,51 @@
 
         // Main rendering function to display data based on active view
         function renderData() {
-            if (!currentBackendData) {
+            if (!balanceSheetData) {
                 return;
             }
-            if (activeView === 'Quarterly') {
-                renderQuarterlyData(currentBackendData);
+            if (activeView === 'quarterly') {
+                renderQuarterlyData(balanceSheetData);
             } else {
-                renderYearlyData(currentBackendData);
+                renderYearlyData(balanceSheetData);
             }
         }
 
+        // Helper function to format numbers. This function correctly handles negative values
+        // as well as the 'N/A' case for null or undefined values.
+        function formatNumber(num) {
+            if (num === null || num === undefined) return 'N/A';
+            // Handle values that are already formatted strings like '123.45M'
+            if (typeof num === 'string' && num.match(/^[\d.]+[BMKT]?$/i)) {
+                return num;
+            }
+            
+            let value = Number(num);
+            if (isNaN(value)) return 'N/A';
+
+            const absValue = Math.abs(value);
+            const sign = value < 0 ? '-' : '';
+
+            if (absValue >= 1.0e+9) {
+                return sign + (absValue / 1.0e+9).toFixed(2) + "B";
+            }
+            if (absValue >= 1.0e+6) {
+                return sign + (absValue / 1.0e+6).toFixed(2) + "M";
+            }
+            if (absValue >= 1.0e+3) {
+                return sign + (absValue / 1.0e+3).toFixed(2) + "K";
+            }
+            return sign + absValue.toFixed(2);
+        }
+
         // API call to fetch data using a direct URL
-        const backendBaseUrl = 'https://stock-backend-0128.onrender.com'; // Define this here for global access
-        async function fetchStockData(ticker) {
+        async function fetchBalanceSheet(ticker) {
             loadingSpinner.style.display = 'block';
             errorMessage.style.display = 'none';
             premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
             statementContainer.innerHTML = '';
             
-            const apiUrl = `${backendBaseUrl}/tab2_5?stock=${ticker}`;
+            const apiUrl = `${backendBaseUrl}/tab3?stock=${ticker}`;
             
             try {
                 // Fetch data with exponential backoff
@@ -317,8 +327,8 @@
                 const data = await response.json();
 
                 // Update the global data and render the view
-                currentBackendData = data;
-                stockTitle.textContent = `${ticker.toUpperCase()} - Cash Flow Statement`;
+                balanceSheetData = data;
+                stockTitle.textContent = `${ticker.toUpperCase()} - Balance Sheet`;
                 renderData();
                 
             } catch (error) {
@@ -329,19 +339,19 @@
                 loadingSpinner.style.display = 'none'; // Hide the spinner
             }
         }
-
+        
         // Add event listeners to the toggle buttons to switch views
-        quarterlyBtn.addEventListener('click', () => {
-            yearlyBtn.classList.remove('active');
-            quarterlyBtn.classList.add('active');
-            activeView = 'Quarterly';
+        toggleQuarterlyBtn.addEventListener('click', () => {
+            toggleYearlyBtn.classList.remove('active');
+            toggleQuarterlyBtn.classList.add('active');
+            activeView = 'quarterly';
             renderData();
         });
 
-        yearlyBtn.addEventListener('click', () => {
-            quarterlyBtn.classList.remove('active');
-            yearlyBtn.classList.add('active');
-            activeView = 'Yearly';
+        toggleYearlyBtn.addEventListener('click', () => {
+            toggleQuarterlyBtn.classList.remove('active');
+            toggleYearlyBtn.classList.add('active');
+            activeView = 'yearly';
             renderData();
         });
 
@@ -359,7 +369,7 @@
         // Initial setup on page load
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-            stockTicker = urlParams.get('stock');
+            stockSymbol = urlParams.get('stock');
 
             // Set the navigation bar links
             const navLinks = [
@@ -374,8 +384,8 @@
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
-            if (stockTicker) {
-                fetchStockData(stockTicker);
+            if (stockSymbol) {
+                fetchBalanceSheet(stockSymbol);
                 navLinks.forEach(link => {
                     const navElement = document.getElementById(link.id);
                     if (navElement) {
@@ -386,21 +396,21 @@
                                 event.preventDefault(); // Prevent default navigation
                                 // Use window.currentUserIsPremium from the Firebase script
                                 if (window.currentUserIsPremium) {
-                                    window.location.href = `${link.file}?stock=${stockTicker}`;
+                                    window.location.href = `${link.file}?stock=${stockSymbol}`;
                                 } else {
                                     showPremiumMessage();
                                 }
                             });
                         } else {
                             // For non-premium links, set href directly as before
-                            navElement.href = `${link.file}?stock=${stockTicker}`;
+                            navElement.href = `${link.file}?stock=${stockSymbol}`;
                         }
                     }
                 });
             } else {
                 stockTitle.textContent = 'No Stock Selected';
                 statementContainer.innerHTML = '';
-                errorMessage.textContent = 'Please return to the main page and select a stock to view its cash flow statement.';
+                errorMessage.textContent = 'Please return to the main page and select a stock to view its balance sheet.';
                 errorMessage.style.display = 'block';
             }
         });
