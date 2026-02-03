@@ -728,15 +728,22 @@
             `;
             
             data.forEach((item) => {
+                const overallColor = getRatingColorClass(item['Overall Rating']);
+                const roeColor = getRatingColorClass(item['ROE Score']);
+                const roaColor = getRatingColorClass(item['ROA Score']);
+                const peColor = getRatingColorClass(item['Price-to-Earnings Score']);
+                const deColor = getRatingColorClass(item['Debt-to-Equity Score']);
+                const pbColor = getRatingColorClass(item['Price-to-Book Score']);
+                
                 tableHtml += `
                     <tr>
                         <td>${item.Date}</td>
-                        <td class="${getRatingColorClass(item['Overall Rating'])} font-bold">${item['Overall Rating']}</td>
-                        <td class="${getRatingColorClass(item['ROE Score'])} font-bold">${item['ROE Score']}</td>
-                        <td class="${getRatingColorClass(item['ROA Score'])} font-bold">${item['ROA Score']}</td>
-                        <td class="${getRatingColorClass(item['Price-to-Earnings Score'])} font-bold">${item['Price-to-Earnings Score']}</td>
-                        <td class="${getRatingColorClass(item['Debt-to-Equity Score'])} font-bold">${item['Debt-to-Equity Score']}</td>
-                        <td class="${getRatingColorClass(item['Price-to-Book Score'])} font-bold">${item['Price-to-Book Score']}</td>
+                        <td class="${overallColor} font-bold">${item['Overall Rating']}</td>
+                        <td class="${roeColor} font-bold">${item['ROE Score']}</td>
+                        <td class="${roaColor} font-bold">${item['ROA Score']}</td>
+                        <td class="${peColor} font-bold">${item['Price-to-Earnings Score']}</td>
+                        <td class="${deColor} font-bold">${item['Debt-to-Equity Score']}</td>
+                        <td class="${pbColor} font-bold">${item['Price-to-Book Score']}</td>
                     </tr>
                 `;
             });
