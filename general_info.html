@@ -33,11 +33,12 @@
             top: 50%;
             transform: translateY(-50%);
         }
-        #chartSectionTitle {
-            @apply text-2xl font-bold text-gray-800 mb-4 text-center;
-        }
+        /* Fixed: Restored the prominent Price Display styling */
         #currentPriceDisplay {
             @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4;
+        }
+        #chartSectionTitle {
+            @apply text-2xl font-bold text-gray-800 mb-4 text-center;
         }
     </style>
 </head>
@@ -60,7 +61,7 @@
     </nav>
 
     <main class="container mx-auto p-6">
-        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">Fetching General Info and Data...</div>
+        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">Fetching Data...</div>
         <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mt-10" role="alert">
             <span id="errorText"></span>
         </div>
@@ -71,10 +72,11 @@
                 <div class="bg-white p-6 rounded-xl shadow-md">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Company Overview</h2>
                     <div id="generalInfoDetails" class="divide-y divide-gray-200"></div>
+                    <div id="companyDescriptionContainer" class="mt-4 pt-4 border-t border-gray-200"></div>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
-                    <h2 id="chartSectionTitle" class="text-2xl font-bold text-gray-800 mb-4 text-center"></h2>
+                    <h2 id="chartSectionTitle"></h2>
                     <div id="currentPriceDisplay">Price: N/A</div>
 
                     <div class="flex flex-wrap justify-center gap-2 w-full mb-4">
@@ -103,34 +105,6 @@
         </div>
     </main>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
-            authDomain: "stocksight-75940.firebaseapp.com",
-            projectId: "stocksight-75940",
-            storageBucket: "stocksight-75940.firebasestorage.app",
-            messagingSenderId: "223645254786",
-            appId: "1:223645254786:web:14c980e559d9090f89e09b",
-            measurementId: "G-8JGEEE9KD1"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        window.currentUserIsPremium = false;
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) window.location.href = "auth.html";
-            else {
-                const docSnap = await getDoc(doc(db, "users", user.uid));
-                if (docSnap.exists()) window.currentUserIsPremium = docSnap.data().isPremium || false;
-            }
-        });
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let stockSymbol = '';
@@ -138,32 +112,10 @@
         let priceChartInstance = null;
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
-        const navLinks = [
-            { id: 'nav-general-info', file: 'general_info.html', premium: false },
-            { id: 'nav-income-statement', file: 'income_statement.html', premium: false },
-            { id: 'nav-cash-flow', file: 'cash_flow.html', premium: false },
-            { id: 'nav-balance-sheet', file: 'balance_sheet.html', premium: false },
-            { id: 'nav-ratings', file: 'ratings.html', premium: true },
-            { id: 'nav-earnings', file: 'earnings.html', premium: false },
-            { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
-            { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
-            { id: 'nav-recent-news', file: 'recent_news.html', premium: false },
-        ];
-
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
             if (!stockSymbol) return;
-            navLinks.forEach(link => {
-                const el = document.getElementById(link.id);
-                if (el) {
-                    el.onclick = (e) => {
-                        e.preventDefault();
-                        if (link.premium && !window.currentUserIsPremium) showPremiumMessage();
-                        else window.location.href = `${link.file}?stock=${stockSymbol}`;
-                    }
-                }
-            });
             fetchGeneralInfo(stockSymbol);
         });
 
@@ -181,7 +133,10 @@
         function displayGeneralInfo() {
             const profile = generalData["Profile Info"] || {};
             document.getElementById('chartSectionTitle').textContent = `${profile["Company Name"]} - (${profile["Exchange"]}: ${stockSymbol})`;
-            document.getElementById('currentPriceDisplay').textContent = `Price: $${profile["Price"]}`;
+            
+            // Fixed: Restored Price display format
+            document.getElementById('currentPriceDisplay').textContent = `Price: ${formatValue(profile["Price"], "Price")}`;
+            
             const details = document.getElementById('generalInfoDetails');
             details.innerHTML = '';
             
@@ -197,9 +152,16 @@
             rows.forEach(([label, val]) => {
                 const row = document.createElement('div');
                 row.className = 'flex justify-between py-2';
-                row.innerHTML = `<strong>${label}:</strong><span>${formatValue(val, label)}</span>`;
+                row.innerHTML = `<strong class="text-gray-700">${label}:</strong><span class="text-gray-800">${formatValue(val, label)}</span>`;
                 details.appendChild(row);
             });
+
+            // Fixed: Restored Company Description
+            const descriptionContainer = document.getElementById('companyDescriptionContainer');
+            descriptionContainer.innerHTML = `
+                <strong class="text-gray-700">Company Description:</strong>
+                <p class="text-gray-800 mt-2 text-sm leading-relaxed">${profile["Company Description"] || 'N/A'}</p>
+            `;
 
             renderPriceChart('1D');
         }
@@ -211,7 +173,7 @@
             Object.entries(ratios).forEach(([label, val]) => {
                 const div = document.createElement('div');
                 div.className = 'bg-gray-50 p-4 rounded-lg shadow-sm';
-                div.innerHTML = `<div class="text-sm font-semibold text-gray-600">${label}</div><div class="text-xl font-bold">${formatValue(val, label)}</div>`;
+                div.innerHTML = `<div class="text-sm font-semibold text-gray-600">${label}</div><div class="text-xl font-bold text-gray-800">${formatValue(val, label)}</div>`;
                 container.appendChild(div);
             });
         }
@@ -223,7 +185,6 @@
 
             const dateKey = period === '1Y' ? 'date' : 'datetime';
             const priceKey = period === '1Y' ? 'price' : 'close';
-            
             const labels = chartData.map(d => d[dateKey]);
             const prices = chartData.map(d => parseFloat(d[priceKey]));
             const pctChange = generalData["Changes"] ? generalData["Changes"][period] : 0;
@@ -250,7 +211,7 @@
                         backgroundColor: bgColor,
                         fill: true,
                         pointRadius: 0,
-                        pointHoverRadius: 6, // Shows a point on hover
+                        pointHoverRadius: 6,
                         pointHoverBackgroundColor: color,
                         tension: 0.1
                     }]
@@ -258,10 +219,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false, // Tooltip shows for nearest x-axis point
-                    },
+                    interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -274,11 +232,9 @@
                             padding: 10,
                             displayColors: false,
                             callbacks: {
-                                label: function(context) {
-                                    return `Price: $${context.parsed.y.toFixed(2)}`;
-                                },
-                                title: function(context) {
-                                    const val = context[0].label;
+                                label: (ctx) => `Price: $${ctx.parsed.y.toFixed(2)}`,
+                                title: (ctx) => {
+                                    const val = ctx[0].label;
                                     return period === '1D' ? val.substring(11, 16) : val.substring(0, 10);
                                 }
                             }
@@ -288,9 +244,9 @@
                         x: { 
                             grid: { display: false },
                             ticks: { 
-                                maxTicksLimit: 5,
+                                maxTicksLimit: 5, // Maintains the "gaps" for cleanliness
                                 maxRotation: 0,
-                                callback: function(v, i) {
+                                callback: function(v) {
                                     const lab = this.getLabelForValue(v);
                                     return period === '1D' ? lab.substring(11, 16) : lab.substring(0, 10);
                                 }
@@ -305,7 +261,8 @@
         function formatValue(v, l) {
             if (v == null || v === 'N/A') return 'N/A';
             if (typeof v === 'number') {
-                if (l.includes("Market Cap") || l.includes("Volume")) {
+                if (l.includes("Market Cap") || l.includes("Volume") || l === "Price") {
+                    if (l === "Price") return "$" + v.toLocaleString(undefined, {minimumFractionDigits: 2});
                     if (Math.abs(v) >= 1e12) return (v / 1e12).toFixed(2) + 'T';
                     if (Math.abs(v) >= 1e9) return (v / 1e9).toFixed(2) + 'B';
                     if (Math.abs(v) >= 1e6) return (v / 1e6).toFixed(2) + 'M';
@@ -326,13 +283,6 @@
         document.getElementById('chartBtn5D').onclick = () => { renderPriceChart('5D'); setActiveChartButton('chartBtn5D'); };
         document.getElementById('chartBtn1M').onclick = () => { renderPriceChart('1M'); setActiveChartButton('chartBtn1M'); };
         document.getElementById('chartBtn1Y').onclick = () => { renderPriceChart('1Y'); setActiveChartButton('chartBtn1Y'); };
-
-        function showPremiumMessage() {
-            const el = document.getElementById('premium-message');
-            el.innerHTML = 'Get <a href="pricing.html" class="underline text-blue-500">Premium</a> to access this.';
-            el.classList.remove('hidden');
-            setTimeout(() => el.classList.add('hidden'), 5000);
-        }
     </script>
 </body>
 </html>
