@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Info - Insider Trades</title>
+    <title>Stock Info - Analyst Targets</title>
     <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -30,6 +30,7 @@
             height: 40px;
             -webkit-animation: spin 1s linear infinite;
             animation: spin 1s linear infinite;
+            display: none; /* Initially hidden */
         }
 
         @-webkit-keyframes spin {
@@ -57,8 +58,8 @@
                 <a href="#" id="nav-balance-sheet" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
                 <a href="#" id="nav-ratings" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Ratings</a>
                 <a href="#" id="nav-earnings" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Earnings</a>
-                <a href="#" id="nav-insider-trades" class="nav-link active hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
-                <a href="#" id="nav-analyst-targets" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+                <a href="#" id="nav-insider-trades" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
+                <a href="#" id="nav-analyst-targets" class="nav-link active hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
                 <!-- The new "Recent News" button is added here -->
                 <a href="#" id="nav-recent-news" class="nav-link text-gray-600 hover:text-blue-600 transition-colors duration-300">Recent News</a>
             </div>
@@ -66,16 +67,15 @@
     </nav>
 
     <main class="container mx-auto p-6">
-        <!-- Main title for the page -->
-        <h1 id="stockTitle" class="text-3xl font-bold text-gray-800 mb-8 text-center"></h1>
+        <h1 id="stockTitle" class="text-4xl font-bold text-gray-800 mb-8 text-center"></h1>
         
         <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
+        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10 hidden">
             <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p class="mt-2">Fetching Insider Trades Data...</p>
+            <p class="mt-2">Fetching Analyst Targets Data...</p>
         </div>
 
         <!-- Error Message -->
@@ -87,26 +87,36 @@
         <!-- This is the new message box for premium access -->
         <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
 
-        <!-- Container for the table data -->
-        <div id="insiderTradesContent" class="hidden bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl mx-auto">
-            <h2 class="text-xl font-bold text-gray-700 mb-6">Recent Insider Trades</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="py-3 px-4 font-semibold text-left text-gray-600">Date</th>
-                            <th class="py-3 px-4 font-semibold text-left text-gray-600">Reporter</th>
-                            <th class="py-3 px-4 font-semibold text-left text-gray-600">Role</th>
-                            <th class="py-3 px-4 font-semibold text-left text-gray-600">Shares</th>
-                            <th class="py-3 px-4 font-semibold text-left text-gray-600">Transaction Type</th>
-                        </tr>
-                    </thead>
-                    <tbody id="insiderTradesTableBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Data will be inserted here by JavaScript -->
-                    </tbody>
-                </table>
+        <!-- Container for the analyst targets content -->
+        <div id="analystTargetsContent" class="hidden bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl mx-auto mb-8">
+            <h2 class="text-xl font-bold text-gray-700 mb-6 text-center">Analyst Price Targets</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+                <!-- Target Low Card (now red) -->
+                <div class="p-6 bg-red-50 rounded-xl shadow-inner">
+                    <p class="text-sm text-gray-600 font-medium">Target Low</p>
+                    <p class="text-3xl font-bold text-red-700 mt-2" id="targetLow"></p>
+                </div>
+                <!-- Target Consensus Card (remains blue) -->
+                <div class="p-6 bg-blue-50 rounded-xl shadow-inner">
+                    <p class="text-sm text-gray-600 font-medium">Target Consensus</p>
+                    <p class="text-3xl font-bold text-blue-700 mt-2" id="targetConsensus"></p>
+                </div>
+                <!-- Target High Card (now green) -->
+                <div class="p-6 bg-green-50 rounded-xl shadow-inner">
+                    <p class="text-sm text-gray-600 font-medium">Target High</p>
+                    <p class="text-3xl font-bold text-green-700 mt-2" id="targetHigh"></p>
+                </div>
             </div>
         </div>
+
+        <!-- New container for Analyst Financials Predictions -->
+        <div id="analystFinancialsContent" class="hidden bg-white p-8 rounded-2xl shadow-xl w-full max-w-7xl mx-auto">
+            <h2 class="text-xl font-bold text-gray-700 mb-6 text-center">Analyst Financials Predictions</h2>
+            <div id="financialsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Financials data will be inserted here by JavaScript -->
+            </div>
+        </div>
+
     </main>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
@@ -168,21 +178,22 @@
 
       // Function to check premium access specifically for this page
       function checkPremiumAccessForPage() {
-          // Since Insider Trades is a premium page itself, we check it here
+          // Since Analyst Targets is a premium page itself, we check it here
           if (!window.currentUserIsPremium) {
               showPremiumMessage();
               // Hide all content containers and loading indicators
               document.getElementById('loadingIndicator').classList.add('hidden');
               document.getElementById('errorMessage').classList.add('hidden');
-              document.getElementById('insiderTradesContent').classList.add('hidden');
+              document.getElementById('analystTargetsContent').classList.add('hidden');
+              document.getElementById('analystFinancialsContent').classList.add('hidden');
               document.getElementById('stockTitle').textContent = 'Premium Feature'; // Update title
           } else {
               // If premium, then fetch data as usual
               const urlParams = new URLSearchParams(window.location.search);
               stockSymbol = urlParams.get('stock');
               if (stockSymbol) {
-                  document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Insider Trades`;
-                  fetchInsiderTrades(stockSymbol);
+                  document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Analyst Targets`;
+                  fetchAnalystTargets(stockSymbol);
               } else {
                   showError('No stock symbol provided in the URL.');
               }
@@ -195,10 +206,10 @@
         const premiumMessage = document.getElementById('premium-message'); // Get the premium message element
 
         document.addEventListener('DOMContentLoaded', () => {
-            // No longer directly fetching insider trades here;
+            // No longer directly fetching analyst targets here;
             // `checkPremiumAccessForPage` in the module script handles it after auth state is determined.
             
-            // Set up the navigation links
+            // Define navigation links and their corresponding files
             const navLinks = [
                 { id: 'nav-home', file: 'index.html' },
                 { id: 'nav-general-info', file: 'general_info.html' },
@@ -207,8 +218,8 @@
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
                 { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
                 { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // This page is premium
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // This page is premium
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
@@ -236,7 +247,7 @@
                         navElement.href = `${link.file}?stock=${stockSymbol}`;
                     }
                     // Handle active state for the current page
-                    if (link.id === 'nav-insider-trades') {
+                    if (link.id === 'nav-analyst-targets') {
                         navElement.classList.remove('text-gray-600');
                         navElement.classList.add('active'); // Keep it active
                     } else {
@@ -247,7 +258,7 @@
             });
         });
 
-        async function fetchInsiderTrades(symbol) {
+        async function fetchAnalystTargets(symbol) {
             showLoading(true);
             premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
             try {
@@ -257,7 +268,7 @@
                 const maxRetries = 5;
 
                 for (let i = 0; i < maxRetries; i++) {
-                    response = await fetch(`${backendBaseUrl}/tab6?stock=${symbol}`);
+                    response = await fetch(`${backendBaseUrl}/tab7?stock=${symbol}`);
                     if (response.ok) {
                         break;
                     }
@@ -279,52 +290,104 @@
                 if (data.error) {
                     showError(data.error);
                 } else {
-                    displayInsiderTrades(data);
+                    // Pass both parts of the data to their respective display functions
+                    displayPriceTargets(data['Analyst Price Targets']);
+                    displayFinancialPredictions(data['Analyst Financials Predictions']);
                 }
             } catch (error) {
-                console.error('Error fetching insider trades:', error);
+                console.error('Error fetching analyst targets:', error);
                 showError(`A network error occurred while fetching data. ${error.message}`);
             } finally {
                 showLoading(false);
             }
         }
 
-        function displayInsiderTrades(data) {
-            const tableBody = document.getElementById('insiderTradesTableBody');
-            tableBody.innerHTML = ''; // Clear previous content
-
-            if (data && Array.isArray(data) && data.length > 0) {
-                data.forEach(trade => {
-                    const row = document.createElement('tr');
-                    // Add Tailwind classes for row and cells
-                    row.innerHTML = `
-                        <td class="py-3 px-4 text-gray-600">${trade.Date || 'N/A'}</td>
-                        <td class="py-3 px-4 text-gray-600">${trade.Reporter || 'N/A'}</td>
-                        <td class="py-3 px-4 text-gray-600">${trade.Role || 'N/A'}</td>
-                        <td class="py-3 px-4 text-gray-600">${trade.Shares || 'N/A'}</td>
-                        <td class="py-3 px-4 text-gray-600">${trade['Transaction Type'] || 'N/A'}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            } else {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="5" class="py-4 text-center text-gray-500">No insider trades data available.</td>`;
-                tableBody.appendChild(row);
+        // Function to display the price targets (existing functionality)
+        function displayPriceTargets(priceTargetData) {
+            if (!priceTargetData) {
+                console.error('Analyst price targets data is invalid or empty.');
+                return;
             }
 
-            document.getElementById('insiderTradesContent').classList.remove('hidden');
+            document.getElementById('targetLow').textContent = priceTargetData['Target Low'] || 'N/A';
+            document.getElementById('targetConsensus').textContent = priceTargetData['Target Consensus'] || 'N/A';
+            document.getElementById('targetHigh').textContent = priceTargetData['Target High'] || 'N/A';
+            
+            document.getElementById('analystTargetsContent').classList.remove('hidden');
+        }
+
+        // New function to display the financial predictions using a refined card-based layout
+        // Updated function to display the financial predictions including Net Income
+        function displayFinancialPredictions(financialsData) {
+            const financialsContainer = document.getElementById('financialsContainer');
+            financialsContainer.innerHTML = ''; // Clear any existing cards
+
+            if (!financialsData || financialsData.length === 0) {
+                const message = document.createElement('p');
+                message.textContent = 'No financial predictions available.';
+                message.classList.add('col-span-full', 'text-center', 'text-gray-500', 'italic', 'py-4');
+                financialsContainer.appendChild(message);
+            } else {
+                financialsData.forEach(prediction => {
+                    const year = prediction['Date'] ? prediction['Date'].substring(0, 4) : 'N/A';
+                    
+                    const card = document.createElement('div');
+                    card.classList.add('bg-white', 'p-6', 'rounded-2xl', 'shadow-lg', 'border', 'border-gray-100', 'hover:shadow-2xl', 'transition-shadow', 'duration-300');
+                    
+                    // Added Net Income to the grid below
+                    card.innerHTML = `
+                        <h3 class="text-center text-2xl font-bold text-gray-800 mb-6">${year}</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4">
+                            ${createMetricItem('EPS', prediction['EPS Low'], prediction['EPS Average'], prediction['EPS High'])}
+                            ${createMetricItem('Revenue', prediction['Revenue Low'], prediction['Revenue Average'], prediction['Revenue High'])}
+                            ${createMetricItem('Net Income', prediction['Net Income Low'], prediction['Net Income Average'], prediction['Net Income High'])}
+                            ${createMetricItem('EBITDA', prediction['Ebitda Low'], prediction['Ebitda Average'], prediction['Ebitda High'])}
+                            ${createMetricItem('EBIT', prediction['Ebit Low'], prediction['Ebit Average'], prediction['Ebit High'])}
+                        </div>
+                    `;
+                    financialsContainer.appendChild(card);
+                });
+            }
+            document.getElementById('analystFinancialsContent').classList.remove('hidden');
+        }
+
+        // Helper function (remains structurally the same, but handles the new labels)
+        function createMetricItem(label, low, avg, high) {
+            return `
+                <div class="flex flex-col bg-gray-50 p-4 rounded-xl shadow-inner">
+                    <p class="text-lg font-bold text-gray-800 mb-2 text-center">${label}</p>
+                    <div class="flex flex-col space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-red-500 font-medium">Low:</span>
+                            <span class="text-base font-bold text-red-700">${low || 'N/A'}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-blue-500 font-medium">Avg:</span>
+                            <span class="text-base font-bold text-blue-700">${avg || 'N/A'}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-green-500 font-medium">High:</span>
+                            <span class="text-base font-bold text-green-700">${high || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function showLoading(show) {
             document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
-            document.getElementById('insiderTradesContent').classList.toggle('hidden', show);
+            // Toggle visibility for both content sections
+            document.getElementById('analystTargetsContent').classList.toggle('hidden', show);
+            document.getElementById('analystFinancialsContent').classList.toggle('hidden', show);
             document.getElementById('errorMessage').classList.add('hidden'); // Hide error when loading
             premiumMessage.classList.add('hidden'); // Hide premium message when loading
         }
 
         function showError(message) {
             document.getElementById('loadingIndicator').classList.add('hidden');
-            document.getElementById('insiderTradesContent').classList.add('hidden');
+            // Hide both content sections on error
+            document.getElementById('analystTargetsContent').classList.add('hidden');
+            document.getElementById('analystFinancialsContent').classList.add('hidden');
             document.getElementById('errorMessage').classList.remove('hidden');
             document.getElementById('errorText').textContent = message;
             premiumMessage.classList.add('hidden'); // Hide premium message if an error occurs
