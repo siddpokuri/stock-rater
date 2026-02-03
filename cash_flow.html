@@ -4,169 +4,381 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Cash Flow Statement</title>
-    <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* Custom font for a modern look */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* A very light gray background */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        /* Custom styles for the toggle buttons */
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 99, 210, 0.3), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .nav-link.home-link {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .nav-link.home-link:hover {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
         .toggle-button {
-            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+            transition: all 0.3s ease;
             cursor: pointer;
         }
+
         .toggle-button.active {
-            background-color: white;
-            color: #2563eb; /* A nice blue color */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
-        /* Loading spinner animation */
+
+        .toggle-button:not(.active) {
+            background: white;
+            color: #6b7280;
+        }
+
+        .toggle-button:not(.active):hover {
+            background: #f3f4f6;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            position: relative;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+        }
+
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table thead tr {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        }
+
+        .data-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .data-table th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        .data-table th:not(:first-child) {
+            text-align: right;
+        }
+
+        .data-table th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        .data-table td {
+            padding: 0.875rem 1rem;
+            color: #6b7280;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .data-table td:first-child {
+            font-weight: 600;
+            color: #1f2937;
+            text-align: left;
+        }
+
+        .data-table td:not(:first-child) {
+            text-align: right;
+        }
+
+        .data-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
         .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 4px solid #3b82f6;
-            width: 40px;
-            height: 40px;
-            -webkit-animation: spin 1s linear infinite;
-            animation: spin 1s linear infinite;
-            display: none; /* Initially hidden */
+            border-top-color: #667eea;
         }
 
-        @-webkit-keyframes spin {
-            0% { -webkit-transform: rotate(0deg); }
-            100% { -webkit-transform: rotate(360deg); }
+        .alert-box {
+            animation: slideDown 0.3s ease-out;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive nav adjustments */
+        @media (max-width: 1024px) {
+            .nav-link {
+                font-size: 0.875rem;
+                padding: 0.4rem 0.75rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links-container {
+                overflow-x: auto;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
+            }
+            
+            .nav-links-container::-webkit-scrollbar {
+                height: 4px;
+            }
+            
+            .nav-links-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .nav-links-container::-webkit-scrollbar-thumb {
+                background: rgba(102, 126, 234, 0.3);
+                border-radius: 4px;
+            }
         }
     </style>
 </head>
-<body class="min-h-screen">
-
-    <!-- Navigation Bar -->
-    <nav class="bg-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-6 py-4 flex justify-center items-center">
-            <div class="flex space-x-8 text-gray-600 font-semibold">
-                <!-- Navigation items with dynamic hrefs set by JavaScript -->
-                <a href="index.html" class="text-green-600 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
-                <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
-                <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
-                <a href="#" id="nav-cash-flow" class="text-blue-700 font-bold transition-colors duration-300">Cash Flow</a>
-                <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
-                <!-- Premium Links - HREFs will be set by JS or blocked if not premium -->
-                <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
-                <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
-                <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
-                <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
-                <a href="#" id="nav-recent-news" class="hover:text-blue-600 transition-colors duration-300">Recent News</a>
+<body>
+    <!-- Navigation -->
+    <nav class="glass-nav sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="nav-links-container flex justify-start items-center gap-2 overflow-x-auto whitespace-nowrap pb-2">
+                <a href="index.html" id="nav-home" class="nav-link home-link">Home</a>
+                <a href="#" id="nav-general-info" class="nav-link">General Info</a>
+                <a href="#" id="nav-income-statement" class="nav-link">Income Statement</a>
+                <a href="#" id="nav-cash-flow" class="nav-link active">Cash Flow</a>
+                <a href="#" id="nav-balance-sheet" class="nav-link">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="nav-link">Ratings</a>
+                <a href="#" id="nav-earnings" class="nav-link">Earnings</a>
+                <a href="#" id="nav-insider-trades" class="nav-link">Insider Trades</a>
+                <a href="#" id="nav-analyst-targets" class="nav-link">Analyst Targets</a>
+                <a href="#" id="nav-recent-news" class="nav-link">Recent News</a>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content Area -->
-    <main class="container mx-auto px-4 py-8">
-        <div class="flex flex-col items-center">
-            <!-- Dynamic Title -->
-            <h1 id="stock-title" class="text-3xl font-bold text-gray-800 mb-4">Stock - Cash Flow Statement</h1>
+    <main class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
 
-            <!-- Toggle buttons for Quarterly/Yearly views -->
-            <div class="flex justify-center mb-4 bg-gray-200 rounded-full p-1">
-                <button id="quarterly-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold active">Quarterly</button>
-                <button id="yearly-btn" class="toggle-button py-2 px-6 rounded-full text-lg font-semibold">Yearly</button>
+            <!-- Header with Title and Toggle -->
+            <div class="glass-card rounded-2xl p-8 mb-6 fade-in">
+                <h1 id="stock-title" class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-6">Stock - Cash Flow Statement</h1>
+                
+                <!-- Toggle buttons for Quarterly/Yearly views -->
+                <div class="flex justify-center">
+                    <div class="inline-flex bg-gray-100 rounded-xl p-1">
+                        <button id="quarterly-btn" class="toggle-button active px-8 py-3 rounded-lg text-base font-semibold">Quarterly</button>
+                        <button id="yearly-btn" class="toggle-button px-8 py-3 rounded-lg text-base font-semibold">Yearly</button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Loading Spinner & Error Message -->
-            <div id="loading-area" class="flex flex-col items-center my-8">
-                <div id="loading-spinner" class="loading-spinner"></div>
-                <p id="error-message" class="text-red-500 mt-4 hidden text-center"></p>
-                <!-- This is the new message box for premium access -->
-                <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
+            <!-- Loading Indicator -->
+            <div id="loading-area" class="mb-8">
+                <div id="loading-spinner-container" class="glass-card rounded-2xl p-12 text-center fade-in">
+                    <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
+                    <p class="text-gray-700 font-medium">Loading cash flow data...</p>
+                </div>
             </div>
 
-            <!-- Container for the financial data table -->
-            <div id="statement-container" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl">
-                <!-- The table content will be injected here by JavaScript -->
+            <!-- Error Message -->
+            <div id="error-message" class="hidden mb-8 alert-box">
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
+                    <div class="flex items-start">
+                        <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
+                            <p id="error-text" class="text-red-700 text-sm"></p>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- Premium Message -->
+            <div id="premium-message" class="hidden mb-8 alert-box">
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-yellow-500">
+                    <div class="flex items-start">
+                        <svg class="w-6 h-6 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <h3 class="text-yellow-900 font-semibold mb-1">Premium Feature</h3>
+                            <p class="text-yellow-800 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-900">Premium</a> to access this feature.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statement Container -->
+            <div id="statement-container" class="glass-card rounded-2xl p-8 fade-in hidden">
+                <!-- Table content will be injected here by JavaScript -->
+            </div>
+
         </div>
     </main>
+
+    <!-- Firebase -->
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
-      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
-        authDomain: "stocksight-75940.firebaseapp.com",
-        projectId: "stocksight-75940",
-        storageBucket: "stocksight-75940.firebasestorage.app",
-        messagingSenderId: "223645254786",
-        appId: "1:223645254786:web:14c980e559d9090f89e09b",
-        measurementId: "G-8JGEEE9KD1"
-      };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
+            authDomain: "stocksight-75940.firebaseapp.com",
+            projectId: "stocksight-75940",
+            storageBucket: "stocksight-75940.firebasestorage.app",
+            messagingSenderId: "223645254786",
+            appId: "1:223645254786:web:14c980e559d9090f89e09b",
+            measurementId: "G-8JGEEE9KD1"
+        };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app); // Initialize Firestore
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-      // Global variable to store user's premium status
-      window.currentUserIsPremium = false;
+        window.currentUserIsPremium = false;
 
-      onAuthStateChanged(auth, async (user) => { // Made async to use await
-        if (!user) {
-          window.location.href = "auth.html"; // redirect if not logged in
-        } else {
-          // Fetch user's premium status from Firestore
-          const userDocRef = doc(db, "users", user.uid);
-          try {
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "auth.html";
             } else {
-              console.warn("User document not found for UID:", user.uid);
-              window.currentUserIsPremium = false;
+                const userDocRef = doc(db, "users", user.uid);
+                try {
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
+                        window.currentUserIsPremium = userDoc.data().isPremium || false;
+                    } else {
+                        console.warn("User document not found for UID:", user.uid);
+                        window.currentUserIsPremium = false;
+                    }
+                } catch (e) {
+                    console.error("Error fetching user premium status:", e);
+                    window.currentUserIsPremium = false;
+                }
+                console.log("Current user premium status:", window.currentUserIsPremium);
             }
-          } catch (e) {
-            console.error("Error fetching user premium status:", e);
-            window.currentUserIsPremium = false;
-          }
-          console.log("Current user premium status:", window.currentUserIsPremium);
-        }
-      });
+        });
 
-      window.signOutUser = async function() {
-        try {
-          await signOut(auth);
-          window.location.href = "auth.html"; // redirect after logout
-        } catch (error) {
-          console.error("Error signing out:", error);
-        }
-      };
+        window.signOutUser = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = "auth.html";
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        };
     </script>
+
+    <!-- Main Script -->
     <script>
-        // Global variables to store the fetched data
         let currentBackendData = null;
         let activeView = 'Quarterly';
-        let stockTicker = ''; // Define stockTicker globally for use in event listeners
+        let stockTicker = '';
 
-        // DOM elements
         const statementContainer = document.getElementById('statement-container');
         const quarterlyBtn = document.getElementById('quarterly-btn');
         const yearlyBtn = document.getElementById('yearly-btn');
         const stockTitle = document.getElementById('stock-title');
-        const loadingSpinner = document.getElementById('loading-spinner');
+        const loadingArea = document.getElementById('loading-area');
         const errorMessage = document.getElementById('error-message');
-        const premiumMessage = document.getElementById('premium-message'); // New premium message element
+        const errorText = document.getElementById('error-text');
+        const premiumMessage = document.getElementById('premium-message');
 
-
-        /**
-         * Renders the quarterly cash flow statement data.
-         * @param {object} data The API response data.
-         */
         function renderQuarterlyData(data) {
             const info = data["Quarterly Cash Flow Statement"];
             if (!info || info.length === 0) {
@@ -174,10 +386,8 @@
                 return;
             }
 
-            // Extract dates from the first object, assuming they are consistent
             const dates = info.map(item => item.Date);
 
-            // Metrics for the table, using a simplified list for clarity
             const metrics = [
                 { name: "Net Income", key: "Net Income" },
                 { name: "Net Cash from Operating Activities", key: "Net Cash Provided by Operating Activities" },
@@ -189,23 +399,23 @@
             ];
 
             let html = `
-                <h2 class="text-xl font-bold text-gray-700 mb-6">Quarterly Cash Flow Statement</h2>
+                <div class="section-header">
+                    <h2 class="text-2xl font-bold text-gray-900 text-center">Quarterly Cash Flow Statement</h2>
+                </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto border-collapse">
+                    <table class="data-table">
                         <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-left">
-                                <th class="py-3 px-4 font-semibold text-left border-b border-gray-200">Metric</th>
-                                ${dates.map(date => `<th class="py-3 px-4 font-semibold text-right border-b border-gray-200">${date}</th>`).join('')}
+                            <tr>
+                                <th>Metric</th>
+                                ${dates.map(date => `<th>${date}</th>`).join('')}
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody>
                             ${metrics.map(metric => `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-4 text-gray-800 font-medium text-left whitespace-nowrap">${metric.name}</td>
+                                <tr>
+                                    <td>${metric.name}</td>
                                     ${info.map(item => `
-                                        <td class="py-3 px-4 text-gray-600 text-right">
-                                            ${item[metric.key] !== null && typeof item[metric.key] !== 'undefined' ? item[metric.key] : 'N/A'}
-                                        </td>
+                                        <td>${item[metric.key] !== null && typeof item[metric.key] !== 'undefined' ? item[metric.key] : 'N/A'}</td>
                                     `).join('')}
                                 </tr>
                             `).join('')}
@@ -216,10 +426,6 @@
             statementContainer.innerHTML = html;
         }
 
-        /**
-         * Renders the yearly cash flow statement data.
-         * @param {object} data The API response data.
-         */
         function renderYearlyData(data) {
             const info = data["Yearly Cash Flow Statement"];
             if (!info || info.length === 0) {
@@ -227,10 +433,8 @@
                 return;
             }
 
-            // Extract dates from the first object, assuming they are consistent
             const dates = info.map(item => item.Date);
 
-            // Metrics for the table, using a simplified list for clarity
             const metrics = [
                 { name: "Net Income", key: "Net Income" },
                 { name: "Net Cash from Operating Activities", key: "Net Cash Provided by Operating Activities" },
@@ -242,23 +446,23 @@
             ];
 
             let html = `
-                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Cash Flow Statement</h2>
+                <div class="section-header">
+                    <h2 class="text-2xl font-bold text-gray-900 text-center">Yearly Cash Flow Statement</h2>
+                </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto border-collapse">
+                    <table class="data-table">
                         <thead>
-                            <tr class="bg-gray-100 text-gray-600">
-                                <th class="py-3 px-4 font-semibold text-left border-b border-gray-200">Metric</th>
-                                ${dates.map(date => `<th class="py-3 px-4 font-semibold text-right border-b border-gray-200">${date}</th>`).join('')}
+                            <tr>
+                                <th>Metric</th>
+                                ${dates.map(date => `<th>${date}</th>`).join('')}
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody>
                             ${metrics.map(metric => `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-4 text-gray-800 font-medium text-left whitespace-nowrap">${metric.name}</td>
+                                <tr>
+                                    <td>${metric.name}</td>
                                     ${info.map(item => `
-                                        <td class="py-3 px-4 text-gray-600 text-right">
-                                            ${item[metric.key] !== null && typeof item[metric.key] !== 'undefined' ? item[metric.key] : 'N/A'}
-                                        </td>
+                                        <td>${item[metric.key] !== null && typeof item[metric.key] !== 'undefined' ? item[metric.key] : 'N/A'}</td>
                                     `).join('')}
                                 </tr>
                             `).join('')}
@@ -269,7 +473,6 @@
             statementContainer.innerHTML = html;
         }
 
-        // Main rendering function to display data based on active view
         function renderData() {
             if (!currentBackendData) {
                 return;
@@ -281,18 +484,17 @@
             }
         }
 
-        // API call to fetch data using a direct URL
-        const backendBaseUrl = 'https://stock-backend-0128.onrender.com'; // Define this here for global access
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+        
         async function fetchStockData(ticker) {
-            loadingSpinner.style.display = 'block';
-            errorMessage.style.display = 'none';
-            premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
-            statementContainer.innerHTML = '';
+            loadingArea.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            premiumMessage.classList.add('hidden');
+            statementContainer.classList.add('hidden');
             
             const apiUrl = `${backendBaseUrl}/tab2_5?stock=${ticker}`;
             
             try {
-                // Fetch data with exponential backoff
                 let response = null;
                 let delay = 1000;
                 let maxRetries = 5;
@@ -315,22 +517,20 @@
                 }
                 
                 const data = await response.json();
-
-                // Update the global data and render the view
                 currentBackendData = data;
                 stockTitle.textContent = `${ticker.toUpperCase()} - Cash Flow Statement`;
                 renderData();
+                statementContainer.classList.remove('hidden');
                 
             } catch (error) {
                 console.error('Failed to fetch stock data:', error);
-                errorMessage.textContent = `Error: Could not retrieve data for ticker "${ticker}". Please try another ticker from the main page.`;
-                errorMessage.style.display = 'block';
+                errorText.textContent = `Could not retrieve data for ticker "${ticker}". Please try another ticker from the main page.`;
+                errorMessage.classList.remove('hidden');
             } finally {
-                loadingSpinner.style.display = 'none'; // Hide the spinner
+                loadingArea.classList.add('hidden');
             }
         }
 
-        // Add event listeners to the toggle buttons to switch views
         quarterlyBtn.addEventListener('click', () => {
             yearlyBtn.classList.remove('active');
             quarterlyBtn.classList.add('active');
@@ -345,32 +545,26 @@
             renderData();
         });
 
-        // Function to show premium message
         function showPremiumMessage() {
-            premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
             premiumMessage.classList.remove('hidden');
-
-            // Hide the message after 5 seconds
             setTimeout(() => {
                 premiumMessage.classList.add('hidden');
             }, 5000);
         }
 
-        // Initial setup on page load
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             stockTicker = urlParams.get('stock');
 
-            // Set the navigation bar links
             const navLinks = [
                 { id: 'nav-general-info', file: 'general_info.html' },
                 { id: 'nav-income-statement', file: 'income_statement.html' },
                 { id: 'nav-cash-flow', file: 'cash_flow.html' },
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
+                { id: 'nav-ratings', file: 'ratings.html', premium: true },
                 { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
@@ -380,11 +574,9 @@
                     const navElement = document.getElementById(link.id);
                     if (navElement) {
                         if (link.premium) {
-                            // For premium links, attach an event listener
-                            navElement.href = '#'; // Set a dummy href for styling/accessibility
+                            navElement.href = '#';
                             navElement.addEventListener('click', (event) => {
-                                event.preventDefault(); // Prevent default navigation
-                                // Use window.currentUserIsPremium from the Firebase script
+                                event.preventDefault();
                                 if (window.currentUserIsPremium) {
                                     window.location.href = `${link.file}?stock=${stockTicker}`;
                                 } else {
@@ -392,16 +584,15 @@
                                 }
                             });
                         } else {
-                            // For non-premium links, set href directly as before
                             navElement.href = `${link.file}?stock=${stockTicker}`;
                         }
                     }
                 });
             } else {
                 stockTitle.textContent = 'No Stock Selected';
-                statementContainer.innerHTML = '';
-                errorMessage.textContent = 'Please return to the main page and select a stock to view its cash flow statement.';
-                errorMessage.style.display = 'block';
+                errorText.textContent = 'Please return to the main page and select a stock to view its cash flow statement.';
+                errorMessage.classList.remove('hidden');
+                loadingArea.classList.add('hidden');
             }
         });
     </script>
