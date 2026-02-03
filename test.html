@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Income Statement</title>
+    <title>Stock Cash Flow Statement</title>
     <!-- Load Tailwind CSS from CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Chart.js for creating the bar graphs -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Custom font for a modern look */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -54,20 +52,17 @@
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
             <div class="flex space-x-8 text-gray-600 font-semibold">
-                <!-- A "Home" button has been added here, with green text as requested. -->
+                <!-- Navigation items with dynamic hrefs set by JavaScript -->
                 <a href="index.html" class="text-green-600 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
-                <!-- Navigation items, with dynamic hrefs set by JavaScript -->
                 <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
-                <a href="#" id="nav-income-statement" class="text-blue-700 font-bold transition-colors duration-300">Income Statement</a>
-                <!-- The new "Cash Flow" button has been added here as requested. -->
-                <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
+                <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
+                <a href="#" id="nav-cash-flow" class="text-blue-700 font-bold transition-colors duration-300">Cash Flow</a>
                 <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
                 <!-- Premium Links - HREFs will be set by JS or blocked if not premium -->
                 <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
                 <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
                 <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
-                <!-- The "Recent News" button has been moved to the end as requested. -->
                 <a href="#" id="nav-recent-news" class="hover:text-blue-600 transition-colors duration-300">Recent News</a>
             </div>
         </div>
@@ -77,7 +72,7 @@
     <main class="container mx-auto px-4 py-8">
         <div class="flex flex-col items-center">
             <!-- Dynamic Title -->
-            <h1 id="stock-title" class="text-3xl font-bold text-gray-800 mb-4">Stock - Income Statement</h1>
+            <h1 id="stock-title" class="text-3xl font-bold text-gray-800 mb-4">Stock - Cash Flow Statement</h1>
 
             <!-- Toggle buttons for Quarterly/Yearly views -->
             <div class="flex justify-center mb-4 bg-gray-200 rounded-full p-1">
@@ -96,19 +91,6 @@
             <!-- Container for the financial data table -->
             <div id="statement-container" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl">
                 <!-- The table content will be injected here by JavaScript -->
-            </div>
-
-            <!-- Container for the charts, now with a fixed height -->
-            <div id="charts-container" class="w-full max-w-5xl flex flex-col md:flex-row justify-center gap-6 mt-8">
-                <!-- Chart containers with a set height (h-80) to prevent them from being too tall -->
-                <div class="w-full md:w-1/2 bg-white p-6 rounded-2xl shadow-xl h-80">
-                    <h3 id="revenue-chart-title" class="text-lg font-bold text-gray-700 mb-4 text-center">Revenue</h3>
-                    <canvas id="revenue-chart"></canvas>
-                </div>
-                <div class="w-full md:w-1/2 bg-white p-6 rounded-2xl shadow-xl h-80">
-                    <h3 id="net-income-chart-title" class="text-lg font-bold text-gray-700 mb-4 text-center">Net Income</h3>
-                    <canvas id="net-income-chart"></canvas>
-                </div>
             </div>
         </div>
     </main>
@@ -166,11 +148,9 @@
       };
     </script>
     <script>
-        // Global variables to store the fetched data and chart instances
+        // Global variables to store the fetched data
         let currentBackendData = null;
         let activeView = 'Quarterly';
-        let revenueChartInstance = null;
-        let netIncomeChartInstance = null;
         let stockTicker = ''; // Define stockTicker globally for use in event listeners
 
         // DOM elements
@@ -181,178 +161,50 @@
         const loadingSpinner = document.getElementById('loading-spinner');
         const errorMessage = document.getElementById('error-message');
         const premiumMessage = document.getElementById('premium-message'); // New premium message element
-        const revenueChartCanvas = document.getElementById('revenue-chart');
-        const netIncomeChartCanvas = document.getElementById('net-income-chart');
-        const chartsContainer = document.getElementById('charts-container');
-        const revenueChartTitle = document.getElementById('revenue-chart-title');
-        const netIncomeChartTitle = document.getElementById('net-income-chart-title');
-        chartsContainer.style.display = 'none'; // Initially hide charts container
+
 
         /**
-         * Clears any existing chart instances to prevent rendering issues.
-         */
-        function destroyExistingCharts() {
-            if (revenueChartInstance) {
-                revenueChartInstance.destroy();
-                revenueChartInstance = null;
-            }
-            if (netIncomeChartInstance) {
-                netIncomeChartInstance.destroy();
-                netIncomeChartInstance = null;
-            }
-        }
-
-        /**
-         * Parses a financial string with suffixes (B, M, k) into a number.
-         * @param {string|number} value The financial value to parse.
-         * @returns {number|null} The parsed number or null if parsing fails.
-         */
-        function parseFinancialString(value) {
-            if (value === null || typeof value === 'undefined') {
-                return null;
-            }
-            if (typeof value === 'number') {
-                return value;
-            }
-            const val = String(value).trim();
-            const lastChar = val.slice(-1).toLowerCase();
-            const number = parseFloat(val.slice(0, -1));
-
-            if (isNaN(number) || !['b', 'm', 'k'].includes(lastChar)) {
-                return parseFloat(val) || null;
-            }
-
-            switch (lastChar) {
-                case 'b':
-                    return number * 1e9;
-                case 'm':
-                    return number * 1e6;
-                case 'k':
-                    return number * 1e3;
-                default:
-                    return parseFloat(val) || null;
-            }
-        }
-
-        /**
-         * Scales an array of financial data for easier chart visualization.
-         * @param {string[]} dataArray The array of financial strings (e.g., ["1.2B", "900M"]).
-         * @returns {{scaledData: number[], unit: string}} An object with the scaled data and the unit string.
-         */
-        function scaleFinancialData(dataArray) {
-            const parsedData = dataArray.map(parseFinancialString).filter(d => d !== null);
-            if (parsedData.length === 0) {
-                return { scaledData: [], unit: "" };
-            }
-
-            const maxVal = Math.max(...parsedData.map(Math.abs));
-            let unit = "";
-            let scaleFactor = 1;
-
-            if (maxVal >= 1e9) {
-                unit = "in billions";
-                scaleFactor = 1e9;
-            } else if (maxVal >= 1e6) {
-                unit = "in millions";
-                scaleFactor = 1e6;
-            } else if (maxVal >= 1e3) {
-                unit = "in thousands";
-                scaleFactor = 1e3;
-            }
-
-            const scaledData = parsedData.map(val => val / scaleFactor);
-            return { scaledData, unit };
-        }
-
-        /**
-         * Creates a bar chart using Chart.js.
-         * @param {HTMLCanvasElement} canvasElement The canvas element to render the chart on.
-         * @param {string} title The title of the chart.
-         * @param {string[]} labels The labels for the x-axis (e.g., dates).
-         * @param {number[]} data The data values for the bars.
-         * @returns {Chart} The new Chart.js instance.
-         */
-        function createChart(canvasElement, title, labels, data) {
-            const chartData = {
-                labels: labels,
-                datasets: [{
-                    label: title,
-                    data: data,
-                    backgroundColor: [
-                        '#2563eb', // Blue
-                        '#3b82f6',
-                        '#60a5fa',
-                        '#93c5fd'
-                    ],
-                    borderColor: '#1d4ed8',
-                    borderWidth: 1
-                }]
-            };
-
-            const chartConfig = {
-                type: 'bar',
-                data: chartData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    // Simply return the scaled number
-                                    return value.toFixed(1);
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: false,
-                            text: title
-                        }
-                    }
-                }
-            };
-            return new Chart(canvasElement, chartConfig);
-        }
-
-        /**
-         * Renders the quarterly income statement data.
+         * Renders the quarterly cash flow statement data.
          * @param {object} data The API response data.
          */
         function renderQuarterlyData(data) {
-            const info = data["Quarterly Income Statement Info"];
+            const info = data["Quarterly Cash Flow Statement"];
+            if (!info || info.length === 0) {
+                statementContainer.innerHTML = '<p class="text-center text-gray-500">No quarterly cash flow data available.</p>';
+                return;
+            }
 
-            // Metrics for the table, using original string values
+            // Extract dates from the first object, assuming they are consistent
+            const dates = info.map(item => item.Date);
+
+            // Metrics for the table, using a simplified list for clarity
             const metrics = [
-                { name: "Revenue", data: info["Revenue"] },
-                { name: "Gross Profit", data: info["Gross Profit"] },
-                { name: "Ebitda", data: info["Ebitda"] },
-                { name: "Operating Income", data: info["Operating Income"] },
-                { name: "Net Income", data: info["Net Income"] },
+                { name: "Net Income", key: "Net Income" },
+                { name: "Net Cash from Operating Activities", key: "Net Cash Provided by Operating Activities" },
+                { name: "Net Cash from Investing Activities", key: "Net Cash Provided by Investing Activities" },
+                { name: "Net Cash from Financing Activities", key: "Net Cash Provided by Financing Activities" },
+                { name: "Net Change in Cash", key: "Net Change in Cash" },
+                { name: "Cash at Beginning of Period", key: "Cash at Beginning of Period" },
+                { name: "Cash at End of Period", key: "Cash at End of Period" },
             ];
 
             let html = `
-                <h2 class="text-xl font-bold text-gray-700 mb-6">Quarterly Income Statement</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-6">Quarterly Cash Flow Statement</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full table-auto border-collapse">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-left">
                                 <th class="py-3 px-4 font-semibold text-left border-b border-gray-200">Metric</th>
-                                ${info.dates.map(date => `<th class="py-3 px-4 font-semibold text-right border-b border-gray-200">${date}</th>`).join('')}
+                                ${dates.map(date => `<th class="py-3 px-4 font-semibold text-right border-b border-gray-200">${date}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${metrics.map(metric => `
                                 <tr class="hover:bg-gray-50">
                                     <td class="py-3 px-4 text-gray-800 font-medium text-left whitespace-nowrap">${metric.name}</td>
-                                    ${metric.data.map(value => `
+                                    ${info.map(item => `
                                         <td class="py-3 px-4 text-gray-600 text-right">
-                                            ${value !== null && typeof value !== 'undefined' ? value : 'N/A'}
+                                            ${item[metric.key] !== null && typeof item[metric.key] !== 'undefined' ? item[metric.key] : 'N/A'}
                                         </td>
                                     `).join('')}
                                 </tr>
@@ -362,63 +214,50 @@
                 </div>
             `;
             statementContainer.innerHTML = html;
-
-            // Prepare and render the charts with scaled numerical data
-            destroyExistingCharts();
-            chartsContainer.style.display = 'flex';
-            // Get the last four dates and reverse them to be in chronological order
-            const lastFourDates = info.dates.slice(-4).reverse();
-
-            const { scaledData: scaledRevenue, unit: revenueUnit } = scaleFinancialData(info.Revenue.slice(-4).reverse());
-            revenueChartTitle.textContent = `Revenue (${revenueUnit})`;
-            revenueChartInstance = createChart(revenueChartCanvas, `Revenue (${revenueUnit})`, lastFourDates, scaledRevenue);
-
-            const { scaledData: scaledNetIncome, unit: netIncomeUnit } = scaleFinancialData(info["Net Income"].slice(-4).reverse());
-            netIncomeChartTitle.textContent = `Net Income (${netIncomeUnit})`;
-            netIncomeChartInstance = createChart(netIncomeChartCanvas, `Net Income (${netIncomeUnit})`, lastFourDates, scaledNetIncome);
         }
 
         /**
-         * Renders the yearly income statement data.
+         * Renders the yearly cash flow statement data.
          * @param {object} data The API response data.
          */
         function renderYearlyData(data) {
-            const info = data["Yearly Income Statement Info"];
-            const ratios = data["Yearly Ratios"];
+            const info = data["Yearly Cash Flow Statement"];
+            if (!info || info.length === 0) {
+                statementContainer.innerHTML = '<p class="text-center text-gray-500">No yearly cash flow data available.</p>';
+                return;
+            }
 
-            // Get the headers from the API data
-            const headers = info["Date"];
+            // Extract dates from the first object, assuming they are consistent
+            const dates = info.map(item => item.Date);
 
-            // Metrics for the table, now including Ebit from the backend data
+            // Metrics for the table, using a simplified list for clarity
             const metrics = [
-                { name: "Revenue", data: info["Revenue"] },
-                { name: "Gross Profit", data: info["Gross Profit"] },
-                { name: "Ebitda", data: info["Ebitda"] },
-                { name: "Ebit", data: info["Ebit"] }, // Added the new metric here
-                { name: "Operating Income", data: info["Operating Income"] },
-                { name: "Net Income", data: info["Net Income"] },
-                // These ratios are already in a displayable format
-                { name: "Net Profit Margin (%)", data: ['N/A', ...ratios["Net Profit Margin (%)"]] },
-                { name: "Price to Sales Ratio", data: ['N/A', ...ratios["Price to Sales Ratio"]] },
+                { name: "Net Income", key: "Net Income" },
+                { name: "Net Cash from Operating Activities", key: "Net Cash Provided by Operating Activities" },
+                { name: "Net Cash from Investing Activities", key: "Net Cash Provided by Investing Activities" },
+                { name: "Net Cash from Financing Activities", key: "Net Cash Provided by Financing Activities" },
+                { name: "Net Change in Cash", key: "Net Change in Cash" },
+                { name: "Cash at Beginning of Period", key: "Cash at Beginning of Period" },
+                { name: "Cash at End of Period", key: "Cash at End of Period" },
             ];
 
             let html = `
-                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Income Statement</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-6">Yearly Cash Flow Statement</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full table-auto border-collapse">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600">
                                 <th class="py-3 px-4 font-semibold text-left border-b border-gray-200">Metric</th>
-                                ${headers.map(date => `<th class="py-3 px-4 font-semibold text-right border-b border-gray-200">${date}</th>`).join('')}
+                                ${dates.map(date => `<th class="py-3 px-4 font-semibold text-right border-b border-gray-200">${date}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             ${metrics.map(metric => `
                                 <tr class="hover:bg-gray-50">
                                     <td class="py-3 px-4 text-gray-800 font-medium text-left whitespace-nowrap">${metric.name}</td>
-                                    ${metric.data.map(value => `
+                                    ${info.map(item => `
                                         <td class="py-3 px-4 text-gray-600 text-right">
-                                            ${value !== null && typeof value !== 'undefined' ? value : 'N/A'}
+                                            ${item[metric.key] !== null && typeof item[metric.key] !== 'undefined' ? item[metric.key] : 'N/A'}
                                         </td>
                                     `).join('')}
                                 </tr>
@@ -428,20 +267,6 @@
                 </div>
             `;
             statementContainer.innerHTML = html;
-
-            // Prepare and render the charts with scaled numerical data
-            destroyExistingCharts();
-            chartsContainer.style.display = 'flex';
-            // Get the last four dates and reverse them to be in chronological order
-            const lastFourDates = headers.slice(-4).reverse();
-
-            const { scaledData: scaledRevenue, unit: revenueUnit } = scaleFinancialData(info.Revenue.slice(-4).reverse());
-            revenueChartTitle.textContent = `Revenue (${revenueUnit})`;
-            revenueChartInstance = createChart(revenueChartCanvas, `Revenue (${revenueUnit})`, lastFourDates, scaledRevenue);
-
-            const { scaledData: scaledNetIncome, unit: netIncomeUnit } = scaleFinancialData(info["Net Income"].slice(-4).reverse());
-            netIncomeChartTitle.textContent = `Net Income (${netIncomeUnit})`;
-            netIncomeChartInstance = createChart(netIncomeChartCanvas, `Net Income (${netIncomeUnit})`, lastFourDates, scaledNetIncome);
         }
 
         // Main rendering function to display data based on active view
@@ -463,10 +288,9 @@
             errorMessage.style.display = 'none';
             premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
             statementContainer.innerHTML = '';
-            chartsContainer.style.display = 'none'; // Hide charts while loading
-
-            const apiUrl = `${backendBaseUrl}/tab2?stock=${ticker}`;
-
+            
+            const apiUrl = `${backendBaseUrl}/tab2_5?stock=${ticker}`;
+            
             try {
                 // Fetch data with exponential backoff
                 let response = null;
@@ -485,21 +309,20 @@
                         throw new Error(`API call failed with status ${response.status}`);
                     }
                 }
-
+                
                 if (!response || !response.ok) {
                     throw new Error('Max retries reached, failed to fetch data.');
                 }
-
+                
                 const data = await response.json();
 
                 // Update the global data and render the view
                 currentBackendData = data;
-                stockTitle.textContent = `${ticker.toUpperCase()} - Income Statement`;
+                stockTitle.textContent = `${ticker.toUpperCase()} - Cash Flow Statement`;
                 renderData();
-
+                
             } catch (error) {
                 console.error('Failed to fetch stock data:', error);
-                destroyExistingCharts(); // Clear charts on error
                 errorMessage.textContent = `Error: Could not retrieve data for ticker "${ticker}". Please try another ticker from the main page.`;
                 errorMessage.style.display = 'block';
             } finally {
@@ -533,11 +356,10 @@
             }, 5000);
         }
 
-
         // Initial setup on page load
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-            stockTicker = urlParams.get('stock'); // Assign to the global stockTicker
+            stockTicker = urlParams.get('stock');
 
             // Set the navigation bar links
             const navLinks = [
@@ -578,9 +400,8 @@
             } else {
                 stockTitle.textContent = 'No Stock Selected';
                 statementContainer.innerHTML = '';
-                errorMessage.textContent = 'Please return to the main page and select a stock to view its income statement.';
+                errorMessage.textContent = 'Please return to the main page and select a stock to view its cash flow statement.';
                 errorMessage.style.display = 'block';
-                destroyExistingCharts();
             }
         });
     </script>
