@@ -11,6 +11,14 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
         }
+        .toggle-button {
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+        }
+        .toggle-button.active {
+            background-color: white;
+            color: #2563eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
         .chart-container {
             position: relative;
             height: 250px;
@@ -26,13 +34,6 @@
             max-width: 100%;
             height: 100%;
         }
-        /* Fixed: Strong styles for the Header and Price */
-        #chartSectionTitle {
-            @apply text-2xl md:text-3xl font-extrabold text-gray-900 mb-2 text-center;
-        }
-        #currentPriceDisplay {
-            @apply text-4xl md:text-5xl font-black text-gray-800 mb-6;
-        }
         .no-chart-data-message {
             @apply text-center text-gray-500 text-lg;
             position: absolute;
@@ -40,240 +41,373 @@
             top: 50%;
             transform: translateY(-50%);
         }
+        #chartSectionTitle {
+            @apply text-2xl font-bold text-gray-800 mb-4 text-center;
+        }
+        #currentPriceDisplay {
+            @apply text-3xl md:text-4xl font-bold text-gray-800 mb-4;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
             <div class="flex flex-wrap justify-center space-x-4 sm:space-x-8 text-gray-600 font-semibold">
-                <a href="index.html" class="text-green-500 font-semibold hover:text-blue-600">Home</a>
-                <a href="#" id="nav-general-info" class="text-blue-700 font-bold">General Info</a>
-                <a href="#" id="nav-income-statement" class="hover:text-blue-600">Income Statement</a>
-                <a href="#" id="nav-cash-flow" class="hover:text-blue-600">Cash Flow</a>
-                <a href="#" id="nav-balance-sheet" class="hover:text-blue-600">Balance Sheet</a>
-                <a href="#" id="nav-ratings" class="hover:text-blue-600">Ratings</a>
-                <a href="#" id="nav-earnings" class="hover:text-blue-600">Earnings</a>
-                <a href="#" id="nav-insider-trades" class="hover:text-blue-600">Insider Trades</a>
-                <a href="#" id="nav-analyst-targets" class="hover:text-blue-600">Analyst Targets</a>
-                <a href="#" id="nav-recent-news" class="hover:text-blue-600">Recent News</a>
+                <a href="index.html" id="nav-home" class="text-green-500 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
+                <a href="#" id="nav-general-info" class="text-blue-700 font-bold transition-colors duration-300">General Info</a>
+                <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
+                <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
+                <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
+                <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
+                <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
+                <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
+                <a href="#" id="nav-recent-news" class="hover:text-blue-600 transition-colors duration-300">Recent News</a>
             </div>
         </div>
     </nav>
 
     <main class="container mx-auto p-6">
-        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10 font-medium">Fetching Market Data...</div>
-        
+        <div id="loadingIndicator" class="text-center text-gray-600 text-lg mt-10">
+            Fetching General Info and Chart Data...
+        </div>
+
+        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-10" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline" id="errorText"></span>
+        </div>
+
+        <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
+
         <div id="generalContent" class="hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center border-b pb-4">Company Overview</h2>
-                    <div id="generalInfoDetails" class="divide-y divide-gray-100"></div>
-                    <div id="companyDescriptionContainer" class="mt-4 pt-4 border-t border-gray-200"></div>
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Company Overview</h2>
+                    <div id="generalInfoDetails" class="divide-y divide-gray-200"></div>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 flex flex-col items-center">
-                    <h2 id="chartSectionTitle">Company Name</h2>
-                    <div id="currentPriceDisplay">$0.00</div>
+                <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
+                    <h2 id="chartSectionTitle" class="text-2xl font-bold text-gray-800 mb-4 text-center"></h2>
+                    <div id="currentPriceDisplay" class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Price: N/A</div>
 
-                    <div class="flex flex-wrap justify-center gap-2 w-full mb-6">
-                        <button id="chartBtn1D" class="chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-green-600 text-white shadow-sm">1D</button>
-                        <button id="chartBtn5D" class="chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-gray-200 text-gray-700 hover:bg-gray-300">5D</button>
-                        <button id="chartBtn1M" class="chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-gray-200 text-gray-700 hover:bg-gray-300">1M</button>
-                        <button id="chartBtn1Y" class="chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-gray-200 text-gray-700 hover:bg-gray-300">1Y</button>
+                    <div class="flex flex-wrap justify-center gap-2 w-full mb-4">
+                        <button id="chartBtn1D" class="chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition duration-200 ease-in-out bg-green-600 text-white hover:bg-green-700">1 Day</button>
+                        <button id="chartBtn5D" class="chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition duration-200 ease-in-out bg-gray-300 text-gray-800 hover:bg-gray-400">5 Day</button>
+                        <button id="chartBtn1M" class="chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition duration-200 ease-in-out bg-gray-300 text-gray-800 hover:bg-gray-400">1 Month</button>
+                        <button id="chartBtn1Y" class="chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition duration-200 ease-in-out bg-gray-300 text-gray-800 hover:bg-gray-400">1 Year</button>
                     </div>
-
                     <div class="chart-container">
                         <canvas id="priceChart"></canvas>
-                        <p id="noChartDataMessage" class="no-chart-data-message hidden">Market data unavailable for this period.</p>
+                        <p id="noChartDataMessage" class="no-chart-data-message hidden">No chart data available for this period.</p>
                     </div>
                     
-                    <div class="flex flex-wrap justify-center items-center gap-6 w-full mt-6">
-                        <div id="chartPercentageChange" class="text-2xl font-bold">0.00%</div>
-                        <div id="chartVolume" class="text-xl font-semibold text-gray-700">Vol: 0</div>
-                        <div id="chartAvgVolume" class="text-xl font-semibold text-gray-400">Avg: 0</div>
+                    <div class="flex flex-col sm:flex-row justify-center items-center gap-4 w-full mt-4">
+                        <div id="chartPercentageChange" class="text-xl md:text-2xl font-semibold text-gray-800">Change: N/A</div>
+                        <div id="chartVolume" class="text-xl md:text-2xl font-semibold text-gray-800">Vol: N/A</div>
+                        <div id="chartAvgVolume" class="text-xl md:text-2xl font-semibold text-gray-400">Avg Vol: N/A</div>
                     </div>
                 </div>
             </div>
 
             <div id="keyRatiosSection" class="bg-white p-6 rounded-xl shadow-md mt-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center border-b pb-4">Key Ratios</h2>
-                <div id="keyRatiosDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Key Ratios</h2>
+                <div id="keyRatiosDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
         </div>
     </main>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
+            authDomain: "stocksight-75940.firebaseapp.com",
+            projectId: "stocksight-75940",
+            storageBucket: "stocksight-75940.firebasestorage.app",
+            messagingSenderId: "223645254786",
+            appId: "1:223645254786:web:14c980e559d9090f89e09b",
+            measurementId: "G-8JGEEE9KD1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.currentUserIsPremium = false;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "auth.html";
+            } else {
+                const userDocRef = doc(db, "users", user.uid);
+                try {
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
+                        window.currentUserIsPremium = userDoc.data().isPremium || false;
+                    }
+                } catch (e) {
+                    console.error("Error fetching user premium status:", e);
+                }
+            }
+        });
+
+        window.signOutUser = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = "auth.html";
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        };
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let stockSymbol = '';
         let generalData = null;
         let priceChartInstance = null;
+        let currentChartPeriod = '1D';
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessageDiv = document.getElementById('errorMessage');
+        const errorTextSpan = document.getElementById('errorText');
+        const premiumMessage = document.getElementById('premium-message');
+
+        const navLinks = [
+            { id: 'nav-general-info', file: 'general_info.html', premium: false },
+            { id: 'nav-income-statement', file: 'income_statement.html', premium: false },
+            { id: 'nav-cash-flow', file: 'cash_flow.html', premium: false },
+            { id: 'nav-balance-sheet', file: 'balance_sheet.html', premium: false },
+            { id: 'nav-ratings', file: 'ratings.html', premium: true },
+            { id: 'nav-earnings', file: 'earnings.html', premium: false },
+            { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
+            { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
+            { id: 'nav-recent-news', file: 'recent_news.html', premium: false },
+        ];
 
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             stockSymbol = urlParams.get('stock');
-            if (stockSymbol) fetchGeneralInfo(stockSymbol);
+            if (!stockSymbol) {
+                showError('No stock symbol provided in the URL.');
+                return;
+            }
+            navLinks.forEach(link => {
+                const navElement = document.getElementById(link.id);
+                if (navElement) {
+                    if (link.premium) {
+                        navElement.href = '#';
+                        navElement.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            if (window.currentUserIsPremium) {
+                                window.location.href = `${link.file}?stock=${stockSymbol}`;
+                            } else {
+                                showPremiumMessage();
+                            }
+                        });
+                    } else {
+                        navElement.href = `${link.file}?stock=${stockSymbol}`;
+                    }
+                }
+            });
+            fetchGeneralInfo(stockSymbol);
         });
 
         async function fetchGeneralInfo(symbol) {
+            showLoading(true);
             try {
-                const res = await fetch(`${backendBaseUrl}/tab1?stock=${symbol}`);
-                generalData = await res.json();
+                const response = await fetch(`${backendBaseUrl}/tab1?stock=${symbol}`);
+                if (!response.ok) throw new Error(`Failed to fetch general info.`);
+                generalData = await response.json();
                 displayGeneralInfo();
                 displayKeyRatios();
-                document.getElementById('loadingIndicator').classList.add('hidden');
+                showLoading(false);
                 document.getElementById('generalContent').classList.remove('hidden');
-            } catch (err) { console.error(err); }
+            } catch (error) {
+                showError(`An error occurred: ${error.message}`);
+            }
         }
 
         function displayGeneralInfo() {
-            const profile = generalData["Profile Info"] || {};
-            // Setting Big Bold Title and Price
-            document.getElementById('chartSectionTitle').textContent = `${profile["Company Name"]} (${stockSymbol})`;
-            document.getElementById('currentPriceDisplay').textContent = formatValue(profile["Price"], "Price");
-            
-            const details = document.getElementById('generalInfoDetails');
-            details.innerHTML = '';
-            
-            const rows = [
-                ["Market Cap", profile["Market Cap"]],
-                ["Industry", profile["Industry"]],
-                ["Sector", profile["Sector"]],
-                ["Country", profile["Country"]]
-            ];
-
-            rows.forEach(([label, val]) => {
-                const row = document.createElement('div');
-                row.className = 'flex justify-between py-3';
-                row.innerHTML = `<strong class="text-gray-600">${label}</strong><span class="text-gray-900 font-medium">${formatValue(val, label)}</span>`;
-                details.appendChild(row);
-            });
-
-            document.getElementById('companyDescriptionContainer').innerHTML = `
-                <strong class="text-gray-700 block mb-2">About the Company</strong>
-                <p class="text-gray-600 text-sm leading-relaxed">${profile["Company Description"] || 'No description available.'}</p>
-            `;
-
+            const generalInfoDetailsDiv = document.getElementById('generalInfoDetails');
+            generalInfoDetailsDiv.innerHTML = '';
+            if (!generalData || Object.keys(generalData).length === 0) {
+                generalInfoDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No data available.</p>';
+            } else {
+                const profileInfo = generalData["Profile Info"] || {};
+                document.getElementById('chartSectionTitle').textContent = `${profileInfo["Company Name"]} - (${profileInfo["Exchange"]}: ${stockSymbol})`;
+                document.getElementById('currentPriceDisplay').textContent = `Price: ${formatValue(profileInfo["Price"], "Price")}`;
+                const infoItems = [
+                    { label: "Market Cap", value: profileInfo["Market Cap"] },
+                    { label: "EPS", value: generalData["EPS"] },
+                    { label: "Beta", value: profileInfo["Beta"] },
+                    { label: "Industry", value: profileInfo["Industry"] },
+                    { label: "Sector", value: profileInfo["Sector"] },
+                    { label: "Country", value: profileInfo["Country"] }
+                ];
+                infoItems.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'flex justify-between items-center py-2';
+                    row.innerHTML = `<strong class="text-gray-700">${item.label}:</strong><span class="text-gray-800">${formatValue(item.value, item.label)}</span>`;
+                    generalInfoDetailsDiv.appendChild(row);
+                });
+                const descriptionDiv = document.createElement('div');
+                descriptionDiv.className = 'mt-4 pt-4 border-t border-gray-200';
+                descriptionDiv.innerHTML = `<strong class="text-gray-700">Company Description:</strong><p class="text-gray-800 mt-2 text-sm leading-relaxed">${profileInfo["Company Description"] || 'N/A'}</p>`;
+                generalInfoDetailsDiv.appendChild(descriptionDiv);
+            }
             renderPriceChart('1D');
+            setActiveChartButton('chartBtn1D');
         }
 
         function displayKeyRatios() {
-            const ratios = generalData["Ratios"] || {};
-            const container = document.getElementById('keyRatiosDetails');
-            container.innerHTML = '';
-            Object.entries(ratios).forEach(([label, val]) => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-50 border border-gray-100 p-4 rounded-lg';
-                div.innerHTML = `<div class="text-xs uppercase tracking-wider font-bold text-gray-500 mb-1">${label}</div><div class="text-xl font-bold text-gray-900">${formatValue(val, label)}</div>`;
-                container.appendChild(div);
+            const keyRatiosDetailsDiv = document.getElementById('keyRatiosDetails');
+            keyRatiosDetailsDiv.innerHTML = '';
+            if (!generalData || !generalData["Ratios"]) return;
+            Object.entries(generalData["Ratios"]).forEach(([label, value]) => {
+                const metricDiv = document.createElement('div');
+                metricDiv.className = 'bg-gray-50 p-4 rounded-lg shadow-sm flex flex-col justify-center items-start';
+                metricDiv.innerHTML = `<div class="text-sm font-semibold text-gray-600">${label}</div><div class="text-xl font-bold text-gray-800">${formatValue(value, label)}</div>`;
+                keyRatiosDetailsDiv.appendChild(metricDiv);
             });
         }
 
-        function renderPriceChart(period) {
-            if (priceChartInstance) priceChartInstance.destroy();
-            const chartData = generalData[period];
-            if (!chartData || chartData.length === 0) return;
+        function formatValue(value, label) {
+            if (value === null || value === undefined || value === 'N/A') return 'N/A';
+            if (typeof value === 'number') {
+                if (label.includes("Market Cap") || label.includes("Volume")) {
+                    const absValue = Math.abs(value);
+                    if (absValue >= 1e12) return (value / 1e12).toFixed(2) + 'T';
+                    if (absValue >= 1e9) return (value / 1e9).toFixed(2) + 'B';
+                    if (absValue >= 1e6) return (value / 1e6).toFixed(2) + 'M';
+                    return value.toLocaleString();
+                }
+                return value.toFixed(2);
+            }
+            return value;
+        }
 
+        function renderPriceChart(period) {
+            const noChartDataMessageElement = document.getElementById('noChartDataMessage');
+            if (priceChartInstance) priceChartInstance.destroy();
+            
+            const priceChartCanvas = document.getElementById('priceChart');
+            priceChartCanvas.style.display = 'block';
+            noChartDataMessageElement.classList.add('hidden');
+
+            const chartDataForPeriod = generalData[period];
+            if (!chartDataForPeriod || chartDataForPeriod.length === 0) {
+                priceChartCanvas.style.display = 'none';
+                noChartDataMessageElement.classList.remove('hidden');
+                return;
+            }
+
+            const ctx = priceChartCanvas.getContext('2d');
             const dateKey = period === '1Y' ? 'date' : 'datetime';
             const priceKey = period === '1Y' ? 'price' : 'close';
-            const labels = chartData.map(d => d[dateKey]);
-            const prices = chartData.map(d => parseFloat(d[priceKey]));
-            const pctChange = generalData["Changes"] ? generalData["Changes"][period] : 0;
-            const color = pctChange >= 0 ? '#10b981' : '#ef4444'; // Emerald and Red
+            const labels = chartDataForPeriod.map(d => d[dateKey]);
+            const prices = chartDataForPeriod.map(d => parseFloat(d[priceKey]));
+            
+            const percentageChangeValue = generalData["Changes"] ? generalData["Changes"][period] : null;
+            let chartBorderColor = 'rgb(34, 197, 94)';
+            let chartBackgroundColor = 'rgba(34, 197, 94, 0.1)';
 
-            document.getElementById('chartPercentageChange').textContent = `${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(2)}%`;
-            document.getElementById('chartPercentageChange').className = `text-2xl font-bold ${pctChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
+            if (percentageChangeValue !== null) {
+                document.getElementById('chartPercentageChange').textContent = `Change: ${percentageChangeValue.toFixed(2)}%`;
+                document.getElementById('chartPercentageChange').className = `text-xl md:text-2xl font-semibold ${percentageChangeValue >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                if (percentageChangeValue < 0) {
+                    chartBorderColor = 'rgb(239, 68, 68)';
+                    chartBackgroundColor = 'rgba(239, 68, 68, 0.1)';
+                }
+            }
 
             const volData = generalData["Volume (last trading day and average)"];
             if (volData) {
                 document.getElementById('chartVolume').textContent = `Vol: ${formatValue(volData["Volume"], "Volume")}`;
-                document.getElementById('chartAvgVolume').textContent = `Avg: ${formatValue(volData["Average Volume"], "Volume")}`;
+                document.getElementById('chartAvgVolume').textContent = `Avg Vol: ${formatValue(volData["Average Volume"], "Volume")}`;
             }
 
-            const ctx = document.getElementById('priceChart').getContext('2d');
             priceChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
+                        label: 'Price',
                         data: prices,
-                        borderColor: color,
-                        backgroundColor: pctChange >= 0 ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)',
+                        borderColor: chartBorderColor,
+                        backgroundColor: chartBackgroundColor,
                         fill: true,
                         pointRadius: 0,
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: color,
-                        borderWidth: 2,
+                        pointHoverRadius: 6, // Shows point on hover
                         tension: 0.1
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
+                    // INTERACTION SETTINGS
+                    interaction: {
+                        mode: 'index',
+                        intersect: false, // Tooltip shows for nearest point on X axis
+                    },
+                    plugins: { 
                         legend: { display: false },
                         tooltip: {
                             enabled: true,
-                            backgroundColor: '#fff',
-                            titleColor: '#111827',
-                            bodyColor: '#111827',
-                            borderColor: '#e5e7eb',
-                            borderWidth: 1,
-                            padding: 12,
-                            cornerRadius: 8,
-                            displayColors: false,
-                            bodyFont: { weight: 'bold' },
+                            mode: 'index',
+                            intersect: false,
                             callbacks: {
-                                label: (ctx) => `Price: $${ctx.parsed.y.toLocaleString(undefined, {minimumFractionDigits: 2})}`,
-                                title: (ctx) => {
-                                    const val = ctx[0].label;
-                                    return period === '1D' ? val.substring(11, 16) : val.substring(0, 10);
+                                label: function(context) {
+                                    return `Price: $${context.parsed.y.toFixed(2)}`;
                                 }
                             }
                         }
                     },
                     scales: {
                         x: { 
-                            grid: { display: false },
+                            grid: { display: false }, 
                             ticks: { 
-                                maxTicksLimit: 5, // Maintains the gaps
-                                maxRotation: 0,
-                                font: { weight: '600' },
-                                color: '#9ca3af',
-                                callback: function(v) {
-                                    const lab = this.getLabelForValue(v);
-                                    return period === '1D' ? lab.substring(11, 16) : lab.substring(0, 10);
+                                maxTicksLimit: 5,
+                                maxRotation: 0, 
+                                minRotation: 0,
+                                callback: function(value, index, ticks) {
+                                    const datetimeStr = this.getLabelForValue(value);
+                                    if (period === '1D') return datetimeStr.substring(11, 16);
+                                    return datetimeStr.substring(0, 10);
                                 }
                             } 
                         },
-                        y: { grid: { color: '#f3f4f6' }, ticks: { font: { weight: '500' }, color: '#9ca3af' } }
+                        y: { grid: { color: '#f1f5f9' } }
                     }
                 }
             });
         }
 
-        function formatValue(v, l) {
-            if (v == null || v === 'N/A') return 'N/A';
-            if (typeof v === 'number') {
-                if (l.includes("Market Cap") || l.includes("Volume") || l === "Price") {
-                    if (l === "Price") return "$" + v.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    if (Math.abs(v) >= 1e12) return (v / 1e12).toFixed(2) + 'T';
-                    if (Math.abs(v) >= 1e9) return (v / 1e9).toFixed(2) + 'B';
-                    if (Math.abs(v) >= 1e6) return (v / 1e6).toFixed(2) + 'M';
-                    return v.toLocaleString();
-                }
-                return v.toFixed(2);
-            }
-            return v;
+        function setActiveChartButton(activeBtnId) {
+            document.querySelectorAll('.chart-period-btn').forEach(button => {
+                button.className = button.id === activeBtnId ? 
+                    "chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition bg-green-600 text-white" : 
+                    "chart-period-btn px-4 py-2 rounded-lg font-semibold text-sm transition bg-gray-300 text-gray-800 hover:bg-gray-400";
+            });
         }
 
-        function setActiveChartButton(btnId) {
-            document.querySelectorAll('.chart-period-btn').forEach(btn => {
-                btn.className = btn.id === btnId ? 
-                    "chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-green-600 text-white shadow-sm" : 
-                    "chart-period-btn px-4 py-2 rounded-lg font-bold text-sm transition bg-gray-200 text-gray-700 hover:bg-gray-300";
-            });
+        function showLoading(show) {
+            loadingIndicator.classList.toggle('hidden', !show);
+            document.getElementById('generalContent').classList.toggle('hidden', show);
+        }
+
+        function showError(message) {
+            loadingIndicator.classList.add('hidden');
+            errorTextSpan.textContent = message;
+            errorMessageDiv.classList.remove('hidden');
+        }
+
+        function showPremiumMessage() {
+            premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500">Premium</a> to access this feature.';
+            premiumMessage.classList.remove('hidden');
+            setTimeout(() => premiumMessage.classList.add('hidden'), 5000);
         }
 
         document.getElementById('chartBtn1D').onclick = () => { renderPriceChart('1D'); setActiveChartButton('chartBtn1D'); };
