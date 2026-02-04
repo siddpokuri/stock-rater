@@ -3,80 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Recent News</title>
-    <!-- Load Tailwind CSS from CDN for styling -->
+    <title>Earnings Calendar</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom font for a modern look */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* A very light gray background */
         }
-        /* Loading spinner animation */
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 4px solid #3b82f6;
-            width: 40px;
-            height: 40px;
-            -webkit-animation: spin 1s linear infinite;
-            animation: spin 1s linear infinite;
-        }
-
-        @-webkit-keyframes spin {
-            0% { -webkit-transform: rotate(0deg); }
-            100% { -webkit-transform: rotate(360deg); }
-        }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="bg-gray-100 min-h-screen flex flex-col text-gray-800">
+    <main class="container mx-auto p-6 flex-grow">
+        <!-- Title card now has a limited width and is centered -->
+        <div class="bg-white py-8 px-6 rounded-2xl shadow-xl flex justify-center items-center mt-10 mb-4 max-w-xl mx-auto">
+            <h1 id="pageTitle" class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Earnings Calendar</h1>
+        </div>
+        
+        <!-- Back button card also has a limited width and is centered -->
+        <div class="bg-white py-4 px-6 rounded-2xl shadow-xl flex justify-center items-center mb-8 max-w-sm mx-auto">
+            <a href="index.html" class="bg-gray-200 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-md hover:bg-gray-300 transition-colors duration-200">← Back to Home</a>
+        </div>
 
-    <!-- Navigation Bar -->
-    <nav class="bg-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-6 py-4 flex justify-center items-center">
-            <div class="flex flex-wrap justify-center space-x-4 sm:space-x-8 text-gray-600 font-semibold">
-                <a href="index.html" class="text-green-600 font-semibold hover:text-blue-600 transition-colors duration-300">Home</a>
-                <!-- Navigation items, with dynamic hrefs set by JavaScript -->
-                <a href="#" id="nav-general-info" class="hover:text-blue-600 transition-colors duration-300">General Info</a>
-                <a href="#" id="nav-income-statement" class="hover:text-blue-600 transition-colors duration-300">Income Statement</a>
-                <!-- New "Cash Flow" button -->
-                <a href="#" id="nav-cash-flow" class="hover:text-blue-600 transition-colors duration-300">Cash Flow</a>
-                <a href="#" id="nav-balance-sheet" class="hover:text-blue-600 transition-colors duration-300">Balance Sheet</a>
-                <a href="#" id="nav-ratings" class="hover:text-blue-600 transition-colors duration-300">Ratings</a>
-                <a href="#" id="nav-earnings" class="hover:text-blue-600 transition-colors duration-300">Earnings</a>
-                <a href="#" id="nav-insider-trades" class="hover:text-blue-600 transition-colors duration-300">Insider Trades</a>
-                <a href="#" id="nav-analyst-targets" class="hover:text-blue-600 transition-colors duration-300">Analyst Targets</a>
-                <!-- Recent News tab is the active one -->
-                <a href="#" id="nav-recent-news" class="text-blue-700 font-bold transition-colors duration-300">Recent News</a>
+        <div id="loadingIndicator" class="text-center">
+            <div class="flex flex-col items-center justify-center p-10 bg-white rounded-2xl shadow-lg">
+                <div class="w-10 h-10 border-4 border-gray-200 border-l-blue-500 rounded-full animate-spin"></div>
+                <p class="mt-4 text-xl font-medium text-gray-600">Loading Earnings Data...</p>
             </div>
         </div>
-    </nav>
 
-    <!-- Main Content Area -->
-    <main class="container mx-auto px-4 py-8">
-        <div class="flex flex-col items-center">
-            <!-- Dynamic Title -->
-            <h1 id="stock-title" class="text-3xl font-bold text-gray-800 mb-8">Stock - Recent News</h1>
-            
-            <!-- This is the new message box for premium access -->
-            <p id="premium-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-4 hidden text-center"></p>
-
-            <!-- Container for news cards -->
-            <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-7xl">
-                <!-- News articles will be dynamically inserted here -->
+        <div id="errorMessage" class="hidden mt-10">
+            <div class="bg-red-100 border border-red-400 text-red-700 p-6 rounded-2xl shadow-md text-center font-semibold">
+                <strong class="font-bold">Oops!</strong>
+                <span class="block sm:inline" id="errorText"></span>
             </div>
         </div>
+
+        <div id="calendarContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            <!-- Earnings cards will be populated here -->
+        </div>
+        <p id="noCalendarDataMessage" class="hidden text-center text-gray-500 text-xl py-10 font-semibold"></p>
     </main>
+    <!-- Firebase -->
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"; // Updated SDK version
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"; // Updated SDK version
-      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"; // Added Firestore
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
     
       const firebaseConfig = {
         apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
@@ -90,30 +64,10 @@
     
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
-      const db = getFirestore(app); // Initialize Firestore
-
-      // Global variable to store user's premium status
-      window.currentUserIsPremium = false;
     
-      onAuthStateChanged(auth, async (user) => { // Made async to use await
+      onAuthStateChanged(auth, (user) => {
         if (!user) {
           window.location.href = "auth.html"; // redirect if not logged in
-        } else {
-          // Fetch user's premium status from Firestore
-          const userDocRef = doc(db, "users", user.uid);
-          try {
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-              window.currentUserIsPremium = userDoc.data().isPremium || false; // Default to false if not set
-            } else {
-              console.warn("User document not found for UID:", user.uid);
-              window.currentUserIsPremium = false;
-            }
-          } catch (e) {
-            console.error("Error fetching user premium status:", e);
-            window.currentUserIsPremium = false;
-          }
-          console.log("Current user premium status:", window.currentUserIsPremium);
         }
       });
     
@@ -127,138 +81,124 @@
       };
     </script>
     <script>
-        let stockSymbol = '';
+        // The backend base URL is a constant
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
-        const premiumMessage = document.getElementById('premium-message'); // Get the premium message element
 
-        // Function to fetch and render recent news articles
-        async function fetchNews(ticker) {
-            const newsContainer = document.getElementById('news-container');
-            premiumMessage.classList.add('hidden'); // Hide premium message on new fetch
-            newsContainer.innerHTML = `
-                <div class="col-span-full flex flex-col items-center justify-center my-8">
-                    <div class="loading-spinner"></div>
-                    <p class="text-gray-500 mt-4">Loading recent news...</p>
-                </div>
-            `;
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get the selected date from the URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const selectedDate = urlParams.get('date');
 
-            const apiUrl = `${backendBaseUrl}/tab8?stock=${ticker}`;
-            
-            try {
-                let response = null;
-                let delay = 1000;
-                let maxRetries = 5;
-                for (let i = 0; i < maxRetries; i++) {
-                    response = await fetch(apiUrl);
-                    if (response.ok) {
-                        break;
-                    }
-                    if (response.status === 429) {
-                        console.warn('API call failed with status 429. Retrying...');
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2;
-                    } else {
-                        throw new Error(`API call failed with status ${response.status}`);
-                    }
-                }
-                
-                if (!response || !response.ok) {
-                    throw new Error('Max retries reached, failed to fetch data.');
-                }
-                
-                const newsData = await response.json();
-                renderNews(newsData);
-            } catch (error) {
-                console.error('Failed to fetch news:', error);
-                newsContainer.innerHTML = `<p class="col-span-full text-center text-red-500 mt-4">Error: Could not retrieve news for ticker "${ticker}". Please try again later.</p>`;
+            // Get references to the HTML elements
+            const pageTitle = document.getElementById('pageTitle');
+            const calendarContentDiv = document.getElementById('calendarContent');
+            const noCalendarDataMessage = document.getElementById('noCalendarDataMessage');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const errorTextSpan = document.getElementById('errorText');
+
+            // Check if a date has been selected
+            if (selectedDate) {
+                // Update the page title and fetch the earnings data
+                pageTitle.textContent = `Earnings on ${selectedDate}`;
+                fetchEarningsData(selectedDate);
+            } else {
+                // If no date is selected, display an error message
+                pageTitle.textContent = 'Earnings Calendar';
+                noCalendarDataMessage.textContent = 'No date selected. Please go back to the home page and select a date.';
+                noCalendarDataMessage.classList.remove('hidden');
             }
-        }
 
-        // Function to render the news cards
-        function renderNews(newsData) {
-            const newsContainer = document.getElementById('news-container');
-            newsContainer.innerHTML = ''; // Clear previous content
+            // Asynchronous function to fetch earnings data from the API
+            async function fetchEarningsData(date) {
+                showLoading(true);
+                hideError();
+                noCalendarDataMessage.classList.add('hidden');
 
-            if (newsData && newsData.length > 0) {
-                newsData.forEach(article => {
-                    const articleCard = document.createElement('a');
-                    articleCard.href = article.URL; // Changed from article.url
-                    articleCard.target = "_blank"; // Open link in a new tab
-                    articleCard.className = "block bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out";
+                try {
+                    const apiUrl = `${backendBaseUrl}/upcomingearnings?date=${date}`;
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
 
-                    // Use a placeholder image if the article image URL is invalid or missing
-                    const imageUrl = article.Image || 'https://placehold.co/600x400/e2e8f0/4a5568?text=No+Image'; // Changed from article.image
+                    if (response.ok) {
+                        if (Array.isArray(data) && data.length > 0) {
+                            displayCalendarData(data);
+                        } else {
+                            noCalendarDataMessage.textContent = `No earnings data found for ${date}.`;
+                            noCalendarDataMessage.classList.remove('hidden');
+                        }
+                    } else {
+                        showError(data.error || 'An error occurred while fetching earnings data.');
+                    }
+                } catch (error) {
+                    console.error('Error fetching earnings calendar:', error);
+                    showError(`A network error occurred: ${error.message}. Please try again.`);
+                } finally {
+                    showLoading(false);
+                }
+            }
 
-                    articleCard.innerHTML = `
-                        <img src="${imageUrl}" alt="${article.Title}" class="w-full h-48 object-cover object-center" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e2e8f0/4a5568?text=No+Image';">
-                        <div class="p-5">
-                            <h3 class="text-lg font-bold mb-2 text-gray-800 hover:text-blue-600 transition-colors duration-200">${article.Title}</h3>
-                            <p class="text-sm text-gray-600 mb-2">Publisher: ${article.Publisher || 'N/A'}</p> <!-- Added Publisher -->
-                            <p class="text-sm text-gray-500">${article['Date Published'] ? new Date(article['Date Published']).toLocaleDateString() : 'Date not available'}</p> <!-- Changed from article.publishedDate -->
+            // Function to display the fetched earnings data
+            function displayCalendarData(data) {
+                calendarContentDiv.innerHTML = '';
+                
+                // Sort the data alphabetically by symbol
+                data.sort((a, b) => {
+                    const symbolA = a["Symbol"] || '';
+                    const symbolB = b["Symbol"] || '';
+                    return symbolA.localeCompare(symbolB);
+                });
+
+                // Create a card for each earnings entry
+                data.forEach(entry => {
+                    const card = document.createElement('div');
+                    // Updated classes for a distinct white card with a shadow
+                    card.className = 'bg-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1';
+                    
+                    card.innerHTML = `
+                        <div class="mb-4 pb-2 border-b-2 border-gray-100">
+                            <h3 class="text-2xl font-bold text-blue-700">${entry["Symbol"] || 'N/A'}</h3>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm mb-2">
+                                <span class="text-sm text-gray-500 font-medium">EPS Actual:</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["EPS Actual"] !== undefined && entry["EPS Actual"] !== null ? entry["EPS Actual"] : 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm mb-2">
+                                <span class="text-sm text-gray-500 font-medium">EPS Estimated:</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["EPS Estimated"] !== undefined && entry["EPS Estimated"] !== null ? entry["EPS Estimated"] : 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm mb-2">
+                                <span class="text-sm text-gray-500 font-medium">Revenue Actual:</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["Revenue Actual"] !== undefined && entry["Revenue Actual"] !== null ? entry["Revenue Actual"] : 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm mb-2">
+                                <span class="text-sm text-gray-500 font-medium">Revenue Estimated:</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["Revenue Estimated"] !== undefined && entry["Revenue Estimated"] !== null ? entry["Revenue Estimated"] : 'N/A'}</span>
+                            </div>
                         </div>
                     `;
-                    newsContainer.appendChild(articleCard);
+                    calendarContentDiv.appendChild(card);
                 });
-            } else {
-                newsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 mt-4">No recent news found for this stock. Please check the ticker and try again.</p>`;
             }
-        }
 
-        // Function to show premium message
-        function showPremiumMessage() {
-            premiumMessage.innerHTML = 'Please get <a href="pricing.html" class="underline text-blue-500 hover:text-blue-700">Premium</a> to access this feature.';
-            premiumMessage.classList.remove('hidden');
+            // Function to show/hide the loading indicator
+            function showLoading(show) {
+                loadingIndicator.classList.toggle('hidden', !show);
+                calendarContentDiv.classList.toggle('hidden', show);
+            }
 
-            // Hide the message after 5 seconds
-            setTimeout(() => {
-                premiumMessage.classList.add('hidden');
-            }, 5000);
-        }
+            // Function to display an error message
+            function showError(message) {
+                errorTextSpan.textContent = message;
+                errorMessageDiv.classList.remove('hidden');
+                calendarContentDiv.classList.add('hidden');
+                noCalendarDataMessage.classList.add('hidden');
+            }
 
-        // Initial setup on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock');
-
-            const navLinks = [
-                { id: 'nav-general-info', file: 'general_info.html' },
-                { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' },
-                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html', premium: true }, // Mark as premium
-                { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true }, // Mark as premium
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true }, // Mark as premium
-                { id: 'nav-recent-news', file: 'recent_news.html' }
-            ];
-
-            if (stockSymbol) {
-                fetchNews(stockSymbol);
-                document.getElementById('stock-title').textContent = `${stockSymbol.toUpperCase()} - Recent News`;
-                navLinks.forEach(link => {
-                    const navElement = document.getElementById(link.id);
-                    if (navElement) {
-                        if (link.premium) {
-                            // For premium links, attach an event listener
-                            navElement.href = '#'; // Set a dummy href for styling/accessibility
-                            navElement.addEventListener('click', (event) => {
-                                event.preventDefault(); // Prevent default navigation
-                                // Use window.currentUserIsPremium from the Firebase script
-                                if (window.currentUserIsPremium) {
-                                    window.location.href = `${link.file}?stock=${stockSymbol}`;
-                                } else {
-                                    showPremiumMessage();
-                                }
-                            });
-                        } else {
-                            // For non-premium links, set href directly as before
-                            navElement.href = `${link.file}?stock=${stockSymbol}`;
-                        }
-                    }
-                });
-            } else {
-                document.getElementById('stock-title').textContent = 'No Stock Selected';
-                document.getElementById('news-container').innerHTML = `<p class="text-center text-gray-500 mt-4">Please return to the main page and select a stock to view its news.</p>`;
+            // Function to hide the error message
+            function hideError() {
+                errorMessageDiv.classList.add('hidden');
             }
         });
     </script>
