@@ -686,7 +686,7 @@
       function renderStocks(stockData, containerElement) {
         containerElement.innerHTML = '';
         if (stockData && stockData.length > 0) {
-          stockData.slice(0, 5).forEach(stock => {
+          stockData.slice(0, 10).forEach(stock => {
             const isPositive = stock['Change (%)'] >= 0;
             const changeSign = isPositive ? '+' : '';
             const badgeClass = isPositive ? 'badge-gain' : 'badge-loss';
@@ -722,7 +722,7 @@
           </div>`;
         
         [gainersList, losersList, mostActiveList].forEach(container => {
-          container.innerHTML = skeletonHtml.repeat(5);
+          container.innerHTML = skeletonHtml.repeat(10);
         });
       }
   
