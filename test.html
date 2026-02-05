@@ -1,184 +1,741 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pricing Plans</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockSight - Real-Time Market Intelligence</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://js.stripe.com/v3/"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .card-shadow {
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(138, 99, 210, 0.3), transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container-wrapper {
+      position: relative;
+      z-index: 1;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-field {
+      transition: all 0.3s ease;
+      border: 2px solid #e5e7eb;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .news-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      border: 1px solid #f0f0f0;
+    }
+
+    .news-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .news-card img {
+      transition: transform 0.5s ease;
+    }
+
+    .news-card:hover img {
+      transform: scale(1.05);
+    }
+
+    .stock-row {
+      transition: all 0.2s ease;
+    }
+
+    .stock-row:hover {
+      background: #f9fafb;
+      transform: translateX(4px);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-gain {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-loss {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s ease-in-out infinite;
+    }
+
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0;
+    }
+
+    .logo {
+      font-size: 1.75rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .alert-box {
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-header {
+      position: relative;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
+
+    .section-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 2px;
+    }
+
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+      background-position: right 12px center;
+      background-repeat: no-repeat;
+      background-size: 20px;
+      padding-right: 40px;
+    }
+
+    .metric-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, rgba(102, 126, 234, 0.1), transparent);
+      border-radius: 50%;
+      transform: translate(30%, -30%);
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-6">
+<body>
+  <div class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      
+      <!-- Header -->
+      <header class="glass-card rounded-2xl p-6 mb-8 fade-in">
+        <div class="header-nav">
+          <div>
+            <h1 class="logo">StockSight</h1>
+            <p class="text-sm text-gray-600 mt-1">Real-time market intelligence at your fingertips</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="goToPricing()" 
+              class="btn-secondary px-5 py-2.5 rounded-lg font-medium text-sm">
+              Upgrade to Pro
+            </button>
+            <button onclick="signOutUser()" 
+              class="text-gray-600 hover:text-gray-900 px-4 py-2.5 rounded-lg hover:bg-gray-100 transition font-medium text-sm">
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </header>
 
-  <header class="w-full max-w-6xl flex justify-between items-center py-6 px-4 bg-white rounded-2xl card-shadow mb-10">
-    <h1 class="text-2xl font-bold text-blue-600">StockSight</h1>
-    <nav>
-      <a href="index.html" class="text-gray-700 font-medium hover:text-blue-600 transition">Home</a>
-    </nav>
-  </header>
+      <!-- Search and Calendar Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        
+        <!-- Stock Search -->
+        <div class="glass-card rounded-2xl p-8 fade-in">
+          <div class="section-header">
+            <h2 class="text-xl font-semibold text-gray-900">Search Stock</h2>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <label for="stockSymbolInput" class="block text-sm font-medium text-gray-700 mb-2">
+                Stock Symbol
+              </label>
+              <input 
+                type="text" 
+                id="stockSymbolInput" 
+                placeholder="AAPL, TSLA, GOOGL..." 
+                class="input-field w-full px-4 py-3 rounded-lg text-gray-900"
+              >
+            </div>
+            
+            <button id="searchStockBtn" class="btn-primary w-full text-white px-6 py-3 rounded-lg font-medium">
+              View Stock Details
+            </button>
 
-  <section class="text-center mb-12">
-    <h2 class="text-4xl font-bold text-gray-800 mb-4">Choose Your Plan</h2>
-    <p class="text-gray-600 max-w-xl mx-auto">Flexible options designed for everyone — whether you’re just starting or ready to go premium.</p>
-  </section>
+            <!-- Validation Message -->
+            <div id="validationMessage" class="hidden alert-box bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <span id="validationText" class="text-sm text-red-800 font-medium"></span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  <section class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
-    
-    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col text-center">
-      <h3 class="text-2xl font-bold text-blue-600 mb-4">Free</h3>
-      <p class="text-3xl font-extrabold text-gray-900 mb-6">$0 <span class="text-lg font-medium">/month</span></p>
-      <ul class="text-gray-600 text-left space-y-3 mb-8">
-        <li>✔ UNLIMITED Stock Searches</li>
-        <li>✔ FULL access to Calendars (Earnings/Dividends/IPOs/Splits)</li>
-        <li>✔ General daily news</li>
-        <li>✔ Daily top gainers/losers, most active</li>
-      </ul>
-      <button disabled class="bg-gray-300 text-gray-600 px-6 py-3 rounded-xl font-semibold cursor-not-allowed">Current Plan</button>
+        <!-- Calendar View -->
+        <div class="glass-card rounded-2xl p-8 fade-in">
+          <div class="section-header">
+            <h2 class="text-xl font-semibold text-gray-900">Market Calendar</h2>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <label for="calendarDate" class="block text-sm font-medium text-gray-700 mb-2">
+                Select Date
+              </label>
+              <input 
+                type="date" 
+                id="calendarDate" 
+                class="input-field w-full px-4 py-3 rounded-lg text-gray-900"
+              >
+            </div>
+
+            <div>
+              <label for="calendarTypeSelect" class="block text-sm font-medium text-gray-700 mb-2">
+                Calendar Type
+              </label>
+              <select id="calendarTypeSelect" class="input-field w-full px-4 py-3 rounded-lg text-gray-900">
+                <option value="earnings_calendar.html">Earnings Calendar</option>
+                <option value="ipos_calendar.html">IPO Calendar</option>
+                <option value="split_calendar.html">Stock Splits</option>
+                <option value="dividend_calendar.html">Dividend Calendar</option>
+              </select>
+            </div>
+
+            <!-- Calendar Error Message -->
+            <div id="calendarErrorMessage" class="hidden alert-box bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <span id="calendarErrorText" class="text-sm text-red-800 font-medium"></span>
+              </div>
+            </div>
+
+            <button id="viewCalendarBtn" class="btn-primary w-full text-white px-6 py-3 rounded-lg font-medium">
+              View Calendar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div id="loadingIndicator" class="hidden mb-8">
+        <div class="glass-card rounded-2xl p-12 text-center">
+          <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
+          <p class="text-gray-700 font-medium">Loading market data...</p>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div id="errorMessage" class="hidden mb-8 alert-box">
+        <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
+          <div class="flex items-start">
+            <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            <div>
+              <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
+              <p id="errorText" class="text-red-700 text-sm"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Market Summary -->
+      <section id="marketSummarySection" class="mb-8">
+        <div class="glass-card rounded-2xl p-8 fade-in">
+          <div class="section-header mb-6">
+            <h2 class="text-2xl font-semibold text-gray-900">Market Movers</h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Top Gainers -->
+            <div class="metric-card">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Top Gainers</h3>
+              </div>
+              <div class="space-y-2" id="gainersList"></div>
+            </div>
+
+            <!-- Top Losers -->
+            <div class="metric-card">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M12 13a1 1 0 100 2h5a1 1 0 001-1V9a1 1 0 10-2 0v2.586l-4.293-4.293a1 1 0 00-1.414 0L8 9.586 3.707 5.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0L11 9.414 14.586 13H12z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Top Losers</h3>
+              </div>
+              <div class="space-y-2" id="losersList"></div>
+            </div>
+
+            <!-- Most Active -->
+            <div class="metric-card">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                  </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Most Active</h3>
+              </div>
+              <div class="space-y-2" id="mostActiveList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Market News -->
+      <section id="generalNewsSection" class="fade-in">
+        <div class="glass-card rounded-2xl p-8">
+          <div class="section-header mb-6">
+            <h2 class="text-2xl font-semibold text-gray-900">Market News</h2>
+          </div>
+          <div id="newsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+      </section>
+
     </div>
+  </div>
 
-    <div class="bg-white rounded-2xl p-8 card-shadow flex flex-col text-center border-2 border-yellow-400">
-      <h3 class="text-2xl font-bold text-yellow-600 mb-4">Premium</h3>
-      <p class="text-3xl font-extrabold text-gray-900 mb-6">$9.99 <span class="text-lg font-medium">/month</span></p>
-      <ul class="text-gray-600 text-left space-y-3 mb-8">
-        <li>✔ Everything in FREE</li>
-        <li>✔ COMPREHENSIVE DAILY Ratings</li>
-        <li>✔ Latest insider trades</li>
-        <li>✔ Last quarter earnings transcripts</li>
-      </ul>
-      <button id="checkout-button" class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition duration-300 transform hover:scale-105">
-        Upgrade Now
-      </button>
-    </div>
-  </section>
-
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
-    // Your Firebase config
-      const firebaseConfig = {
-        apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
-        authDomain: "stocksight-75940.firebaseapp.com",
-        projectId: "stocksight-75940",
-        storageBucket: "stocksight-75940.firebasestorage.app",
-        messagingSenderId: "223645254786",
-        appId: "1:223645254786:web:14c980e559d9090f89e09b",
-        measurementId: "G-8JGEEE9KD1"
-      };
-
-    // Initialize Firebase
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+  
+    const firebaseConfig = {
+      apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
+      authDomain: "stocksight-75940.firebaseapp.com",
+      projectId: "stocksight-75940",
+      storageBucket: "stocksight-75940.firebasestorage.app",
+      messagingSenderId: "223645254786",
+      appId: "1:223645254786:web:14c980e559d9090f89e09b",
+      measurementId: "G-8JGEEE9KD1"
+    };
+  
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const db = getFirestore(app);
-
-    // Stripe publishable key and backend URL
-    const stripe = Stripe("pk_test_51Rxdlv4KLwrGOtmyxhLfG9WwzKSNiDsswb5n7zfQpknrTw1tYrcvkYT4edmvlj9OXUENm6W7CkGZ5Ux1Xrk5z8OF000YZi22il");
-    const backendUrl = "https://stock-backend-0128.onrender.com"; // Your Python backend URL
-
-    const checkoutButton = document.getElementById("checkout-button");
-    const freePlanButton = document.querySelector(".bg-gray-300"); // Refers to the "Current Plan" button for the Free tier
-
-    let currentUser = null;
-
-    // Function to reset button states to default (non-logged in/non-premium)
-    function resetButtons() {
-        checkoutButton.disabled = false;
-        checkoutButton.textContent = "Upgrade Now";
-        checkoutButton.classList.remove("bg-gray-300", "text-gray-600", "cursor-not-allowed");
-        checkoutButton.classList.add("bg-yellow-500", "text-white", "hover:bg-yellow-600");
-
-        freePlanButton.disabled = true; // Free plan button is always 'Current Plan' if free, or 'Premium User' if premium
-        freePlanButton.textContent = "Current Plan"; // Default at no cost plan
-        freePlanButton.classList.remove("text-gray-600", "cursor-not-allowed"); // Remove text-gray-600 if it was 'Premium User' state
-        freePlanButton.classList.add("bg-gray-300", "text-gray-600"); // Ensure default styling for current plan
-    }
-
-    // Listen for authentication state changes
+  
     onAuthStateChanged(auth, async (user) => {
-      currentUser = user;
-      resetButtons(); // Start with default states
-
       if (user) {
-        // User is logged in, check their subscription status
+        console.log("User is signed in:", user.email);
         const userDocRef = doc(db, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          // CRITICAL FIX: Check for 'isPremium' instead of 'subscribed'
-          if (userData.isPremium === true) { 
-            // User is premium, disable premium button and indicate current plan
-            checkoutButton.disabled = true;
-            checkoutButton.textContent = "Current Plan";
-            checkoutButton.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
-            checkoutButton.classList.add("bg-gray-300", "text-gray-600", "cursor-not-allowed");
-
-            // Update free plan button to indicate premium status
-            freePlanButton.disabled = true;
-            freePlanButton.textContent = "Premium User";
-            freePlanButton.classList.remove("bg-gray-300", "text-gray-600"); // Remove default gray styling
-            // Optionally, add a custom styling for "Premium User" on the Free button if desired
-            // freePlanButton.classList.add("bg-yellow-200", "text-yellow-800"); 
-          } 
-          // If user exists but is not premium (isPremium is false or undefined), 
-          // 'resetButtons' already correctly enables the upgrade button.
-        } 
-        // If user document doesn't exist, they are not premium. 'resetButtons' handles this.
+        const userData = {
+          email: user.email,
+          lastLoginAt: user.metadata.lastSignInTime,
+          isPremium: false
+        };
+        try {
+          await setDoc(userDocRef, userData, { merge: true });
+          console.log("User data successfully saved to Firestore!");
+        } catch (e) {
+          console.error("Error writing user data to Firestore:", e);
+        }
       } else {
-        // Not logged in, disable premium button and prompt sign-in
-        checkoutButton.disabled = true;
-        checkoutButton.textContent = "Sign in to Upgrade";
-        checkoutButton.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
-        checkoutButton.classList.add("bg-gray-300", "text-gray-600", "cursor-not-allowed");
-        
-        // Free plan button remains "Current Plan" as it's the default state for non-logged-in users
-        // No change needed at no costPlanButton from resetButtons() here.
+        window.location.href = "auth.html";
       }
     });
-
-    // Handle checkout button click
-    checkoutButton.addEventListener("click", async () => {
-      if (!currentUser) {
-        window.location.href = "auth.html";
-        return;
-      }
-
+  
+    window.signOutUser = async function() {
       try {
-        const response = await fetch(`${backendUrl}/create-checkout-session`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: currentUser.email,
-            uid: currentUser.uid // CRITICAL ADDITION: Send Firebase UID
-          })
-        });
-
-        const session = await response.json();
-
-        if (!session.id) {
-          throw new Error("Invalid session response: " + JSON.stringify(session));
-        }
-
-        const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
-
-        if (error) {
-          console.error("Stripe Checkout error:", error.message);
-          alert("Stripe error: " + error.message);
-        }
-      } catch (err) {
-        console.error("Checkout error:", err);
-        alert("Something went wrong. Check console for details.");
+        await signOut(auth);
+        window.location.href = "auth.html";
+      } catch (error) {
+        console.error("Error signing out:", error);
       }
+    };
+  
+    window.goToPricing = function() {
+      window.location.href = "pricing.html";
+    };
+  
+    function showMessage(message, type, targetElementId) {
+      const messageBox = document.getElementById(targetElementId);
+      const messageText = messageBox.querySelector('span');
+      messageText.textContent = message;
+      messageBox.classList.remove('hidden');
+      setTimeout(() => {
+        messageBox.classList.add('hidden');
+      }, 5000);
+    }
+  
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date();
+      document.getElementById('calendarDate').value = today.toISOString().split('T')[0];
+  
+      document.getElementById('searchStockBtn').addEventListener('click', async () => {
+        const stockSymbolInput = document.getElementById('stockSymbolInput');
+        const symbol = stockSymbolInput.value.trim().toUpperCase();
+  
+        if (symbol.length === 0) {
+          showMessage('Please enter a stock symbol.', 'red', 'validationMessage');
+          return;
+        }
+  
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.classList.remove('hidden');
+  
+        try {
+          const validationApiUrl = `https://stock-backend-0128.onrender.com/check?stock=${symbol}`;
+          let response;
+          let attempts = 0;
+          const maxAttempts = 3;
+          const baseDelay = 1000;
+  
+          while (attempts < maxAttempts) {
+            try {
+              response = await fetch(validationApiUrl);
+              if (response.ok) {
+                break;
+              } else {
+                throw new Error(`HTTP Error: ${response.status}`);
+              }
+            } catch (error) {
+              attempts++;
+              if (attempts < maxAttempts) {
+                const delay = baseDelay * (2 ** attempts);
+                console.error(`Attempt ${attempts} failed. Retrying in ${delay / 1000}s...`, error);
+                await new Promise(res => setTimeout(res, delay));
+              } else {
+                throw error;
+              }
+            }
+          }
+  
+          const data = await response.json();
+  
+          if (data['valid?'] === 1) {
+            window.location.href = `general_info.html?stock=${symbol}`;
+          } else if (data['error']) {
+            showMessage(data['error'], 'red', 'validationMessage');
+          } else {
+            showMessage('Please enter a valid stock symbol.', 'red', 'validationMessage');
+          }
+        } catch (error) {
+          console.error("Failed to validate stock symbol:", error);
+          showMessage('Error: please enter a valid stock symbol.', 'red', 'validationMessage');
+        } finally {
+          loadingIndicator.classList.add('hidden');
+        }
+      });
+  
+      document.getElementById('viewCalendarBtn').addEventListener('click', () => {
+        const selectedDate = document.getElementById('calendarDate').value;
+        const selectedCalendarTypeFile = document.getElementById('calendarTypeSelect').value;
+        const errorMessageDiv = document.getElementById('calendarErrorMessage');
+        const errorTextSpan = document.getElementById('calendarErrorText');
+  
+        errorMessageDiv.classList.add('hidden');
+  
+        if (!selectedDate) {
+          errorTextSpan.textContent = 'Please select a date for the calendar.';
+          errorMessageDiv.classList.remove('hidden');
+          return;
+        }
+  
+        if (!selectedCalendarTypeFile) {
+          errorTextSpan.textContent = 'Please select a calendar type.';
+          errorMessageDiv.classList.remove('hidden');
+          return;
+        }
+  
+        window.location.href = `${selectedCalendarTypeFile}?date=${selectedDate}`;
+      });
+  
+      const API_URL = "https://stock-backend-0128.onrender.com/tabzero";
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      const errorMessageDiv = document.getElementById('errorMessage');
+      const errorTextSpan = document.getElementById('errorText');
+      const newsContainer = document.getElementById('newsContainer');
+      const gainersList = document.getElementById('gainersList');
+      const losersList = document.getElementById('losersList');
+      const mostActiveList = document.getElementById('mostActiveList');
+      const generalNewsSection = document.getElementById('generalNewsSection');
+      const marketSummarySection = document.getElementById('marketSummarySection');
+  
+      function formatNumber(num, decimals) {
+        return parseFloat(num).toFixed(decimals);
+      }
+  
+      function renderStocks(stockData, containerElement) {
+        containerElement.innerHTML = '';
+        if (stockData && stockData.length > 0) {
+          stockData.slice(0, 10).forEach(stock => {
+            const isPositive = stock['Change (%)'] >= 0;
+            const changeSign = isPositive ? '+' : '';
+            const badgeClass = isPositive ? 'badge-gain' : 'badge-loss';
+            
+            const stockRowHtml = `
+              <div class="stock-row flex items-center justify-between p-3 rounded-lg">
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-gray-900 truncate">${stock.Stock}</div>
+                  <div class="text-xs text-gray-500">${stock.Exchange}</div>
+                </div>
+                <div class="text-right ml-4">
+                  <div class="font-medium text-gray-900">$${formatNumber(stock.Price, 2)}</div>
+                  <span class="badge ${badgeClass}">${changeSign}${formatNumber(stock['Change (%)'], 2)}%</span>
+                </div>
+              </div>`;
+            containerElement.innerHTML += stockRowHtml;
+          });
+        }
+      }
+  
+      function showSkeletonLoaders() {
+        // Show skeleton loaders while data is loading
+        const skeletonHtml = `
+          <div class="stock-row flex items-center justify-between p-3 rounded-lg">
+            <div class="flex-1">
+              <div class="h-4 w-16 bg-gray-200 rounded skeleton mb-2"></div>
+              <div class="h-3 w-12 bg-gray-200 rounded skeleton"></div>
+            </div>
+            <div class="text-right ml-4">
+              <div class="h-4 w-20 bg-gray-200 rounded skeleton mb-2 ml-auto"></div>
+              <div class="h-6 w-16 bg-gray-200 rounded-full skeleton ml-auto"></div>
+            </div>
+          </div>`;
+        
+        [gainersList, losersList, mostActiveList].forEach(container => {
+          container.innerHTML = skeletonHtml.repeat(5);
+        });
+      }
+  
+      function renderNews(newsData) {
+        newsContainer.innerHTML = '';
+        if (newsData && newsData.length > 0) {
+          generalNewsSection.classList.remove('hidden');
+          newsData.forEach(newsItem => {
+            const newsCardHtml = newsItem.Image ? `
+              <div class="news-card">
+                <div class="h-48 overflow-hidden">
+                  <img src="${newsItem.Image}" alt="News" 
+                    onerror="this.onerror=null;this.src='https://placehold.co/400x200/e5e7eb/4b5563?text=No+Image';" 
+                    class="w-full h-full object-cover">
+                </div>
+                <div class="p-5">
+                  <h4 class="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-purple-600 transition">
+                    <a href="${newsItem.url}" target="_blank">${newsItem.Title}</a>
+                  </h4>
+                  <div class="flex items-center justify-between text-xs text-gray-500 mt-3">
+                    <span class="font-medium">${newsItem.Publisher}</span>
+                    <span>${newsItem.Date.split(' ')[0]}</span>
+                  </div>
+                </div>
+              </div>
+            ` : `
+              <div class="news-card p-5">
+                <h4 class="font-semibold text-gray-900 mb-2 hover:text-purple-600 transition">
+                  <a href="${newsItem.url}" target="_blank">${newsItem.Title}</a>
+                </h4>
+                <div class="flex items-center justify-between text-xs text-gray-500 mt-3">
+                  <span class="font-medium">${newsItem.Publisher}</span>
+                  <span>${newsItem.Date.split(' ')[0]}</span>
+                </div>
+              </div>
+            `;
+            newsContainer.innerHTML += newsCardHtml;
+          });
+        }
+      }
+  
+      async function fetchMarketData() {
+        // Show sections with skeleton loaders immediately
+        marketSummarySection.classList.remove('hidden');
+        generalNewsSection.classList.remove('hidden');
+        showSkeletonLoaders();
+        
+        errorMessageDiv.classList.add('hidden');
+  
+        try {
+          let response;
+          let attempts = 0;
+          const maxAttempts = 3;
+          const baseDelay = 1000;
+  
+          while (attempts < maxAttempts) {
+            try {
+              response = await fetch(API_URL);
+              if (response.ok) {
+                break;
+              } else {
+                throw new Error(`HTTP Error: ${response.status}`);
+              }
+            } catch (error) {
+              attempts++;
+              if (attempts < maxAttempts) {
+                const delay = baseDelay * (2 ** attempts);
+                console.error(`Attempt ${attempts} failed. Retrying in ${delay / 1000}s...`, error);
+                await new Promise(res => setTimeout(res, delay));
+              } else {
+                throw error;
+              }
+            }
+          }
+  
+          const data = await response.json();
+  
+          // Render all the data from backend
+          if (data['General News'] && data['General News'].length > 0) {
+            renderNews(data['General News']);
+          }
+          if (data['Top Gainers'] && data['Top Gainers'].length > 0) {
+            renderStocks(data['Top Gainers'], gainersList);
+          }
+          if (data['Top Losers'] && data['Top Losers'].length > 0) {
+            renderStocks(data['Top Losers'], losersList);
+          }
+          if (data['Most Active'] && data['Most Active'].length > 0) {
+            renderStocks(data['Most Active'], mostActiveList);
+          }
+        } catch (error) {
+          console.error("Failed to fetch market data:", error);
+          errorTextSpan.textContent = `${error.message}. Please try again later.`;
+          errorMessageDiv.classList.remove('hidden');
+          generalNewsSection.classList.add('hidden');
+          marketSummarySection.classList.add('hidden');
+        }
+      }
+  
+      fetchMarketData();
     });
   </script>
 </body>
