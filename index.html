@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StockSight</title>
+  <title>StockSight - Professional Market Intelligence Platform</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -29,9 +29,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: 
-        radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.1), transparent 40%),
-        radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1), transparent 40%);
+      background: #0f172a;
       pointer-events: none;
       z-index: 0;
     }
@@ -67,31 +65,15 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      background: #3b82f6;
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-    }
-
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s ease;
-    }
-
-    .btn-primary:hover::before {
-      left: 100%;
     }
 
     .btn-primary:hover {
+      background: #2563eb;
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
     }
 
     .btn-secondary {
@@ -105,7 +87,6 @@
       background: rgba(59, 130, 246, 0.2);
       border-color: #3b82f6;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
     }
 
     .news-card {
@@ -187,10 +168,7 @@
     .logo {
       font-size: 1.75rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #3b82f6;
       letter-spacing: -0.02em;
     }
 
@@ -234,7 +212,7 @@
       right: 0;
       width: 120px;
       height: 120px;
-      background: radial-gradient(circle, rgba(59, 130, 246, 0.1), transparent);
+      background: rgba(59, 130, 246, 0.05);
       border-radius: 50%;
       transform: translate(40%, -40%);
     }
@@ -250,17 +228,17 @@
     }
 
     .icon-gain {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
+      background: rgba(16, 185, 129, 0.15);
       border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
     .icon-loss {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+      background: rgba(239, 68, 68, 0.15);
       border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
     .icon-active {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1));
+      background: rgba(59, 130, 246, 0.15);
       border: 1px solid rgba(59, 130, 246, 0.2);
     }
 
@@ -308,13 +286,14 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                 </svg>
               </div>
               <div>
                 <h1 class="logo">StockSight</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Professional Market Intelligence</p>
               </div>
             </div>
           </div>
@@ -350,6 +329,9 @@
           
           <div class="space-y-4">
             <div class="search-icon-wrapper">
+              <svg class="search-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
               <input 
                 type="text" 
                 id="stockSymbolInput" 
@@ -682,7 +664,7 @@
       function renderStocks(stockData, containerElement) {
         containerElement.innerHTML = '';
         if (stockData && stockData.length > 0) {
-          stockData.slice(0, 15).forEach(stock => {
+          stockData.slice(0, 10).forEach(stock => {
             const isPositive = stock['Change (%)'] >= 0;
             const changeSign = isPositive ? '+' : '';
             const badgeClass = isPositive ? 'badge-gain' : 'badge-loss';
