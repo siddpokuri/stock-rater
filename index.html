@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StockSight - Professional Market Intelligence Platform</title>
+  <title>StockSight</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -29,7 +29,9 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: #0f172a;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.1), transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1), transparent 40%);
       pointer-events: none;
       z-index: 0;
     }
@@ -293,7 +295,6 @@
               </div>
               <div>
                 <h1 class="logo">StockSight</h1>
-                <p class="text-xs text-slate-400 mt-0.5">Professional Market Intelligence</p>
               </div>
             </div>
           </div>
@@ -323,15 +324,12 @@
             </div>
             <div>
               <h2 class="text-lg font-semibold text-slate-100">Search Stock</h2>
-              <p class="text-xs text-slate-400">Analyze any stock symbol</p>
+              <p class="text-xs text-slate-400">Analyze any stock</p>
             </div>
           </div>
           
           <div class="space-y-4">
             <div class="search-icon-wrapper">
-              <svg class="search-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-              </svg>
               <input 
                 type="text" 
                 id="stockSymbolInput" 
@@ -387,10 +385,10 @@
                 Event Type
               </label>
               <select id="calendarTypeSelect" class="input-field w-full px-4 py-3.5 rounded-xl">
-                <option value="earnings_calendar.html">📊 Earnings Reports</option>
-                <option value="ipos_calendar.html">🚀 IPO Launches</option>
-                <option value="split_calendar.html">✂️ Stock Splits</option>
-                <option value="dividend_calendar.html">💰 Dividend Payments</option>
+                <option value="earnings_calendar.html">Earnings Reports</option>
+                <option value="ipos_calendar.html">IPO Launches</option>
+                <option value="split_calendar.html">Stock Splits</option>
+                <option value="dividend_calendar.html">Dividend Payments</option>
               </select>
             </div>
 
