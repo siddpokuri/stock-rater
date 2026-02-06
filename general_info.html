@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Info - General</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         * {
@@ -16,42 +16,22 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #0f172a;
             min-height: 100vh;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(138, 99, 210, 0.3), transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .container-wrapper {
-            position: relative;
-            z-index: 1;
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .glass-nav {
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .nav-link {
@@ -59,15 +39,16 @@
             transition: all 0.3s ease;
             padding: 0.5rem 1rem;
             border-radius: 8px;
+            color: #cbd5e1;
         }
 
         .nav-link:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
         }
 
         .nav-link.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #3b82f6;
             color: white;
             font-weight: 600;
         }
@@ -84,26 +65,23 @@
 
         .chart-period-btn {
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
         }
 
         .chart-period-btn.active {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: #10b981;
             color: white;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
             transform: translateY(-1px);
         }
 
         .chart-period-btn:not(.active) {
-            background: white;
-            color: #6b7280;
-            border: 2px solid #e5e7eb;
+            background: rgba(30, 41, 59, 0.7);
+            color: #94a3b8;
+            border: 2px solid rgba(51, 65, 85, 0.5);
         }
 
         .chart-period-btn:not(.active):hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
+            background: rgba(51, 65, 85, 0.7);
+            border-color: #475569;
             transform: translateY(-1px);
         }
 
@@ -130,17 +108,22 @@
             transform: translateX(-50%);
             width: 60px;
             height: 3px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: #3b82f6;
             border-radius: 2px;
         }
 
         .info-row {
             transition: all 0.2s ease;
             padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
         }
 
         .info-row:hover {
-            background: #f9fafb;
+            background: rgba(51, 65, 85, 0.3);
             margin: 0 -1rem;
             padding: 0.75rem 1rem;
             border-radius: 8px;
@@ -159,14 +142,14 @@
             right: 0;
             width: 80px;
             height: 80px;
-            background: radial-gradient(circle, rgba(102, 126, 234, 0.1), transparent);
+            background: rgba(59, 130, 246, 0.05);
             border-radius: 50%;
             transform: translate(30%, -30%);
         }
 
         .metric-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
         }
 
         .chart-container {
@@ -176,7 +159,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #fff;
+            background: rgba(15, 23, 42, 0.5);
             border-radius: 12px;
             padding: 1rem;
         }
@@ -187,32 +170,7 @@
         }
 
         .price-display {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stat-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .stat-badge.positive {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .stat-badge.negative {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .loading-spinner {
-            border-top-color: #667eea;
+            color: #3b82f6;
         }
 
         .alert-box {
@@ -222,18 +180,6 @@
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s ease-in-out infinite;
-            border-radius: 4px;
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
         }
 
         /* Responsive nav adjustments */
@@ -248,7 +194,7 @@
             .nav-links-container {
                 overflow-x: auto;
                 scrollbar-width: thin;
-                scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
+                scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
             }
             
             .nav-links-container::-webkit-scrollbar {
@@ -260,7 +206,7 @@
             }
             
             .nav-links-container::-webkit-scrollbar-thumb {
-                background: rgba(102, 126, 234, 0.3);
+                background: rgba(59, 130, 246, 0.3);
                 border-radius: 4px;
             }
         }
@@ -285,14 +231,14 @@
         </div>
     </nav>
 
-    <main class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
+    <main class="min-h-screen py-6 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
 
             <!-- Loading Indicator -->
             <div id="loadingIndicator" class="mb-8">
                 <div class="glass-card rounded-2xl p-12 text-center fade-in">
-                    <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-                    <p class="text-gray-700 font-medium">Loading stock data...</p>
+                    <div class="inline-block w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p class="text-slate-300 font-medium">Loading stock data...</p>
                 </div>
             </div>
 
@@ -300,12 +246,12 @@
             <div id="errorMessage" class="hidden mb-8 alert-box">
                 <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
                     <div class="flex items-start">
-                        <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-6 h-6 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
                         <div>
-                            <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
-                            <p id="errorText" class="text-red-700 text-sm"></p>
+                            <h3 class="text-red-300 font-semibold mb-1">Error Loading Data</h3>
+                            <p id="errorText" class="text-red-200 text-sm"></p>
                         </div>
                     </div>
                 </div>
@@ -315,12 +261,12 @@
             <div id="premium-message" class="hidden mb-8 alert-box">
                 <div class="glass-card rounded-2xl p-6 border-l-4 border-yellow-500">
                     <div class="flex items-start">
-                        <svg class="w-6 h-6 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-6 h-6 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                         </svg>
                         <div>
-                            <h3 class="text-yellow-900 font-semibold mb-1">Premium Feature</h3>
-                            <p class="text-yellow-800 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-900">Premium</a> to access this feature.</p>
+                            <h3 class="text-yellow-300 font-semibold mb-1">Premium Feature</h3>
+                            <p class="text-yellow-200 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-100">Premium</a> to access this feature.</p>
                         </div>
                     </div>
                 </div>
@@ -332,7 +278,7 @@
                 <!-- Stock Header & Chart Section -->
                 <div class="glass-card rounded-2xl p-8 fade-in">
                     <div class="text-center mb-6">
-                        <h1 id="chartSectionTitle" class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Loading...</h1>
+                        <h1 id="chartSectionTitle" class="text-3xl md:text-4xl font-bold text-slate-100 mb-3">Loading...</h1>
                         <div id="currentPriceDisplay" class="text-4xl md:text-5xl font-bold price-display mb-6">$---.--</div>
                     </div>
 
@@ -347,38 +293,38 @@
                     <!-- Chart Container -->
                     <div class="chart-container mb-6">
                         <canvas id="priceChart"></canvas>
-                        <p id="noChartDataMessage" class="hidden text-center text-gray-500 text-lg">No chart data available for this period.</p>
+                        <p id="noChartDataMessage" class="hidden text-center text-slate-400 text-lg">No chart data available for this period.</p>
                     </div>
 
                     <!-- Chart Stats -->
                     <div class="flex flex-wrap justify-center items-center gap-6">
                         <div class="text-center">
-                            <div class="text-sm text-gray-600 mb-1">Change</div>
-                            <div id="chartPercentageChange" class="text-2xl font-bold">N/A</div>
+                            <div class="text-sm text-slate-400 mb-1">Change</div>
+                            <div id="chartPercentageChange" class="text-2xl font-bold text-slate-300">N/A</div>
                         </div>
-                        <div class="text-center">
-                            <div class="text-sm text-gray-600 mb-1">Volume</div>
-                            <div id="chartVolume" class="text-2xl font-bold text-gray-800">N/A</div>
+                        <div id="volumeSection" class="text-center hidden">
+                            <div class="text-sm text-slate-400 mb-1">Volume</div>
+                            <div id="chartVolume" class="text-2xl font-bold text-slate-200">N/A</div>
                         </div>
-                        <div class="text-center">
-                            <div class="text-sm text-gray-600 mb-1">Avg Volume</div>
-                            <div id="chartAvgVolume" class="text-2xl font-bold text-gray-400">N/A</div>
+                        <div id="avgVolumeSection" class="text-center hidden">
+                            <div class="text-sm text-slate-400 mb-1">Avg Volume</div>
+                            <div id="chartAvgVolume" class="text-2xl font-bold text-slate-300">N/A</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Company Overview & Description -->
-                <div class="glass-card rounded-2xl p-8 fade-in">
+                <div id="companyOverviewSection" class="glass-card rounded-2xl p-8 fade-in hidden">
                     <div class="section-header">
-                        <h2 class="text-2xl font-bold text-gray-900 text-center">Company Overview</h2>
+                        <h2 class="text-2xl font-bold text-slate-100 text-center">Company Overview</h2>
                     </div>
                     <div id="generalInfoDetails" class="space-y-2"></div>
                 </div>
 
                 <!-- Key Ratios -->
-                <div class="glass-card rounded-2xl p-8 fade-in">
+                <div id="keyRatiosSection" class="glass-card rounded-2xl p-8 fade-in hidden">
                     <div class="section-header">
-                        <h2 class="text-2xl font-bold text-gray-900 text-center">Key Ratios</h2>
+                        <h2 class="text-2xl font-bold text-slate-100 text-center">Key Ratios</h2>
                     </div>
                     <div id="keyRatiosDetails" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                 </div>
@@ -506,65 +452,111 @@
             }
         }
 
+        function isValidValue(value) {
+            return value !== null && value !== undefined && value !== 'N/A' && value !== '' && value !== 'None';
+        }
+
         function displayGeneralInfo() {
             const generalInfoDetailsDiv = document.getElementById('generalInfoDetails');
+            const companyOverviewSection = document.getElementById('companyOverviewSection');
             generalInfoDetailsDiv.innerHTML = '';
+            
             if (!generalData || Object.keys(generalData).length === 0) {
-                generalInfoDetailsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4">No data available.</p>';
-            } else {
-                const profileInfo = generalData["Profile Info"] || {};
+                companyOverviewSection.classList.add('hidden');
+                return;
+            }
+
+            const profileInfo = generalData["Profile Info"] || {};
+            
+            // Update title and price
+            if (isValidValue(profileInfo["Company Name"]) && isValidValue(profileInfo["Exchange"])) {
                 document.getElementById('chartSectionTitle').textContent = `${profileInfo["Company Name"]} (${profileInfo["Exchange"]}: ${stockSymbol})`;
+            }
+            
+            if (isValidValue(profileInfo["Price"])) {
                 document.getElementById('currentPriceDisplay').textContent = `$${formatValue(profileInfo["Price"], "Price")}`;
-                
-                const infoItems = [
-                    { label: "Market Cap", value: profileInfo["Market Cap"] },
-                    { label: "EPS", value: generalData["EPS"] },
-                    { label: "Beta", value: profileInfo["Beta"] },
-                    { label: "Industry", value: profileInfo["Industry"] },
-                    { label: "Sector", value: profileInfo["Sector"] },
-                    { label: "Country", value: profileInfo["Country"] }
-                ];
-                
-                infoItems.forEach(item => {
+            }
+            
+            const infoItems = [
+                { label: "Market Cap", value: profileInfo["Market Cap"] },
+                { label: "EPS", value: generalData["EPS"] },
+                { label: "Beta", value: profileInfo["Beta"] },
+                { label: "Industry", value: profileInfo["Industry"] },
+                { label: "Sector", value: profileInfo["Sector"] },
+                { label: "Country", value: profileInfo["Country"] }
+            ];
+            
+            let hasAnyInfo = false;
+            infoItems.forEach(item => {
+                if (isValidValue(item.value)) {
+                    hasAnyInfo = true;
                     const row = document.createElement('div');
                     row.className = 'info-row flex justify-between items-center';
                     row.innerHTML = `
-                        <strong class="text-gray-700 font-medium">${item.label}</strong>
-                        <span class="text-gray-900 font-semibold">${formatValue(item.value, item.label)}</span>
+                        <strong class="text-slate-400 font-medium">${item.label}</strong>
+                        <span class="text-slate-100 font-semibold">${formatValue(item.value, item.label)}</span>
                     `;
                     generalInfoDetailsDiv.appendChild(row);
-                });
-                
+                }
+            });
+            
+            // Add description if available
+            if (isValidValue(profileInfo["Company Description"])) {
+                hasAnyInfo = true;
                 const descriptionDiv = document.createElement('div');
-                descriptionDiv.className = 'mt-6 pt-6 border-t border-gray-200';
+                descriptionDiv.className = 'mt-6 pt-6 border-t border-slate-700';
                 descriptionDiv.innerHTML = `
-                    <strong class="text-gray-700 font-medium block mb-3">Company Description</strong>
-                    <p class="text-gray-700 leading-relaxed">${profileInfo["Company Description"] || 'N/A'}</p>
+                    <strong class="text-slate-400 font-medium block mb-3">Company Description</strong>
+                    <p class="text-slate-300 leading-relaxed">${profileInfo["Company Description"]}</p>
                 `;
                 generalInfoDetailsDiv.appendChild(descriptionDiv);
             }
+
+            // Show or hide section based on whether we have any data
+            if (hasAnyInfo) {
+                companyOverviewSection.classList.remove('hidden');
+            } else {
+                companyOverviewSection.classList.add('hidden');
+            }
+            
             renderPriceChart('1D');
             setActiveChartButton('chartBtn1D');
         }
 
         function displayKeyRatios() {
             const keyRatiosDetailsDiv = document.getElementById('keyRatiosDetails');
+            const keyRatiosSection = document.getElementById('keyRatiosSection');
             keyRatiosDetailsDiv.innerHTML = '';
-            if (!generalData || !generalData["Ratios"]) return;
             
+            if (!generalData || !generalData["Ratios"]) {
+                keyRatiosSection.classList.add('hidden');
+                return;
+            }
+            
+            let hasAnyRatio = false;
             Object.entries(generalData["Ratios"]).forEach(([label, value]) => {
-                const metricDiv = document.createElement('div');
-                metricDiv.className = 'metric-card bg-white p-6 rounded-xl shadow-sm border border-gray-100';
-                metricDiv.innerHTML = `
-                    <div class="text-sm font-medium text-gray-600 mb-2">${label}</div>
-                    <div class="text-2xl font-bold text-gray-900">${formatValue(value, label)}</div>
-                `;
-                keyRatiosDetailsDiv.appendChild(metricDiv);
+                if (isValidValue(value)) {
+                    hasAnyRatio = true;
+                    const metricDiv = document.createElement('div');
+                    metricDiv.className = 'metric-card glass-card p-6 rounded-xl border border-slate-700';
+                    metricDiv.innerHTML = `
+                        <div class="text-sm font-medium text-slate-400 mb-2">${label}</div>
+                        <div class="text-2xl font-bold text-slate-100">${formatValue(value, label)}</div>
+                    `;
+                    keyRatiosDetailsDiv.appendChild(metricDiv);
+                }
             });
+
+            // Show or hide section based on whether we have any ratios
+            if (hasAnyRatio) {
+                keyRatiosSection.classList.remove('hidden');
+            } else {
+                keyRatiosSection.classList.add('hidden');
+            }
         }
 
         function formatValue(value, label) {
-            if (value === null || value === undefined || value === 'N/A') return 'N/A';
+            if (!isValidValue(value)) return 'N/A';
             if (typeof value === 'number') {
                 if (label.includes("Market Cap") || label.includes("Volume")) {
                     const absValue = Math.abs(value);
@@ -603,10 +595,10 @@
             let chartBorderColor = 'rgb(16, 185, 129)';
             let chartBackgroundColor = 'rgba(16, 185, 129, 0.1)';
 
-            if (percentageChangeValue !== null) {
+            if (percentageChangeValue !== null && isValidValue(percentageChangeValue)) {
                 const changeText = `${percentageChangeValue >= 0 ? '+' : ''}${percentageChangeValue.toFixed(2)}%`;
                 document.getElementById('chartPercentageChange').textContent = changeText;
-                document.getElementById('chartPercentageChange').className = `text-2xl font-bold ${percentageChangeValue >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                document.getElementById('chartPercentageChange').className = `text-2xl font-bold ${percentageChangeValue >= 0 ? 'text-green-400' : 'text-red-400'}`;
                 
                 if (percentageChangeValue < 0) {
                     chartBorderColor = 'rgb(239, 68, 68)';
@@ -616,8 +608,22 @@
 
             const volData = generalData["Volume (last trading day and average)"];
             if (volData) {
-                document.getElementById('chartVolume').textContent = formatValue(volData["Volume"], "Volume");
-                document.getElementById('chartAvgVolume').textContent = formatValue(volData["Average Volume"], "Volume");
+                const volume = volData["Volume"];
+                const avgVolume = volData["Average Volume"];
+                
+                if (isValidValue(volume)) {
+                    document.getElementById('chartVolume').textContent = formatValue(volume, "Volume");
+                    document.getElementById('volumeSection').classList.remove('hidden');
+                } else {
+                    document.getElementById('volumeSection').classList.add('hidden');
+                }
+                
+                if (isValidValue(avgVolume)) {
+                    document.getElementById('chartAvgVolume').textContent = formatValue(avgVolume, "Volume");
+                    document.getElementById('avgVolumeSection').classList.remove('hidden');
+                } else {
+                    document.getElementById('avgVolumeSection').classList.add('hidden');
+                }
             }
 
             priceChartInstance = new Chart(ctx, {
@@ -649,7 +655,9 @@
                             enabled: true,
                             mode: 'index',
                             intersect: false,
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#cbd5e1',
                             padding: 12,
                             cornerRadius: 8,
                             callbacks: {
@@ -661,7 +669,7 @@
                     },
                     scales: {
                         x: { 
-                            grid: { display: false }, 
+                            grid: { color: 'rgba(51, 65, 85, 0.3)' }, 
                             ticks: { 
                                 maxTicksLimit: 6,
                                 maxRotation: 0, 
@@ -671,7 +679,7 @@
                                     if (period === '1D') return datetimeStr.substring(11, 16);
                                     return datetimeStr.substring(0, 10);
                                 },
-                                color: '#6b7280',
+                                color: '#94a3b8',
                                 font: {
                                     size: 11
                                 }
@@ -679,11 +687,11 @@
                         },
                         y: { 
                             grid: { 
-                                color: '#f1f5f9',
+                                color: 'rgba(51, 65, 85, 0.3)',
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#6b7280',
+                                color: '#94a3b8',
                                 font: {
                                     size: 11
                                 },
