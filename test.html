@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Balance Sheet</title>
+    <title>Stock Info - Ratings</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -129,6 +129,27 @@
             border-radius: 2px;
         }
 
+        .rating-item {
+            transition: all 0.2s ease;
+            padding: 0.75rem 0;
+        }
+
+        .rating-item:hover {
+            background: #f9fafb;
+            margin: 0 -1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+        }
+
+        .consensus-card {
+            transition: all 0.3s ease;
+        }
+
+        .consensus-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
         .data-table {
             width: 100%;
             border-collapse: separate;
@@ -151,10 +172,6 @@
             border-top-left-radius: 12px;
         }
 
-        .data-table th:not(:first-child) {
-            text-align: right;
-        }
-
         .data-table th:last-child {
             border-top-right-radius: 12px;
         }
@@ -163,16 +180,6 @@
             padding: 0.875rem 1rem;
             color: #6b7280;
             border-bottom: 1px solid #f3f4f6;
-        }
-
-        .data-table td:first-child {
-            font-weight: 600;
-            color: #1f2937;
-            text-align: left;
-        }
-
-        .data-table td:not(:first-child) {
-            text-align: right;
         }
 
         .data-table tbody tr {
@@ -239,8 +246,8 @@
                 <a href="#" id="nav-general-info" class="nav-link">General Info</a>
                 <a href="#" id="nav-income-statement" class="nav-link">Income Statement</a>
                 <a href="#" id="nav-cash-flow" class="nav-link">Cash Flow</a>
-                <a href="#" id="nav-balance-sheet" class="nav-link active">Balance Sheet</a>
-                <a href="#" id="nav-ratings" class="nav-link">Ratings</a>
+                <a href="#" id="nav-balance-sheet" class="nav-link">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="nav-link active">Ratings</a>
                 <a href="#" id="nav-earnings" class="nav-link">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="nav-link">Insider Trades</a>
                 <a href="#" id="nav-analyst-targets" class="nav-link">Analyst Targets</a>
@@ -250,31 +257,31 @@
     </nav>
 
     <main class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto">
+        <div class="max-w-5xl mx-auto">
 
             <!-- Header with Title and Toggle -->
             <div class="glass-card rounded-2xl p-8 mb-6 fade-in">
-                <h1 id="stock-title" class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-6">Stock - Balance Sheet</h1>
+                <h1 id="stockTitle" class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-6">Stock Ratings</h1>
                 
-                <!-- Toggle buttons for Quarterly/Yearly views -->
+                <!-- Toggle buttons -->
                 <div class="flex justify-center">
                     <div class="inline-flex bg-gray-100 rounded-xl p-1">
-                        <button id="toggleQuarterly" class="toggle-button active px-8 py-3 rounded-lg text-base font-semibold">Quarterly</button>
-                        <button id="toggleYearly" class="toggle-button px-8 py-3 rounded-lg text-base font-semibold">Yearly</button>
+                        <button id="showCurrentRatings" class="toggle-button active px-6 py-3 rounded-lg text-base font-semibold">Current Ratings</button>
+                        <button id="showPastRatings" class="toggle-button px-6 py-3 rounded-lg text-base font-semibold">Past-to-Current Ratings</button>
                     </div>
                 </div>
             </div>
 
             <!-- Loading Indicator -->
-            <div id="loading-area" class="mb-8">
-                <div id="loading-spinner-container" class="glass-card rounded-2xl p-12 text-center fade-in">
+            <div id="loadingIndicator" class="hidden mb-8">
+                <div class="glass-card rounded-2xl p-12 text-center fade-in">
                     <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-                    <p class="text-gray-700 font-medium">Loading balance sheet data...</p>
+                    <p class="text-gray-700 font-medium">Loading ratings data...</p>
                 </div>
             </div>
 
             <!-- Error Message -->
-            <div id="error-message" class="hidden mb-8 alert-box">
+            <div id="errorMessage" class="hidden mb-8 alert-box">
                 <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
                     <div class="flex items-start">
                         <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -282,7 +289,7 @@
                         </svg>
                         <div>
                             <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
-                            <p id="error-text" class="text-red-700 text-sm"></p>
+                            <p id="errorText" class="text-red-700 text-sm"></p>
                         </div>
                     </div>
                 </div>
@@ -303,9 +310,60 @@
                 </div>
             </div>
 
-            <!-- Statement Container -->
-            <div id="statement-container" class="glass-card rounded-2xl p-8 fade-in hidden">
-                <!-- Table content will be injected here by JavaScript -->
+            <!-- Current Ratings Container -->
+            <div id="currentRatingsContainer" class="hidden space-y-6">
+                <!-- Core Ratings Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Core Ratings</h2>
+                    </div>
+                    <div id="coreRatings" class="space-y-2">
+                        <!-- Core ratings will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Fundamental Ratings Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Fundamental Ratings</h2>
+                    </div>
+                    <div id="otherRatings" class="space-y-2">
+                        <!-- Other ratings will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Consensus Summary Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Consensus Summary</h2>
+                    </div>
+                    <div id="consensusSummary" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <!-- Consensus data will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Past Ratings Container -->
+            <div id="pastRatingsContainer" class="hidden space-y-6">
+                <!-- Historical Ratings Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Historical Ratings</h2>
+                    </div>
+                    <div id="historicalRatingsTableContainer" class="overflow-x-auto">
+                        <!-- Historical Ratings table will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Upgrades/Downgrades Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Analyst Upgrades/Downgrades</h2>
+                    </div>
+                    <div id="upgradesTableContainer" class="overflow-x-auto">
+                        <!-- Upgrades/Downgrades table will be inserted here -->
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -351,6 +409,7 @@
                     window.currentUserIsPremium = false;
                 }
                 console.log("Current user premium status:", window.currentUserIsPremium);
+                checkPremiumAccessForPage();
             }
         });
 
@@ -362,160 +421,123 @@
                 console.error("Error signing out:", error);
             }
         };
+
+        function checkPremiumAccessForPage() {
+            if (!window.currentUserIsPremium) {
+                showPremiumMessage();
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('errorMessage').classList.add('hidden');
+                document.getElementById('currentRatingsContainer').classList.add('hidden');
+                document.getElementById('pastRatingsContainer').classList.add('hidden');
+                document.getElementById('stockTitle').textContent = 'Premium Feature';
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                stockSymbol = urlParams.get('stock');
+                if (stockSymbol) {
+                    document.title = `${stockSymbol.toUpperCase()} - Ratings`;
+                    document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Ratings`;
+                    fetchRatings(stockSymbol);
+                } else {
+                    showError('No stock symbol provided in the URL.');
+                }
+            }
+        }
     </script>
 
     <!-- Main Script -->
     <script>
-        let balanceSheetData = null;
-        let activeView = 'quarterly';
-        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
         let stockSymbol = '';
-
-        const statementContainer = document.getElementById('statement-container');
-        const toggleQuarterlyBtn = document.getElementById('toggleQuarterly');
-        const toggleYearlyBtn = document.getElementById('toggleYearly');
-        const stockTitle = document.getElementById('stock-title');
-        const loadingArea = document.getElementById('loading-area');
-        const errorMessage = document.getElementById('error-message');
-        const errorText = document.getElementById('error-text');
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
         const premiumMessage = document.getElementById('premium-message');
 
-        function renderQuarterlyData(data) {
-            const quarterlyInfo = data['Quarterly Balance Sheet Info'];
-            
-            if (!quarterlyInfo || !quarterlyInfo.Date || quarterlyInfo.Date.length === 0) {
-                statementContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No quarterly data available.</p>';
-                return;
-            }
-
-            const metrics = [
-                'Cash/Cash Equivalents', 'Short Term Investments', 'Total Current Assets', 'Total Assets',
-                'Short Term Debt', 'Long Term Debt', 'Total Debt', 'Net Debt', 'Total Liabilities', "Total Stockholders' Equity"
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = [
+                { id: 'nav-general-info', file: 'general_info.html' },
+                { id: 'nav-income-statement', file: 'income_statement.html' },
+                { id: 'nav-cash-flow', file: 'cash_flow.html' },
+                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
+                { id: 'nav-ratings', file: 'ratings.html', premium: true },
+                { id: 'nav-earnings', file: 'earnings.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
+                { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
-            let html = `
-                <div class="section-header">
-                    <h2 class="text-2xl font-bold text-gray-900 text-center">Quarterly Balance Sheet</h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Metric</th>
-                                ${quarterlyInfo.Date.map(date => `<th>${date}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${metrics.map(metric => `
-                                <tr>
-                                    <td>${metric}</td>
-                                    ${quarterlyInfo[metric].map(value => `
-                                        <td>${value !== null && value !== undefined ? formatNumber(value) : 'N/A'}</td>
-                                    `).join('')}
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            statementContainer.innerHTML = html;
-        }
+            const urlParams = new URLSearchParams(window.location.search);
+            stockSymbol = urlParams.get('stock');
 
-        function renderYearlyData(data) {
-            const yearlyInfo = data['Yearly Balance Sheet Info'];
-
-            if (!yearlyInfo || !yearlyInfo.Year || yearlyInfo.Year.length === 0) {
-                statementContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No yearly data available.</p>';
-                return;
-            }
-
-            const years = yearlyInfo.Year;
-
-            const metrics = [
-                'Cash/Cash Equivalents', 'Short Term Investments', 'Total Current Assets', 'Total Assets',
-                'Short Term Debt', 'Long Term Debt', 'Total Debt', 'Net Debt', 'Total Liabilities', "Total Stockholders' Equity"
-            ];
+            navLinks.forEach(link => {
+                const navElement = document.getElementById(link.id);
+                if (navElement) {
+                    if (link.premium) {
+                        navElement.href = '#';
+                        navElement.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            if (window.currentUserIsPremium) {
+                                window.location.href = `${link.file}?stock=${stockSymbol}`;
+                            } else {
+                                showPremiumMessage();
+                            }
+                        });
+                    } else {
+                        navElement.href = `${link.file}?stock=${stockSymbol}`;
+                    }
+                }
+            });
             
-            let html = `
-                <div class="section-header">
-                    <h2 class="text-2xl font-bold text-gray-900 text-center">Yearly Balance Sheet</h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Metric</th>
-                                ${years.map(year => `<th>${year}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${metrics.map(metric => {
-                                const values = yearlyInfo[metric] || [];
-                                return `
-                                    <tr>
-                                        <td>${metric}</td>
-                                        ${values.map(value => `
-                                            <td>${value !== null && value !== undefined ? formatNumber(value) : 'N/A'}</td>
-                                        `).join('')}
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            statementContainer.innerHTML = html;
-        }
+            document.getElementById('showCurrentRatings').addEventListener('click', () => switchRatingsView('current'));
+            document.getElementById('showPastRatings').addEventListener('click', () => switchRatingsView('past'));
+        });
 
-        function renderData() {
-            if (!balanceSheetData) {
-                return;
-            }
-            if (activeView === 'quarterly') {
-                renderQuarterlyData(balanceSheetData);
+        function switchRatingsView(view) {
+            const currentBtn = document.getElementById('showCurrentRatings');
+            const pastBtn = document.getElementById('showPastRatings');
+            const currentContainer = document.getElementById('currentRatingsContainer');
+            const pastContainer = document.getElementById('pastRatingsContainer');
+
+            if (view === 'current') {
+                currentContainer.classList.remove('hidden');
+                pastContainer.classList.add('hidden');
+                currentBtn.classList.add('active');
+                pastBtn.classList.remove('active');
             } else {
-                renderYearlyData(balanceSheetData);
+                pastContainer.classList.remove('hidden');
+                currentContainer.classList.add('hidden');
+                pastBtn.classList.add('active');
+                currentBtn.classList.remove('active');
             }
         }
 
-        function formatNumber(num) {
-            if (num === null || num === undefined) return 'N/A';
-            if (typeof num === 'string' && num.match(/^[\d.]+[BMKT]?$/i)) {
-                return num;
+        function getRatingColorClass(ratingText) {
+            if (!ratingText) return 'text-gray-700';
+
+            const lowerRating = String(ratingText).toLowerCase();
+
+            if (lowerRating === 'a' || lowerRating === 'a+' || lowerRating === 'a-' || lowerRating.includes('strong buy') || lowerRating.includes('buy') || lowerRating.includes('outperform') || lowerRating.includes('overweight') || lowerRating.includes('sector outperform') || lowerRating.includes('market outperform')) {
+                return 'text-green-600';
+            }
+            if (lowerRating === 'b' || lowerRating === 'b+' || lowerRating === 'b-' || lowerRating.includes('hold') || lowerRating.includes('peer perform') || lowerRating.includes('market perform') || lowerRating.includes('neutral')) {
+                return 'text-yellow-500';
+            }
+            if (lowerRating === 'c' || lowerRating === 'c+' || lowerRating === 'c-') {
+                return 'text-orange-500';
+            }
+            if (lowerRating === 'd' || lowerRating === 'f' || lowerRating.includes('sell') || lowerRating.includes('strong sell') || lowerRating.includes('underperform')) {
+                return 'text-red-600';
             }
             
-            let value = Number(num);
-            if (isNaN(value)) return 'N/A';
-
-            const absValue = Math.abs(value);
-            const sign = value < 0 ? '-' : '';
-
-            if (absValue >= 1.0e+9) {
-                return sign + (absValue / 1.0e+9).toFixed(2) + "B";
-            }
-            if (absValue >= 1.0e+6) {
-                return sign + (absValue / 1.0e+6).toFixed(2) + "M";
-            }
-            if (absValue >= 1.0e+3) {
-                return sign + (absValue / 1.0e+3).toFixed(2) + "K";
-            }
-            return sign + absValue.toFixed(2);
+            return 'text-gray-700';
         }
 
-        async function fetchBalanceSheet(ticker) {
-            loadingArea.classList.remove('hidden');
-            errorMessage.classList.add('hidden');
+        async function fetchRatings(symbol) {
+            showLoading(true);
             premiumMessage.classList.add('hidden');
-            statementContainer.classList.add('hidden');
-            
-            const apiUrl = `${backendBaseUrl}/tab3?stock=${ticker}`;
-            
             try {
                 let response = null;
                 let delay = 1000;
-                let maxRetries = 5;
+                const maxRetries = 5;
                 for (let i = 0; i < maxRetries; i++) {
-                    response = await fetch(apiUrl);
+                    response = await fetch(`${backendBaseUrl}/tab4?stock=${symbol}`);
                     if (response.ok) {
                         break;
                     }
@@ -529,37 +551,226 @@
                 }
                 
                 if (!response || !response.ok) {
-                    throw new Error('Max retries reached, failed to fetch data.');
+                    const errorBody = response ? await response.text() : 'No response';
+                    console.error('Backend responded with non-OK status:', response ? response.status : 'N/A', response ? response.statusText : 'N/A', errorBody);
+                    throw new Error(`Failed to fetch ratings data. Server responded with status: ${response ? response.status : 'N/A'}.`);
                 }
-                
+
                 const data = await response.json();
-                balanceSheetData = data;
-                stockTitle.textContent = `${ticker.toUpperCase()} - Balance Sheet`;
-                renderData();
-                statementContainer.classList.remove('hidden');
-                
+
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    displayAllRatings(data);
+                    showLoading(false);
+                    switchRatingsView('current');
+                }
             } catch (error) {
-                console.error('Failed to fetch stock data:', error);
-                errorText.textContent = `Could not retrieve data for ticker "${ticker}". Please try another ticker from the main page.`;
-                errorMessage.classList.remove('hidden');
-            } finally {
-                loadingArea.classList.add('hidden');
+                console.error('Error fetching ratings:', error);
+                showError('A network error occurred while fetching ratings. Please check your internet connection or try again later.');
             }
         }
         
-        toggleQuarterlyBtn.addEventListener('click', () => {
-            toggleYearlyBtn.classList.remove('active');
-            toggleQuarterlyBtn.classList.add('active');
-            activeView = 'quarterly';
-            renderData();
-        });
+        function displayAllRatings(data) {
+            const coreRatingsElement = document.getElementById('coreRatings');
+            coreRatingsElement.innerHTML = '';
+            
+            const coreMetrics = [
+                { key: 'Overall Rating', source: data['Other Ratings'] },
+                { key: 'Consensus', source: data['Consensus Summary'] },
+                { key: 'Valuation', source: data['Core Ratings'] },
+                { key: 'Stability', source: data['Core Ratings'] },
+                { key: 'Profitability', source: data['Core Ratings'] },
+                { key: 'Growth', source: data['Core Ratings'] }
+            ];
 
-        toggleYearlyBtn.addEventListener('click', () => {
-            toggleQuarterlyBtn.classList.remove('active');
-            toggleYearlyBtn.classList.add('active');
-            activeView = 'yearly';
-            renderData();
-        });
+            coreMetrics.forEach(metric => {
+                const value = metric.source ? metric.source[metric.key] : 'N/A';
+                if (value !== undefined && value !== null) {
+                    appendRatingItem(coreRatingsElement, metric.key, value);
+                }
+            });
+
+            const otherRatingsElement = document.getElementById('otherRatings');
+            otherRatingsElement.innerHTML = '';
+
+            const otherMetricsOrder = ["Debt to Equity Rating", "PE Ratio Rating", "ROA Rating", "ROE Rating"];
+
+            const otherRatingsData = data['Other Ratings'];
+            if (!otherRatingsData || Object.keys(otherRatingsData).length === 0) {
+                otherRatingsElement.innerHTML = '<p class="text-center text-gray-500 py-4">No fundamental ratings data available.</p>';
+            } else {
+                otherMetricsOrder.forEach(metric => {
+                    const value = otherRatingsData[metric];
+                    if (value !== undefined && value !== null) {
+                        appendRatingItem(otherRatingsElement, metric, value);
+                    }
+                });
+            }
+            
+            displayConsensusSummary(data['Consensus Summary']);
+            displayUpgradesDowngrades(data['Upgrades/Downgrades']);
+            displayHistoricalRatings(data['Historical Ratings']);
+        }
+
+        function appendRatingItem(parent, metric, value) {
+            const listItem = document.createElement('div');
+            listItem.className = 'rating-item flex justify-between items-center';
+            
+            const metricNameSpan = document.createElement('span');
+            metricNameSpan.textContent = `${metric}:`;
+            metricNameSpan.className = 'text-lg font-semibold text-gray-700';
+            
+            const ratingValueSpan = document.createElement('span');
+            ratingValueSpan.textContent = value;
+            ratingValueSpan.className = `text-xl font-bold ${getRatingColorClass(value)}`;
+            
+            listItem.appendChild(metricNameSpan);
+            listItem.appendChild(ratingValueSpan);
+            parent.appendChild(listItem);
+        }
+
+        function displayConsensusSummary(data) {
+            const consensusSummaryElement = document.getElementById('consensusSummary');
+            consensusSummaryElement.innerHTML = '';
+
+            if (!data || Object.keys(data).length === 0) {
+                consensusSummaryElement.innerHTML = '<p class="text-center text-gray-500 py-4 col-span-full">No consensus data available.</p>';
+                return;
+            }
+
+            const consensusOrder = ["# Strong Buy", "# Buy", "# Hold", "# Sell", "# Strong Sell"];
+            
+            consensusOrder.forEach(key => {
+                const value = data[key];
+                if (value !== undefined) {
+                    const item = document.createElement('div');
+                    item.className = 'consensus-card bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center';
+                    
+                    const valueSpan = document.createElement('span');
+                    valueSpan.textContent = value;
+                    valueSpan.className = `text-3xl font-bold ${getRatingColorClass(key.replace('# ', ''))}`;
+                    
+                    const labelSpan = document.createElement('span');
+                    labelSpan.textContent = key.replace('# ', '');
+                    labelSpan.className = 'text-sm font-medium text-gray-600 mt-2';
+                    
+                    item.appendChild(valueSpan);
+                    item.appendChild(labelSpan);
+                    consensusSummaryElement.appendChild(item);
+                }
+            });
+        }
+
+        function displayUpgradesDowngrades(data) {
+            const container = document.getElementById('upgradesTableContainer');
+            container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-4">No recent upgrades or downgrades available.</p>';
+                return;
+            }
+
+            let tableHtml = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Company</th>
+                            <th>Action</th>
+                            <th>New Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            data.forEach((item) => {
+                tableHtml += `
+                    <tr>
+                        <td>${item.Date}</td>
+                        <td>${item.Company}</td>
+                        <td>${item.Action}</td>
+                        <td class="${getRatingColorClass(item['New Grade'])} font-bold">${item['New Grade']}</td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = tableHtml;
+        }
+
+        function displayHistoricalRatings(data) {
+            const container = document.getElementById('historicalRatingsTableContainer');
+            container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-4">No historical ratings data available.</p>';
+                return;
+            }
+
+            let tableHtml = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Overall</th>
+                            <th>ROE</th>
+                            <th>ROA</th>
+                            <th>P/E</th>
+                            <th>D/E</th>
+                            <th>P/B</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            data.forEach((item) => {
+                const overallColor = getRatingColorClass(item['Overall Rating']);
+                const roeColor = getRatingColorClass(item['ROE Score']);
+                const roaColor = getRatingColorClass(item['ROA Score']);
+                const peColor = getRatingColorClass(item['Price-to-Earnings Score']);
+                const deColor = getRatingColorClass(item['Debt-to-Equity Score']);
+                const pbColor = getRatingColorClass(item['Price-to-Book Score']);
+                
+                tableHtml += `
+                    <tr>
+                        <td>${item.Date}</td>
+                        <td class="${overallColor} font-bold">${item['Overall Rating']}</td>
+                        <td class="${roeColor} font-bold">${item['ROE Score']}</td>
+                        <td class="${roaColor} font-bold">${item['ROA Score']}</td>
+                        <td class="${peColor} font-bold">${item['Price-to-Earnings Score']}</td>
+                        <td class="${deColor} font-bold">${item['Debt-to-Equity Score']}</td>
+                        <td class="${pbColor} font-bold">${item['Price-to-Book Score']}</td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = tableHtml;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
+            document.getElementById('currentRatingsContainer').classList.toggle('hidden', show);
+            document.getElementById('pastRatingsContainer').classList.toggle('hidden', show);
+            document.getElementById('errorMessage').classList.add('hidden');
+            premiumMessage.classList.add('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('currentRatingsContainer').classList.add('hidden');
+            document.getElementById('pastRatingsContainer').classList.add('hidden');
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').classList.remove('hidden');
+            premiumMessage.classList.add('hidden');
+        }
 
         function showPremiumMessage() {
             premiumMessage.classList.remove('hidden');
@@ -567,50 +778,6 @@
                 premiumMessage.classList.add('hidden');
             }, 5000);
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock');
-
-            const navLinks = [
-                { id: 'nav-general-info', file: 'general_info.html' },
-                { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' },
-                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html', premium: true },
-                { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
-                { id: 'nav-recent-news', file: 'recent_news.html' },
-            ];
-
-            if (stockSymbol) {
-                fetchBalanceSheet(stockSymbol);
-                navLinks.forEach(link => {
-                    const navElement = document.getElementById(link.id);
-                    if (navElement) {
-                        if (link.premium) {
-                            navElement.href = '#';
-                            navElement.addEventListener('click', (event) => {
-                                event.preventDefault();
-                                if (window.currentUserIsPremium) {
-                                    window.location.href = `${link.file}?stock=${stockSymbol}`;
-                                } else {
-                                    showPremiumMessage();
-                                }
-                            });
-                        } else {
-                            navElement.href = `${link.file}?stock=${stockSymbol}`;
-                        }
-                    }
-                });
-            } else {
-                stockTitle.textContent = 'No Stock Selected';
-                errorText.textContent = 'Please return to the main page and select a stock to view its balance sheet.';
-                errorMessage.classList.remove('hidden');
-                loadingArea.classList.add('hidden');
-            }
-        });
     </script>
 </body>
 </html>
