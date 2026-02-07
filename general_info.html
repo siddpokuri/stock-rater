@@ -182,7 +182,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Responsive nav adjustments */
         @media (max-width: 1024px) {
             .nav-link {
                 font-size: 0.875rem;
@@ -250,8 +249,8 @@
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
                         <div>
-                            <h3 class="text-red-300 font-semibold mb-1">Error Loading Data</h3>
-                            <p id="errorText" class="text-red-200 text-sm"></p>
+                            <h3 class="text-red-300 font-semibold mb-1">Stock Not Found</h3>
+                            <p id="errorText" class="text-red-200 text-sm">We couldn't find any data for the provided symbol. Please check the ticker and try again.</p>
                         </div>
                     </div>
                 </div>
@@ -389,7 +388,6 @@
         let stockSymbol = '';
         let generalData = null;
         let priceChartInstance = null;
-        let currentChartPeriod = '1D';
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
         const loadingIndicator = document.getElementById('loadingIndicator');
@@ -439,21 +437,28 @@
 
         async function fetchGeneralInfo(symbol) {
             showLoading(true);
+            errorMessageDiv.classList.add('hidden');
             try {
                 const response = await fetch(`${backendBaseUrl}/tab1?stock=${symbol}`);
                 if (!response.ok) throw new Error(`Failed to fetch general info.`);
                 generalData = await response.json();
+                
+                // Validate that we got actual profile data. If it's a completely empty object or missing profile, it's an invalid stock.
+                if (!generalData || !generalData["Profile Info"] || Object.keys(generalData["Profile Info"]).length === 0) {
+                   throw new Error("Invalid Stock Symbol");
+                }
+
                 displayGeneralInfo();
                 displayKeyRatios();
                 showLoading(false);
                 document.getElementById('generalContent').classList.remove('hidden');
             } catch (error) {
-                showError(`An error occurred: ${error.message}`);
+                showError("The stock symbol provided could not be found. Please check and try again.");
             }
         }
 
         function isValidValue(value) {
-            return value !== null && value !== undefined && value !== 'N/A' && value !== '' && value !== 'None';
+            return value !== null && value !== undefined && value !== 'N/A' && value !== 'n/a' && value !== '' && value !== 'None' && value !== 'NaN';
         }
 
         function displayGeneralInfo() {
@@ -461,16 +466,12 @@
             const companyOverviewSection = document.getElementById('companyOverviewSection');
             generalInfoDetailsDiv.innerHTML = '';
             
-            if (!generalData || Object.keys(generalData).length === 0) {
-                companyOverviewSection.classList.add('hidden');
-                return;
-            }
-
             const profileInfo = generalData["Profile Info"] || {};
             
-            // Update title and price
-            if (isValidValue(profileInfo["Company Name"]) && isValidValue(profileInfo["Exchange"])) {
-                document.getElementById('chartSectionTitle').textContent = `${profileInfo["Company Name"]} (${profileInfo["Exchange"]}: ${stockSymbol})`;
+            if (isValidValue(profileInfo["Company Name"])) {
+                document.getElementById('chartSectionTitle').textContent = `${profileInfo["Company Name"]} (${profileInfo["Exchange"] || ''}: ${stockSymbol})`;
+            } else {
+                document.getElementById('chartSectionTitle').textContent = stockSymbol;
             }
             
             if (isValidValue(profileInfo["Price"])) {
@@ -500,7 +501,6 @@
                 }
             });
             
-            // Add description if available
             if (isValidValue(profileInfo["Company Description"])) {
                 hasAnyInfo = true;
                 const descriptionDiv = document.createElement('div');
@@ -512,13 +512,9 @@
                 generalInfoDetailsDiv.appendChild(descriptionDiv);
             }
 
-            // Show or hide section based on whether we have any data
-            if (hasAnyInfo) {
-                companyOverviewSection.classList.remove('hidden');
-            } else {
-                companyOverviewSection.classList.add('hidden');
-            }
+            companyOverviewSection.classList.toggle('hidden', !hasAnyInfo);
             
+            // Initial Chart Render
             renderPriceChart('1D');
             setActiveChartButton('chartBtn1D');
         }
@@ -533,10 +529,10 @@
                 return;
             }
             
-            let hasAnyRatio = false;
+            let hasAnyValidRatio = false;
             Object.entries(generalData["Ratios"]).forEach(([label, value]) => {
                 if (isValidValue(value)) {
-                    hasAnyRatio = true;
+                    hasAnyValidRatio = true;
                     const metricDiv = document.createElement('div');
                     metricDiv.className = 'metric-card glass-card p-6 rounded-xl border border-slate-700';
                     metricDiv.innerHTML = `
@@ -547,12 +543,7 @@
                 }
             });
 
-            // Show or hide section based on whether we have any ratios
-            if (hasAnyRatio) {
-                keyRatiosSection.classList.remove('hidden');
-            } else {
-                keyRatiosSection.classList.add('hidden');
-            }
+            keyRatiosSection.classList.toggle('hidden', !hasAnyValidRatio);
         }
 
         function formatValue(value, label) {
@@ -571,73 +562,69 @@
         }
 
         function renderPriceChart(period) {
-            const noChartDataMessageElement = document.getElementById('noChartDataMessage');
+            const noChartDataMsg = document.getElementById('noChartDataMessage');
+            const canvas = document.getElementById('priceChart');
+            
             if (priceChartInstance) priceChartInstance.destroy();
             
-            const priceChartCanvas = document.getElementById('priceChart');
-            priceChartCanvas.style.display = 'block';
-            noChartDataMessageElement.classList.add('hidden');
-
-            const chartDataForPeriod = generalData[period];
-            if (!chartDataForPeriod || chartDataForPeriod.length === 0) {
-                priceChartCanvas.style.display = 'none';
-                noChartDataMessageElement.classList.remove('hidden');
+            const chartData = generalData[period];
+            
+            // Fix for crash: ensure chartData is an array
+            if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
+                canvas.style.display = 'none';
+                noChartDataMsg.classList.remove('hidden');
                 return;
             }
 
-            const ctx = priceChartCanvas.getContext('2d');
+            canvas.style.display = 'block';
+            noChartDataMsg.classList.add('hidden');
+
+            const ctx = canvas.getContext('2d');
             const dateKey = period === '1Y' ? 'date' : 'datetime';
             const priceKey = period === '1Y' ? 'price' : 'close';
-            const labels = chartDataForPeriod.map(d => d[dateKey]);
-            const prices = chartDataForPeriod.map(d => parseFloat(d[priceKey]));
+            const labels = chartData.map(d => d[dateKey]);
+            const prices = chartData.map(d => parseFloat(d[priceKey]));
             
-            const percentageChangeValue = generalData["Changes"] ? generalData["Changes"][period] : null;
-            let chartBorderColor = 'rgb(16, 185, 129)';
-            let chartBackgroundColor = 'rgba(16, 185, 129, 0.1)';
+            const changes = generalData["Changes"] || {};
+            const percentageChange = changes[period];
+            
+            let color = 'rgb(16, 185, 129)';
+            let bg = 'rgba(16, 185, 129, 0.1)';
 
-            if (percentageChangeValue !== null && isValidValue(percentageChangeValue)) {
-                const changeText = `${percentageChangeValue >= 0 ? '+' : ''}${percentageChangeValue.toFixed(2)}%`;
-                document.getElementById('chartPercentageChange').textContent = changeText;
-                document.getElementById('chartPercentageChange').className = `text-2xl font-bold ${percentageChangeValue >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            if (isValidValue(percentageChange)) {
+                const changeText = `${percentageChange >= 0 ? '+' : ''}${percentageChange.toFixed(2)}%`;
+                const displayEl = document.getElementById('chartPercentageChange');
+                displayEl.textContent = changeText;
+                displayEl.className = `text-2xl font-bold ${percentageChange >= 0 ? 'text-green-400' : 'text-red-400'}`;
                 
-                if (percentageChangeValue < 0) {
-                    chartBorderColor = 'rgb(239, 68, 68)';
-                    chartBackgroundColor = 'rgba(239, 68, 68, 0.1)';
+                if (percentageChange < 0) {
+                    color = 'rgb(239, 68, 68)';
+                    bg = 'rgba(239, 68, 68, 0.1)';
                 }
+            } else {
+                document.getElementById('chartPercentageChange').textContent = 'N/A';
             }
 
-            const volData = generalData["Volume (last trading day and average)"];
-            if (volData) {
-                const volume = volData["Volume"];
-                const avgVolume = volData["Average Volume"];
-                
-                if (isValidValue(volume)) {
-                    document.getElementById('chartVolume').textContent = formatValue(volume, "Volume");
-                    document.getElementById('volumeSection').classList.remove('hidden');
-                } else {
-                    document.getElementById('volumeSection').classList.add('hidden');
-                }
-                
-                if (isValidValue(avgVolume)) {
-                    document.getElementById('chartAvgVolume').textContent = formatValue(avgVolume, "Volume");
-                    document.getElementById('avgVolumeSection').classList.remove('hidden');
-                } else {
-                    document.getElementById('avgVolumeSection').classList.add('hidden');
-                }
-            }
+            const volInfo = generalData["Volume (last trading day and average)"] || {};
+            const vol = volInfo["Volume"];
+            const avgVol = volInfo["Average Volume"];
+            
+            document.getElementById('volumeSection').classList.toggle('hidden', !isValidValue(vol));
+            if (isValidValue(vol)) document.getElementById('chartVolume').textContent = formatValue(vol, "Volume");
+            
+            document.getElementById('avgVolumeSection').classList.toggle('hidden', !isValidValue(avgVol));
+            if (isValidValue(avgVol)) document.getElementById('chartAvgVolume').textContent = formatValue(avgVol, "Volume");
 
             priceChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Price',
                         data: prices,
-                        borderColor: chartBorderColor,
-                        backgroundColor: chartBackgroundColor,
+                        borderColor: color,
+                        backgroundColor: bg,
                         fill: true,
                         pointRadius: 0,
-                        pointHoverRadius: 6,
                         tension: 0.4,
                         borderWidth: 2
                     }]
@@ -645,74 +632,30 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            enabled: true,
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            titleColor: '#e2e8f0',
-                            bodyColor: '#cbd5e1',
-                            padding: 12,
-                            cornerRadius: 8,
-                            callbacks: {
-                                label: function(context) {
-                                    return `Price: $${context.parsed.y.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         x: { 
-                            grid: { color: 'rgba(51, 65, 85, 0.3)' }, 
+                            grid: { display: false },
                             ticks: { 
                                 maxTicksLimit: 6,
-                                maxRotation: 0, 
-                                minRotation: 0,
-                                callback: function(value, index, ticks) {
-                                    const datetimeStr = this.getLabelForValue(value);
-                                    if (period === '1D') return datetimeStr.substring(11, 16);
-                                    return datetimeStr.substring(0, 10);
-                                },
                                 color: '#94a3b8',
-                                font: {
-                                    size: 11
-                                }
-                            } 
-                        },
-                        y: { 
-                            grid: { 
-                                color: 'rgba(51, 65, 85, 0.3)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#94a3b8',
-                                font: {
-                                    size: 11
-                                },
-                                callback: function(value) {
-                                    return '$' + value.toFixed(2);
+                                callback: function(val, index) {
+                                    const label = this.getLabelForValue(val);
+                                    return period === '1D' ? label.substring(11, 16) : label.substring(0, 10);
                                 }
                             }
+                        },
+                        y: { 
+                            grid: { color: 'rgba(51, 65, 85, 0.2)' },
+                            ticks: { color: '#94a3b8', callback: v => '$' + v.toFixed(2) }
                         }
                     }
                 }
             });
         }
 
-        function setActiveChartButton(activeBtnId) {
-            document.querySelectorAll('.chart-period-btn').forEach(button => {
-                if (button.id === activeBtnId) {
-                    button.classList.add('active');
-                } else {
-                    button.classList.remove('active');
-                }
-            });
+        function setActiveChartButton(id) {
+            document.querySelectorAll('.chart-period-btn').forEach(b => b.classList.toggle('active', b.id === id));
         }
 
         function showLoading(show) {
@@ -722,6 +665,7 @@
 
         function showError(message) {
             loadingIndicator.classList.add('hidden');
+            document.getElementById('generalContent').classList.add('hidden');
             errorTextSpan.textContent = message;
             errorMessageDiv.classList.remove('hidden');
         }
