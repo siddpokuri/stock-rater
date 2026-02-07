@@ -16,23 +16,9 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #0f172a;
             min-height: 100vh;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(138, 99, 210, 0.3), transparent 50%);
-            pointer-events: none;
-            z-index: 0;
+            color: #e2e8f0;
         }
 
         .container-wrapper {
@@ -41,17 +27,17 @@
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .glass-nav {
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .nav-link {
@@ -59,15 +45,16 @@
             transition: all 0.3s ease;
             padding: 0.5rem 1rem;
             border-radius: 8px;
+            color: #cbd5e1;
         }
 
         .nav-link:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
+            background: rgba(51, 65, 85, 0.5);
+            color: #e2e8f0;
         }
 
         .nav-link.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #3b82f6;
             color: white;
             font-weight: 600;
         }
@@ -79,7 +66,7 @@
 
         .nav-link.home-link:hover {
             background: rgba(16, 185, 129, 0.1);
-            color: #059669;
+            color: #34d399;
         }
 
         .toggle-button {
@@ -88,18 +75,18 @@
         }
 
         .toggle-button.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #10b981;
             color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .toggle-button:not(.active) {
-            background: white;
-            color: #6b7280;
+            background: rgba(51, 65, 85, 0.5);
+            color: #cbd5e1;
         }
 
         .toggle-button:not(.active):hover {
-            background: #f3f4f6;
+            background: rgba(71, 85, 105, 0.5);
         }
 
         .fade-in {
@@ -125,7 +112,7 @@
             transform: translateX(-50%);
             width: 60px;
             height: 3px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: #3b82f6;
             border-radius: 2px;
         }
 
@@ -136,15 +123,15 @@
         }
 
         .data-table thead tr {
-            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            background: rgba(51, 65, 85, 0.5);
         }
 
         .data-table th {
             padding: 1rem;
             text-align: left;
             font-weight: 600;
-            color: #374151;
-            border-bottom: 2px solid #e5e7eb;
+            color: #e2e8f0;
+            border-bottom: 2px solid rgba(71, 85, 105, 0.5);
         }
 
         .data-table th:first-child {
@@ -161,13 +148,13 @@
 
         .data-table td {
             padding: 0.875rem 1rem;
-            color: #6b7280;
-            border-bottom: 1px solid #f3f4f6;
+            color: #cbd5e1;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
         }
 
         .data-table td:first-child {
             font-weight: 600;
-            color: #1f2937;
+            color: #f1f5f9;
             text-align: left;
         }
 
@@ -180,7 +167,7 @@
         }
 
         .data-table tbody tr:hover {
-            background: #f9fafb;
+            background: rgba(51, 65, 85, 0.3);
         }
 
         .data-table tbody tr:last-child td {
@@ -188,7 +175,7 @@
         }
 
         .loading-spinner {
-            border-top-color: #667eea;
+            border-top-color: #3b82f6;
         }
 
         .alert-box {
@@ -212,7 +199,7 @@
             .nav-links-container {
                 overflow-x: auto;
                 scrollbar-width: thin;
-                scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
+                scrollbar-color: rgba(59, 130, 246, 0.5) transparent;
             }
             
             .nav-links-container::-webkit-scrollbar {
@@ -224,7 +211,7 @@
             }
             
             .nav-links-container::-webkit-scrollbar-thumb {
-                background: rgba(102, 126, 234, 0.3);
+                background: rgba(59, 130, 246, 0.5);
                 border-radius: 4px;
             }
         }
@@ -254,11 +241,11 @@
 
             <!-- Header with Title and Toggle -->
             <div class="glass-card rounded-2xl p-8 mb-6 fade-in">
-                <h1 id="stock-title" class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-6">Stock - Balance Sheet</h1>
+                <h1 id="stock-title" class="text-3xl md:text-4xl font-bold text-slate-100 text-center mb-6">Stock - Balance Sheet</h1>
                 
                 <!-- Toggle buttons for Quarterly/Yearly views -->
                 <div class="flex justify-center">
-                    <div class="inline-flex bg-gray-100 rounded-xl p-1">
+                    <div class="inline-flex bg-slate-800/50 rounded-xl p-1">
                         <button id="toggleQuarterly" class="toggle-button active px-8 py-3 rounded-lg text-base font-semibold">Quarterly</button>
                         <button id="toggleYearly" class="toggle-button px-8 py-3 rounded-lg text-base font-semibold">Yearly</button>
                     </div>
@@ -268,8 +255,8 @@
             <!-- Loading Indicator -->
             <div id="loading-area" class="mb-8">
                 <div id="loading-spinner-container" class="glass-card rounded-2xl p-12 text-center fade-in">
-                    <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-                    <p class="text-gray-700 font-medium">Loading balance sheet data...</p>
+                    <div class="inline-block w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p class="text-slate-300 font-medium">Loading balance sheet data...</p>
                 </div>
             </div>
 
@@ -277,12 +264,12 @@
             <div id="error-message" class="hidden mb-8 alert-box">
                 <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
                     <div class="flex items-start">
-                        <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-6 h-6 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
                         <div>
-                            <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
-                            <p id="error-text" class="text-red-700 text-sm"></p>
+                            <h3 class="text-red-300 font-semibold mb-1">Error Loading Data</h3>
+                            <p id="error-text" class="text-red-200 text-sm"></p>
                         </div>
                     </div>
                 </div>
@@ -292,14 +279,25 @@
             <div id="premium-message" class="hidden mb-8 alert-box">
                 <div class="glass-card rounded-2xl p-6 border-l-4 border-yellow-500">
                     <div class="flex items-start">
-                        <svg class="w-6 h-6 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-6 h-6 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                         </svg>
                         <div>
-                            <h3 class="text-yellow-900 font-semibold mb-1">Premium Feature</h3>
-                            <p class="text-yellow-800 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-900">Premium</a> to access this feature.</p>
+                            <h3 class="text-yellow-300 font-semibold mb-1">Premium Feature</h3>
+                            <p class="text-yellow-200 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-100">Premium</a> to access this feature.</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- No Data Message -->
+            <div id="no-data-message" class="hidden mb-8 alert-box">
+                <div class="glass-card rounded-2xl p-12 text-center">
+                    <svg class="w-16 h-16 text-slate-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    <h3 class="text-xl font-semibold text-slate-300 mb-2">No Data Available</h3>
+                    <p class="text-slate-400">Balance sheet data is not available for this stock.</p>
                 </div>
             </div>
 
@@ -379,12 +377,13 @@
         const errorMessage = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
         const premiumMessage = document.getElementById('premium-message');
+        const noDataMessage = document.getElementById('no-data-message');
 
         function renderQuarterlyData(data) {
             const quarterlyInfo = data['Quarterly Balance Sheet Info'];
             
             if (!quarterlyInfo || !quarterlyInfo.Date || quarterlyInfo.Date.length === 0) {
-                statementContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No quarterly data available.</p>';
+                statementContainer.innerHTML = '<p class="text-center text-slate-400 mt-4">No quarterly data available.</p>';
                 return;
             }
 
@@ -395,7 +394,7 @@
 
             let html = `
                 <div class="section-header">
-                    <h2 class="text-2xl font-bold text-gray-900 text-center">Quarterly Balance Sheet</h2>
+                    <h2 class="text-2xl font-bold text-slate-100 text-center">Quarterly Balance Sheet</h2>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="data-table">
@@ -425,7 +424,7 @@
             const yearlyInfo = data['Yearly Balance Sheet Info'];
 
             if (!yearlyInfo || !yearlyInfo.Year || yearlyInfo.Year.length === 0) {
-                statementContainer.innerHTML = '<p class="text-center text-gray-500 mt-4">No yearly data available.</p>';
+                statementContainer.innerHTML = '<p class="text-center text-slate-400 mt-4">No yearly data available.</p>';
                 return;
             }
 
@@ -438,7 +437,7 @@
             
             let html = `
                 <div class="section-header">
-                    <h2 class="text-2xl font-bold text-gray-900 text-center">Yearly Balance Sheet</h2>
+                    <h2 class="text-2xl font-bold text-slate-100 text-center">Yearly Balance Sheet</h2>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="data-table">
@@ -506,6 +505,7 @@
             loadingArea.classList.remove('hidden');
             errorMessage.classList.add('hidden');
             premiumMessage.classList.add('hidden');
+            noDataMessage.classList.add('hidden');
             statementContainer.classList.add('hidden');
             
             const apiUrl = `${backendBaseUrl}/tab3?stock=${ticker}`;
@@ -533,6 +533,17 @@
                 }
                 
                 const data = await response.json();
+                
+                // Check if data is empty or invalid
+                if (!data || 
+                    (!data["Quarterly Balance Sheet Info"] && !data["Yearly Balance Sheet Info"]) ||
+                    (data["Quarterly Balance Sheet Info"]?.Date?.length === 0 && data["Yearly Balance Sheet Info"]?.Year?.length === 0) ||
+                    Object.keys(data).length === 0) {
+                    noDataMessage.classList.remove('hidden');
+                    stockTitle.textContent = `${ticker.toUpperCase()} - Balance Sheet`;
+                    return;
+                }
+                
                 balanceSheetData = data;
                 stockTitle.textContent = `${ticker.toUpperCase()} - Balance Sheet`;
                 renderData();
@@ -540,8 +551,8 @@
                 
             } catch (error) {
                 console.error('Failed to fetch stock data:', error);
-                errorText.textContent = `Could not retrieve data for ticker "${ticker}". Please try another ticker from the main page.`;
-                errorMessage.classList.remove('hidden');
+                noDataMessage.classList.remove('hidden');
+                stockTitle.textContent = `${ticker.toUpperCase()} - Balance Sheet`;
             } finally {
                 loadingArea.classList.add('hidden');
             }
