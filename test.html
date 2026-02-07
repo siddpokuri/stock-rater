@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Income Statement</title>
+    <title>Stock Info - Analyst Targets</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -83,26 +82,6 @@
             color: #059669;
         }
 
-        .toggle-button {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .toggle-button.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        .toggle-button:not(.active) {
-            background: white;
-            color: #6b7280;
-        }
-
-        .toggle-button:not(.active):hover {
-            background: #f3f4f6;
-        }
-
         .fade-in {
             animation: fadeIn 0.6s ease-out;
         }
@@ -130,72 +109,71 @@
             border-radius: 2px;
         }
 
-        .data-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+        .target-card {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .data-table thead tr {
-            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        .target-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--card-color-start), var(--card-color-end));
         }
 
-        .data-table th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: #374151;
-            border-bottom: 2px solid #e5e7eb;
+        .target-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
 
-        .data-table th:first-child {
-            border-top-left-radius: 12px;
+        .target-card.low {
+            --card-color-start: #ef4444;
+            --card-color-end: #dc2626;
         }
 
-        .data-table th:not(:first-child) {
-            text-align: right;
+        .target-card.consensus {
+            --card-color-start: #3b82f6;
+            --card-color-end: #2563eb;
         }
 
-        .data-table th:last-child {
-            border-top-right-radius: 12px;
+        .target-card.high {
+            --card-color-start: #10b981;
+            --card-color-end: #059669;
         }
 
-        .data-table td {
-            padding: 0.875rem 1rem;
-            color: #6b7280;
-            border-bottom: 1px solid #f3f4f6;
+        .prediction-card {
+            transition: all 0.3s ease;
+            position: relative;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.95) 100%);
         }
 
-        .data-table td:first-child {
-            font-weight: 600;
-            color: #1f2937;
-            text-align: left;
+        .prediction-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
 
-        .data-table td:not(:first-child) {
-            text-align: right;
+        .prediction-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
         }
 
-        .data-table tbody tr {
+        .metric-item {
+            background: white;
             transition: all 0.2s ease;
         }
 
-        .data-table tbody tr:hover {
+        .metric-item:hover {
             background: #f9fafb;
-        }
-
-        .data-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-            padding: 1rem;
-        }
-
-        .loading-spinner {
-            border-top-color: #667eea;
+            transform: scale(1.02);
         }
 
         .alert-box {
@@ -244,13 +222,13 @@
             <div class="nav-links-container flex justify-start items-center gap-2 overflow-x-auto whitespace-nowrap pb-2">
                 <a href="index.html" id="nav-home" class="nav-link home-link">Home</a>
                 <a href="#" id="nav-general-info" class="nav-link">General Info</a>
-                <a href="#" id="nav-income-statement" class="nav-link active">Income Statement</a>
+                <a href="#" id="nav-income-statement" class="nav-link">Income Statement</a>
                 <a href="#" id="nav-cash-flow" class="nav-link">Cash Flow</a>
                 <a href="#" id="nav-balance-sheet" class="nav-link">Balance Sheet</a>
                 <a href="#" id="nav-ratings" class="nav-link">Ratings</a>
                 <a href="#" id="nav-earnings" class="nav-link">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="nav-link">Insider Trades</a>
-                <a href="#" id="nav-analyst-targets" class="nav-link">Analyst Targets</a>
+                <a href="#" id="nav-analyst-targets" class="nav-link active">Analyst Targets</a>
                 <a href="#" id="nav-recent-news" class="nav-link">Recent News</a>
             </div>
         </div>
@@ -259,29 +237,21 @@
     <main class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
 
-            <!-- Header with Title and Toggle -->
+            <!-- Header -->
             <div class="glass-card rounded-2xl p-8 mb-6 fade-in">
-                <h1 id="stock-title" class="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-6">Stock - Income Statement</h1>
-                
-                <!-- Toggle buttons for Quarterly/Yearly views -->
-                <div class="flex justify-center">
-                    <div class="inline-flex bg-gray-100 rounded-xl p-1">
-                        <button id="quarterly-btn" class="toggle-button active px-8 py-3 rounded-lg text-base font-semibold">Quarterly</button>
-                        <button id="yearly-btn" class="toggle-button px-8 py-3 rounded-lg text-base font-semibold">Yearly</button>
-                    </div>
-                </div>
+                <h1 id="stockTitle" class="text-3xl md:text-4xl font-bold text-gray-900 text-center">Stock - Analyst Targets</h1>
             </div>
 
             <!-- Loading Indicator -->
-            <div id="loading-area" class="mb-8">
-                <div id="loading-spinner-container" class="glass-card rounded-2xl p-12 text-center fade-in">
+            <div id="loadingIndicator" class="hidden mb-8">
+                <div class="glass-card rounded-2xl p-12 text-center fade-in">
                     <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-                    <p class="text-gray-700 font-medium">Loading financial data...</p>
+                    <p class="text-gray-700 font-medium">Loading analyst targets data...</p>
                 </div>
             </div>
 
             <!-- Error Message -->
-            <div id="error-message" class="hidden mb-8 alert-box">
+            <div id="errorMessage" class="hidden mb-8 alert-box">
                 <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
                     <div class="flex items-start">
                         <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -289,7 +259,7 @@
                         </svg>
                         <div>
                             <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
-                            <p id="error-text" class="text-red-700 text-sm"></p>
+                            <p id="errorText" class="text-red-700 text-sm"></p>
                         </div>
                     </div>
                 </div>
@@ -310,28 +280,43 @@
                 </div>
             </div>
 
-            <!-- Statement Container -->
-            <div id="statement-container" class="glass-card rounded-2xl p-8 mb-6 fade-in hidden">
-                <!-- Table content will be injected here by JavaScript -->
-            </div>
-
-            <!-- Charts Container -->
-            <div id="charts-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6 hidden">
-                <!-- Revenue Chart -->
-                <div class="glass-card rounded-2xl p-6 fade-in">
-                    <h3 id="revenue-chart-title" class="text-lg font-bold text-gray-900 mb-4 text-center">Revenue</h3>
-                    <div class="chart-container">
-                        <canvas id="revenue-chart"></canvas>
+            <!-- Analyst Targets Content -->
+            <div id="analystTargetsContent" class="hidden space-y-6">
+                
+                <!-- Price Targets Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Analyst Price Targets</h2>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <!-- Target Low Card -->
+                        <div class="target-card low glass-card rounded-xl p-6 text-center">
+                            <p class="text-sm text-gray-600 font-medium mb-2">Target Low</p>
+                            <p class="text-4xl font-bold text-red-600" id="targetLow">-</p>
+                        </div>
+                        <!-- Target Consensus Card -->
+                        <div class="target-card consensus glass-card rounded-xl p-6 text-center">
+                            <p class="text-sm text-gray-600 font-medium mb-2">Target Consensus</p>
+                            <p class="text-4xl font-bold text-blue-600" id="targetConsensus">-</p>
+                        </div>
+                        <!-- Target High Card -->
+                        <div class="target-card high glass-card rounded-xl p-6 text-center">
+                            <p class="text-sm text-gray-600 font-medium mb-2">Target High</p>
+                            <p class="text-4xl font-bold text-green-600" id="targetHigh">-</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Net Income Chart -->
-                <div class="glass-card rounded-2xl p-6 fade-in">
-                    <h3 id="net-income-chart-title" class="text-lg font-bold text-gray-900 mb-4 text-center">Net Income</h3>
-                    <div class="chart-container">
-                        <canvas id="net-income-chart"></canvas>
+                <!-- Analyst Financials Predictions Section -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-gray-900 text-center">Analyst Financials Predictions</h2>
+                    </div>
+                    <div id="financialsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Financials data will be inserted here by JavaScript -->
                     </div>
                 </div>
+
             </div>
 
         </div>
@@ -342,7 +327,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
+    
         const firebaseConfig = {
             apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
             authDomain: "stocksight-75940.firebaseapp.com",
@@ -352,13 +337,13 @@
             appId: "1:223645254786:web:14c980e559d9090f89e09b",
             measurementId: "G-8JGEEE9KD1"
         };
-
+    
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         window.currentUserIsPremium = false;
-
+    
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = "auth.html";
@@ -377,9 +362,10 @@
                     window.currentUserIsPremium = false;
                 }
                 console.log("Current user premium status:", window.currentUserIsPremium);
+                checkPremiumAccessForPage();
             }
         });
-
+    
         window.signOutUser = async function() {
             try {
                 await signOut(auth);
@@ -388,360 +374,36 @@
                 console.error("Error signing out:", error);
             }
         };
+
+        function checkPremiumAccessForPage() {
+            if (!window.currentUserIsPremium) {
+                showPremiumMessage();
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('errorMessage').classList.add('hidden');
+                document.getElementById('analystTargetsContent').classList.add('hidden');
+                document.getElementById('stockTitle').textContent = 'Premium Feature';
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                stockSymbol = urlParams.get('stock');
+                if (stockSymbol) {
+                    document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Analyst Targets`;
+                    fetchAnalystTargets(stockSymbol);
+                } else {
+                    showError('No stock symbol provided in the URL.');
+                }
+            }
+        }
     </script>
 
     <!-- Main Script -->
     <script>
-        let currentBackendData = null;
-        let activeView = 'Quarterly';
-        let revenueChartInstance = null;
-        let netIncomeChartInstance = null;
-        let stockTicker = '';
-
-        const statementContainer = document.getElementById('statement-container');
-        const quarterlyBtn = document.getElementById('quarterly-btn');
-        const yearlyBtn = document.getElementById('yearly-btn');
-        const stockTitle = document.getElementById('stock-title');
-        const loadingSpinnerContainer = document.getElementById('loading-spinner-container');
-        const loadingArea = document.getElementById('loading-area');
-        const errorMessage = document.getElementById('error-message');
-        const errorText = document.getElementById('error-text');
-        const premiumMessage = document.getElementById('premium-message');
-        const revenueChartCanvas = document.getElementById('revenue-chart');
-        const netIncomeChartCanvas = document.getElementById('net-income-chart');
-        const chartsContainer = document.getElementById('charts-container');
-        const revenueChartTitle = document.getElementById('revenue-chart-title');
-        const netIncomeChartTitle = document.getElementById('net-income-chart-title');
-
-        function destroyExistingCharts() {
-            if (revenueChartInstance) {
-                revenueChartInstance.destroy();
-                revenueChartInstance = null;
-            }
-            if (netIncomeChartInstance) {
-                netIncomeChartInstance.destroy();
-                netIncomeChartInstance = null;
-            }
-        }
-
-        function parseFinancialString(value) {
-            if (value === null || typeof value === 'undefined') {
-                return null;
-            }
-            if (typeof value === 'number') {
-                return value;
-            }
-            const val = String(value).trim();
-            const lastChar = val.slice(-1).toLowerCase();
-            const number = parseFloat(val.slice(0, -1));
-
-            if (isNaN(number) || !['b', 'm', 'k'].includes(lastChar)) {
-                return parseFloat(val) || null;
-            }
-
-            switch (lastChar) {
-                case 'b':
-                    return number * 1e9;
-                case 'm':
-                    return number * 1e6;
-                case 'k':
-                    return number * 1e3;
-                default:
-                    return parseFloat(val) || null;
-            }
-        }
-
-        function scaleFinancialData(dataArray) {
-            const parsedData = dataArray.map(parseFinancialString).filter(d => d !== null);
-            if (parsedData.length === 0) {
-                return { scaledData: [], unit: "" };
-            }
-
-            const maxVal = Math.max(...parsedData.map(Math.abs));
-            let unit = "";
-            let scaleFactor = 1;
-
-            if (maxVal >= 1e9) {
-                unit = "in billions";
-                scaleFactor = 1e9;
-            } else if (maxVal >= 1e6) {
-                unit = "in millions";
-                scaleFactor = 1e6;
-            } else if (maxVal >= 1e3) {
-                unit = "in thousands";
-                scaleFactor = 1e3;
-            }
-
-            const scaledData = parsedData.map(val => val / scaleFactor);
-            return { scaledData, unit };
-        }
-
-        function createChart(canvasElement, title, labels, data) {
-            const chartData = {
-                labels: labels,
-                datasets: [{
-                    label: title,
-                    data: data,
-                    backgroundColor: [
-                        'rgba(102, 126, 234, 0.8)',
-                        'rgba(118, 75, 162, 0.8)',
-                        'rgba(102, 126, 234, 0.6)',
-                        'rgba(118, 75, 162, 0.6)'
-                    ],
-                    borderColor: '#667eea',
-                    borderWidth: 2,
-                    borderRadius: 8
-                }]
-            };
-
-            const chartConfig = {
-                type: 'bar',
-                data: chartData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#f3f4f6',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#6b7280',
-                                font: {
-                                    size: 11
-                                },
-                                callback: function(value) {
-                                    return value.toFixed(1);
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#6b7280',
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12,
-                            cornerRadius: 8,
-                            callbacks: {
-                                label: function(context) {
-                                    return `${title}: ${context.parsed.y.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-            return new Chart(canvasElement, chartConfig);
-        }
-
-        function renderQuarterlyData(data) {
-            const info = data["Quarterly Income Statement Info"];
-
-            const metrics = [
-                { name: "Revenue", data: info["Revenue"] },
-                { name: "Gross Profit", data: info["Gross Profit"] },
-                { name: "Ebitda", data: info["Ebitda"] },
-                { name: "Operating Income", data: info["Operating Income"] },
-                { name: "Net Income", data: info["Net Income"] },
-            ];
-
-            let html = `
-                <div class="section-header">
-                    <h2 class="text-2xl font-bold text-gray-900 text-center">Quarterly Income Statement</h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Metric</th>
-                                ${info.dates.map(date => `<th>${date}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${metrics.map(metric => `
-                                <tr>
-                                    <td>${metric.name}</td>
-                                    ${metric.data.map(value => `
-                                        <td>${value !== null && typeof value !== 'undefined' ? value : 'N/A'}</td>
-                                    `).join('')}
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            statementContainer.innerHTML = html;
-
-            destroyExistingCharts();
-            chartsContainer.classList.remove('hidden');
-            const lastFourDates = info.dates.slice(-4).reverse();
-
-            const { scaledData: scaledRevenue, unit: revenueUnit } = scaleFinancialData(info.Revenue.slice(-4).reverse());
-            revenueChartTitle.textContent = `Revenue (${revenueUnit})`;
-            revenueChartInstance = createChart(revenueChartCanvas, `Revenue (${revenueUnit})`, lastFourDates, scaledRevenue);
-
-            const { scaledData: scaledNetIncome, unit: netIncomeUnit } = scaleFinancialData(info["Net Income"].slice(-4).reverse());
-            netIncomeChartTitle.textContent = `Net Income (${netIncomeUnit})`;
-            netIncomeChartInstance = createChart(netIncomeChartCanvas, `Net Income (${netIncomeUnit})`, lastFourDates, scaledNetIncome);
-        }
-
-        function renderYearlyData(data) {
-            const info = data["Yearly Income Statement Info"];
-            const ratios = data["Yearly Ratios"];
-            const headers = info["Date"];
-
-            const metrics = [
-                { name: "Revenue", data: info["Revenue"] },
-                { name: "Gross Profit", data: info["Gross Profit"] },
-                { name: "Ebitda", data: info["Ebitda"] },
-                { name: "Ebit", data: info["Ebit"] },
-                { name: "Operating Income", data: info["Operating Income"] },
-                { name: "Net Income", data: info["Net Income"] },
-                { name: "Net Profit Margin (%)", data: ['N/A', ...ratios["Net Profit Margin (%)"]] },
-                { name: "Price to Sales Ratio", data: ['N/A', ...ratios["Price to Sales Ratio"]] },
-            ];
-
-            let html = `
-                <div class="section-header">
-                    <h2 class="text-2xl font-bold text-gray-900 text-center">Yearly Income Statement</h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Metric</th>
-                                ${headers.map(date => `<th>${date}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${metrics.map(metric => `
-                                <tr>
-                                    <td>${metric.name}</td>
-                                    ${metric.data.map(value => `
-                                        <td>${value !== null && typeof value !== 'undefined' ? value : 'N/A'}</td>
-                                    `).join('')}
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            statementContainer.innerHTML = html;
-
-            destroyExistingCharts();
-            chartsContainer.classList.remove('hidden');
-            const lastFourDates = headers.slice(-4).reverse();
-
-            const { scaledData: scaledRevenue, unit: revenueUnit } = scaleFinancialData(info.Revenue.slice(-4).reverse());
-            revenueChartTitle.textContent = `Revenue (${revenueUnit})`;
-            revenueChartInstance = createChart(revenueChartCanvas, `Revenue (${revenueUnit})`, lastFourDates, scaledRevenue);
-
-            const { scaledData: scaledNetIncome, unit: netIncomeUnit } = scaleFinancialData(info["Net Income"].slice(-4).reverse());
-            netIncomeChartTitle.textContent = `Net Income (${netIncomeUnit})`;
-            netIncomeChartInstance = createChart(netIncomeChartCanvas, `Net Income (${netIncomeUnit})`, lastFourDates, scaledNetIncome);
-        }
-
-        function renderData() {
-            if (!currentBackendData) {
-                return;
-            }
-            if (activeView === 'Quarterly') {
-                renderQuarterlyData(currentBackendData);
-            } else {
-                renderYearlyData(currentBackendData);
-            }
-        }
-
+        let stockSymbol = '';
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
-        
-        async function fetchStockData(ticker) {
-            loadingArea.classList.remove('hidden');
-            errorMessage.classList.add('hidden');
-            premiumMessage.classList.add('hidden');
-            statementContainer.classList.add('hidden');
-            chartsContainer.classList.add('hidden');
-
-            const apiUrl = `${backendBaseUrl}/tab2?stock=${ticker}`;
-
-            try {
-                let response = null;
-                let delay = 1000;
-                let maxRetries = 5;
-                for (let i = 0; i < maxRetries; i++) {
-                    response = await fetch(apiUrl);
-                    if (response.ok) {
-                        break;
-                    }
-                    if (response.status === 429) {
-                        console.warn(`API call failed with status 429. Retrying in ${delay}ms...`);
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2;
-                    } else {
-                        throw new Error(`API call failed with status ${response.status}`);
-                    }
-                }
-
-                if (!response || !response.ok) {
-                    throw new Error('Max retries reached, failed to fetch data.');
-                }
-
-                const data = await response.json();
-                currentBackendData = data;
-                stockTitle.textContent = `${ticker.toUpperCase()} - Income Statement`;
-                renderData();
-                statementContainer.classList.remove('hidden');
-
-            } catch (error) {
-                console.error('Failed to fetch stock data:', error);
-                destroyExistingCharts();
-                errorText.textContent = `Could not retrieve data for ticker "${ticker}". Please try another ticker from the main page.`;
-                errorMessage.classList.remove('hidden');
-            } finally {
-                loadingArea.classList.add('hidden');
-            }
-        }
-
-        quarterlyBtn.addEventListener('click', () => {
-            yearlyBtn.classList.remove('active');
-            quarterlyBtn.classList.add('active');
-            activeView = 'Quarterly';
-            renderData();
-        });
-
-        yearlyBtn.addEventListener('click', () => {
-            quarterlyBtn.classList.remove('active');
-            yearlyBtn.classList.add('active');
-            activeView = 'Yearly';
-            renderData();
-        });
-
-        function showPremiumMessage() {
-            premiumMessage.classList.remove('hidden');
-            setTimeout(() => {
-                premiumMessage.classList.add('hidden');
-            }, 5000);
-        }
+        const premiumMessage = document.getElementById('premium-message');
 
         document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            stockTicker = urlParams.get('stock');
-
             const navLinks = [
+                { id: 'nav-home', file: 'index.html' },
                 { id: 'nav-general-info', file: 'general_info.html' },
                 { id: 'nav-income-statement', file: 'income_statement.html' },
                 { id: 'nav-cash-flow', file: 'cash_flow.html' },
@@ -753,34 +415,156 @@
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
 
-            if (stockTicker) {
-                fetchStockData(stockTicker);
-                navLinks.forEach(link => {
-                    const navElement = document.getElementById(link.id);
-                    if (navElement) {
-                        if (link.premium) {
-                            navElement.href = '#';
-                            navElement.addEventListener('click', (event) => {
-                                event.preventDefault();
-                                if (window.currentUserIsPremium) {
-                                    window.location.href = `${link.file}?stock=${stockTicker}`;
-                                } else {
-                                    showPremiumMessage();
-                                }
-                            });
-                        } else {
-                            navElement.href = `${link.file}?stock=${stockTicker}`;
-                        }
+            const urlParams = new URLSearchParams(window.location.search);
+            stockSymbol = urlParams.get('stock');
+
+            navLinks.forEach(link => {
+                const navElement = document.getElementById(link.id);
+                if (navElement) {
+                    if (link.premium) {
+                        navElement.href = '#';
+                        navElement.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            if (window.currentUserIsPremium) {
+                                window.location.href = `${link.file}?stock=${stockSymbol}`;
+                            } else {
+                                showPremiumMessage();
+                            }
+                        });
+                    } else {
+                        navElement.href = `${link.file}?stock=${stockSymbol}`;
                     }
-                });
-            } else {
-                stockTitle.textContent = 'No Stock Selected';
-                errorText.textContent = 'Please return to the main page and select a stock to view its income statement.';
-                errorMessage.classList.remove('hidden');
-                loadingArea.classList.add('hidden');
-                destroyExistingCharts();
-            }
+                }
+            });
         });
+
+        async function fetchAnalystTargets(symbol) {
+            showLoading(true);
+            premiumMessage.classList.add('hidden');
+            try {
+                let response = null;
+                let delay = 1000;
+                const maxRetries = 5;
+
+                for (let i = 0; i < maxRetries; i++) {
+                    response = await fetch(`${backendBaseUrl}/tab7?stock=${symbol}`);
+                    if (response.ok) {
+                        break;
+                    }
+                    if (response.status === 429) {
+                        console.warn(`API call failed with status 429. Retrying in ${delay}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    } else {
+                        throw new Error(`API call failed with status ${response.status}`);
+                    }
+                }
+                
+                if (!response || !response.ok) {
+                    throw new Error('Max retries reached, failed to fetch data.');
+                }
+                
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    displayPriceTargets(data['Analyst Price Targets']);
+                    displayFinancialPredictions(data['Analyst Financials Predictions']);
+                    showLoading(false);
+                    document.getElementById('analystTargetsContent').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error fetching analyst targets:', error);
+                showError(`A network error occurred while fetching data. ${error.message}`);
+            }
+        }
+
+        function displayPriceTargets(priceTargetData) {
+            if (!priceTargetData) {
+                console.error('Analyst price targets data is invalid or empty.');
+                return;
+            }
+
+            document.getElementById('targetLow').textContent = priceTargetData['Target Low'] || 'N/A';
+            document.getElementById('targetConsensus').textContent = priceTargetData['Target Consensus'] || 'N/A';
+            document.getElementById('targetHigh').textContent = priceTargetData['Target High'] || 'N/A';
+        }
+
+        function displayFinancialPredictions(financialsData) {
+            const financialsContainer = document.getElementById('financialsContainer');
+            financialsContainer.innerHTML = '';
+
+            if (!financialsData || financialsData.length === 0) {
+                const message = document.createElement('p');
+                message.textContent = 'No financial predictions available.';
+                message.classList.add('col-span-full', 'text-center', 'text-gray-500', 'italic', 'py-4');
+                financialsContainer.appendChild(message);
+            } else {
+                financialsData.forEach(prediction => {
+                    const year = prediction['Date'] ? prediction['Date'].substring(0, 4) : 'N/A';
+                    
+                    const card = document.createElement('div');
+                    card.classList.add('prediction-card', 'rounded-2xl', 'p-6', 'shadow-lg', 'border', 'border-gray-100');
+                    
+                    card.innerHTML = `
+                        <h3 class="text-center text-2xl font-bold text-gray-800 mb-6 pt-2">${year}</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            ${createMetricItem('EPS', prediction['EPS Low'], prediction['EPS Average'], prediction['EPS High'])}
+                            ${createMetricItem('Revenue', prediction['Revenue Low'], prediction['Revenue Average'], prediction['Revenue High'])}
+                            ${createMetricItem('Net Income', prediction['Net Income Low'], prediction['Net Income Average'], prediction['Net Income High'])}
+                            ${createMetricItem('EBITDA', prediction['Ebitda Low'], prediction['Ebitda Average'], prediction['Ebitda High'])}
+                            ${createMetricItem('EBIT', prediction['Ebit Low'], prediction['Ebit Average'], prediction['Ebit High'])}
+                        </div>
+                    `;
+                    financialsContainer.appendChild(card);
+                });
+            }
+        }
+
+        function createMetricItem(label, low, avg, high) {
+            return `
+                <div class="metric-item flex flex-col p-4 rounded-xl shadow-sm border border-gray-100">
+                    <p class="text-base font-bold text-gray-800 mb-3 text-center border-b border-gray-200 pb-2">${label}</p>
+                    <div class="flex flex-col space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-red-500 font-medium">Low:</span>
+                            <span class="text-base font-bold text-red-700">${low || 'N/A'}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-blue-500 font-medium">Avg:</span>
+                            <span class="text-base font-bold text-blue-700">${avg || 'N/A'}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-green-500 font-medium">High:</span>
+                            <span class="text-base font-bold text-green-700">${high || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
+            document.getElementById('analystTargetsContent').classList.toggle('hidden', show);
+            document.getElementById('errorMessage').classList.add('hidden');
+            premiumMessage.classList.add('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('analystTargetsContent').classList.add('hidden');
+            document.getElementById('errorMessage').classList.remove('hidden');
+            document.getElementById('errorText').textContent = message;
+            premiumMessage.classList.add('hidden');
+        }
+
+        function showPremiumMessage() {
+            premiumMessage.classList.remove('hidden');
+            setTimeout(() => {
+                premiumMessage.classList.add('hidden');
+            }, 5000);
+        }
     </script>
 </body>
 </html>
