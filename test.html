@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Info - Insider Trades</title>
+    <title>Stock Info - Recent News</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -91,70 +91,39 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .section-header {
+        .news-card {
+            transition: all 0.3s ease;
             position: relative;
-            padding-bottom: 12px;
-            margin-bottom: 24px;
+            overflow: hidden;
         }
 
-        .section-header::after {
+        .news-card::before {
             content: '';
             position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
             background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 2px;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
 
-        .data-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+        .news-card:hover::before {
+            transform: scaleX(1);
         }
 
-        .data-table thead tr {
-            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        .news-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
         }
 
-        .data-table th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: #374151;
-            border-bottom: 2px solid #e5e7eb;
+        .news-card img {
+            transition: transform 0.3s ease;
         }
 
-        .data-table th:first-child {
-            border-top-left-radius: 12px;
-        }
-
-        .data-table th:last-child {
-            border-top-right-radius: 12px;
-        }
-
-        .data-table td {
-            padding: 0.875rem 1rem;
-            color: #6b7280;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .data-table tbody tr {
-            transition: all 0.2s ease;
-        }
-
-        .data-table tbody tr:hover {
-            background: #f9fafb;
-        }
-
-        .data-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .loading-spinner {
-            border-top-color: #667eea;
+        .news-card:hover img {
+            transform: scale(1.05);
         }
 
         .alert-box {
@@ -164,6 +133,20 @@
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #667eea;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Responsive nav adjustments */
@@ -194,6 +177,25 @@
                 border-radius: 4px;
             }
         }
+
+        .publisher-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            color: #667eea;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .date-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body>
@@ -208,42 +210,19 @@
                 <a href="#" id="nav-balance-sheet" class="nav-link">Balance Sheet</a>
                 <a href="#" id="nav-ratings" class="nav-link">Ratings</a>
                 <a href="#" id="nav-earnings" class="nav-link">Earnings</a>
-                <a href="#" id="nav-insider-trades" class="nav-link active">Insider Trades</a>
+                <a href="#" id="nav-insider-trades" class="nav-link">Insider Trades</a>
                 <a href="#" id="nav-analyst-targets" class="nav-link">Analyst Targets</a>
-                <a href="#" id="nav-recent-news" class="nav-link">Recent News</a>
+                <a href="#" id="nav-recent-news" class="nav-link active">Recent News</a>
             </div>
         </div>
     </nav>
 
     <main class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-6xl mx-auto">
+        <div class="max-w-7xl mx-auto">
 
             <!-- Header -->
             <div class="glass-card rounded-2xl p-8 mb-6 fade-in">
-                <h1 id="stockTitle" class="text-3xl md:text-4xl font-bold text-gray-900 text-center">Stock - Insider Trades</h1>
-            </div>
-
-            <!-- Loading Indicator -->
-            <div id="loadingIndicator" class="hidden mb-8">
-                <div class="glass-card rounded-2xl p-12 text-center fade-in">
-                    <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-                    <p class="text-gray-700 font-medium">Loading insider trades data...</p>
-                </div>
-            </div>
-
-            <!-- Error Message -->
-            <div id="errorMessage" class="hidden mb-8 alert-box">
-                <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
-                    <div class="flex items-start">
-                        <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        </svg>
-                        <div>
-                            <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
-                            <p id="errorText" class="text-red-700 text-sm"></p>
-                        </div>
-                    </div>
-                </div>
+                <h1 id="stock-title" class="text-3xl md:text-4xl font-bold text-gray-900 text-center">Stock - Recent News</h1>
             </div>
 
             <!-- Premium Message -->
@@ -261,27 +240,9 @@
                 </div>
             </div>
 
-            <!-- Insider Trades Content -->
-            <div id="insiderTradesContent" class="hidden glass-card rounded-2xl p-8 fade-in">
-                <div class="section-header">
-                    <h2 class="text-2xl font-bold text-gray-900 text-center">Recent Insider Trades</h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Reporter</th>
-                                <th>Role</th>
-                                <th>Shares</th>
-                                <th>Transaction Type</th>
-                            </tr>
-                        </thead>
-                        <tbody id="insiderTradesTableBody">
-                            <!-- Data will be inserted here by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
+            <!-- News Container -->
+            <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- News articles will be dynamically inserted here -->
             </div>
 
         </div>
@@ -292,7 +253,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
+    
         const firebaseConfig = {
             apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
             authDomain: "stocksight-75940.firebaseapp.com",
@@ -302,13 +263,13 @@
             appId: "1:223645254786:web:14c980e559d9090f89e09b",
             measurementId: "G-8JGEEE9KD1"
         };
-
+    
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         window.currentUserIsPremium = false;
-
+    
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = "auth.html";
@@ -327,10 +288,9 @@
                     window.currentUserIsPremium = false;
                 }
                 console.log("Current user premium status:", window.currentUserIsPremium);
-                checkPremiumAccessForPage();
             }
         });
-
+    
         window.signOutUser = async function() {
             try {
                 await signOut(auth);
@@ -339,25 +299,6 @@
                 console.error("Error signing out:", error);
             }
         };
-
-        function checkPremiumAccessForPage() {
-            if (!window.currentUserIsPremium) {
-                showPremiumMessage();
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                document.getElementById('errorMessage').classList.add('hidden');
-                document.getElementById('insiderTradesContent').classList.add('hidden');
-                document.getElementById('stockTitle').textContent = 'Premium Feature';
-            } else {
-                const urlParams = new URLSearchParams(window.location.search);
-                stockSymbol = urlParams.get('stock');
-                if (stockSymbol) {
-                    document.getElementById('stockTitle').textContent = `${stockSymbol.toUpperCase()} - Insider Trades`;
-                    fetchInsiderTrades(stockSymbol);
-                } else {
-                    showError('No stock symbol provided in the URL.');
-                }
-            }
-        }
     </script>
 
     <!-- Main Script -->
@@ -366,57 +307,34 @@
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
         const premiumMessage = document.getElementById('premium-message');
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const navLinks = [
-                { id: 'nav-general-info', file: 'general_info.html' },
-                { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' },
-                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html', premium: true },
-                { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
-                { id: 'nav-recent-news', file: 'recent_news.html' },
-            ];
-
-            const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock');
-
-            navLinks.forEach(link => {
-                const navElement = document.getElementById(link.id);
-                if (navElement) {
-                    if (link.premium) {
-                        navElement.href = '#';
-                        navElement.addEventListener('click', (event) => {
-                            event.preventDefault();
-                            if (window.currentUserIsPremium) {
-                                window.location.href = `${link.file}?stock=${stockSymbol}`;
-                            } else {
-                                showPremiumMessage();
-                            }
-                        });
-                    } else {
-                        navElement.href = `${link.file}?stock=${stockSymbol}`;
-                    }
-                }
-            });
-        });
-
-        async function fetchInsiderTrades(symbol) {
-            showLoading(true);
+        async function fetchNews(ticker) {
+            const newsContainer = document.getElementById('news-container');
             premiumMessage.classList.add('hidden');
+            
+            // Show loading state
+            newsContainer.innerHTML = `
+                <div class="col-span-full">
+                    <div class="glass-card rounded-2xl p-12 text-center fade-in">
+                        <div class="loading-spinner mx-auto mb-4"></div>
+                        <p class="text-gray-700 font-medium">Loading recent news...</p>
+                    </div>
+                </div>
+            `;
+
+            const apiUrl = `${backendBaseUrl}/tab8?stock=${ticker}`;
+            
             try {
                 let response = null;
                 let delay = 1000;
-                const maxRetries = 5;
-
+                let maxRetries = 5;
+                
                 for (let i = 0; i < maxRetries; i++) {
-                    response = await fetch(`${backendBaseUrl}/tab6?stock=${symbol}`);
+                    response = await fetch(apiUrl);
                     if (response.ok) {
                         break;
                     }
                     if (response.status === 429) {
-                        console.warn(`API call failed with status 429. Retrying in ${delay}ms...`);
+                        console.warn('API call failed with status 429. Retrying...');
                         await new Promise(resolve => setTimeout(resolve, delay));
                         delay *= 2;
                     } else {
@@ -428,96 +346,79 @@
                     throw new Error('Max retries reached, failed to fetch data.');
                 }
                 
-                const data = await response.json();
-
-                if (data.error) {
-                    showError(data.error);
-                } else {
-                    displayInsiderTrades(data);
-                }
+                const newsData = await response.json();
+                renderNews(newsData);
             } catch (error) {
-                console.error('Error fetching insider trades:', error);
-                showError(`A network error occurred while fetching data. ${error.message}`);
-            } finally {
-                showLoading(false);
+                console.error('Failed to fetch news:', error);
+                newsContainer.innerHTML = `
+                    <div class="col-span-full">
+                        <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                </svg>
+                                <div>
+                                    <h3 class="text-red-900 font-semibold mb-1">Error Loading News</h3>
+                                    <p class="text-red-700 text-sm">Could not retrieve news for ticker "${ticker}". Please try again later.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
         }
 
-        function displayInsiderTrades(data) {
-            const tableBody = document.getElementById('insiderTradesTableBody');
-            tableBody.innerHTML = '';
+        function renderNews(newsData) {
+            const newsContainer = document.getElementById('news-container');
+            newsContainer.innerHTML = '';
 
-            // Check if data is valid and not empty
-            if (!data || !Array.isArray(data) || data.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="py-8 text-center text-gray-500">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+            if (newsData && newsData.length > 0) {
+                newsData.forEach((article, index) => {
+                    const articleCard = document.createElement('a');
+                    articleCard.href = article.URL;
+                    articleCard.target = "_blank";
+                    articleCard.className = "news-card glass-card rounded-2xl overflow-hidden block fade-in";
+                    articleCard.style.animationDelay = `${index * 0.1}s`;
+
+                    const imageUrl = article.Image || 'https://placehold.co/600x400/667eea/ffffff?text=No+Image';
+
+                    articleCard.innerHTML = `
+                        <div class="overflow-hidden h-48">
+                            <img src="${imageUrl}" 
+                                 alt="${article.Title}" 
+                                 class="w-full h-full object-cover" 
+                                 onerror="this.onerror=null; this.src='https://placehold.co/600x400/667eea/ffffff?text=No+Image';">
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-lg font-bold mb-3 text-gray-800 line-clamp-2 hover:text-purple-600 transition-colors duration-200">
+                                ${article.Title}
+                            </h3>
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <span class="publisher-badge">${article.Publisher || 'Unknown'}</span>
+                            </div>
+                            <div class="date-badge">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span>${article['Date Published'] ? new Date(article['Date Published']).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date not available'}</span>
+                            </div>
+                        </div>
+                    `;
+                    newsContainer.appendChild(articleCard);
+                });
+            } else {
+                newsContainer.innerHTML = `
+                    <div class="col-span-full">
+                        <div class="glass-card rounded-2xl p-12 text-center">
+                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
                             </svg>
-                            <p class="text-lg font-medium">No insider trades data available</p>
-                            <p class="text-sm mt-2">There are currently no reported insider trades for this stock.</p>
-                        </td>
-                    </tr>
+                            <p class="text-gray-600 font-medium">No recent news found for this stock.</p>
+                            <p class="text-gray-500 text-sm mt-2">Please check the ticker and try again.</p>
+                        </div>
+                    </div>
                 `;
-                document.getElementById('insiderTradesContent').classList.remove('hidden');
-                return;
             }
-
-            // Check if all entries have N/A values
-            const hasValidData = data.some(trade => {
-                return (trade.Date && trade.Date !== 'N/A') ||
-                       (trade.Reporter && trade.Reporter !== 'N/A') ||
-                       (trade.Role && trade.Role !== 'N/A') ||
-                       (trade.Shares && trade.Shares !== 'N/A') ||
-                       (trade['Transaction Type'] && trade['Transaction Type'] !== 'N/A');
-            });
-
-            if (!hasValidData) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="py-8 text-center text-gray-500">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                            </svg>
-                            <p class="text-lg font-medium">No insider trades data available</p>
-                            <p class="text-sm mt-2">There are currently no reported insider trades for this stock.</p>
-                        </td>
-                    </tr>
-                `;
-                document.getElementById('insiderTradesContent').classList.remove('hidden');
-                return;
-            }
-
-            // Display valid data
-            data.forEach(trade => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${trade.Date || 'N/A'}</td>
-                    <td>${trade.Reporter || 'N/A'}</td>
-                    <td>${trade.Role || 'N/A'}</td>
-                    <td>${trade.Shares || 'N/A'}</td>
-                    <td>${trade['Transaction Type'] || 'N/A'}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-
-            document.getElementById('insiderTradesContent').classList.remove('hidden');
-        }
-
-        function showLoading(show) {
-            document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
-            document.getElementById('insiderTradesContent').classList.toggle('hidden', show);
-            document.getElementById('errorMessage').classList.add('hidden');
-            premiumMessage.classList.add('hidden');
-        }
-
-        function showError(message) {
-            document.getElementById('loadingIndicator').classList.add('hidden');
-            document.getElementById('insiderTradesContent').classList.add('hidden');
-            document.getElementById('errorMessage').classList.remove('hidden');
-            document.getElementById('errorText').textContent = message;
-            premiumMessage.classList.add('hidden');
         }
 
         function showPremiumMessage() {
@@ -526,6 +427,60 @@
                 premiumMessage.classList.add('hidden');
             }, 5000);
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            stockSymbol = urlParams.get('stock');
+
+            const navLinks = [
+                { id: 'nav-general-info', file: 'general_info.html' },
+                { id: 'nav-income-statement', file: 'income_statement.html' },
+                { id: 'nav-cash-flow', file: 'cash_flow.html' },
+                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
+                { id: 'nav-ratings', file: 'ratings.html', premium: true },
+                { id: 'nav-earnings', file: 'earnings.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
+                { id: 'nav-recent-news', file: 'recent_news.html' }
+            ];
+
+            if (stockSymbol) {
+                fetchNews(stockSymbol);
+                document.getElementById('stock-title').textContent = `${stockSymbol.toUpperCase()} - Recent News`;
+                
+                navLinks.forEach(link => {
+                    const navElement = document.getElementById(link.id);
+                    if (navElement) {
+                        if (link.premium) {
+                            navElement.href = '#';
+                            navElement.addEventListener('click', (event) => {
+                                event.preventDefault();
+                                if (window.currentUserIsPremium) {
+                                    window.location.href = `${link.file}?stock=${stockSymbol}`;
+                                } else {
+                                    showPremiumMessage();
+                                }
+                            });
+                        } else {
+                            navElement.href = `${link.file}?stock=${stockSymbol}`;
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('stock-title').textContent = 'No Stock Selected';
+                document.getElementById('news-container').innerHTML = `
+                    <div class="col-span-full">
+                        <div class="glass-card rounded-2xl p-12 text-center">
+                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <p class="text-gray-600 font-medium">No stock selected</p>
+                            <p class="text-gray-500 text-sm mt-2">Please return to the main page and select a stock to view its news.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        });
     </script>
 </body>
 </html>
