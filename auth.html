@@ -3,40 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StockSight – Login with Google</title>
+  <title>StockSight – Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-[#0f172a] flex items-center justify-center min-h-screen">
 
-  <!-- Card Container -->
-  <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
-    <h1 class="text-2xl font-bold text-center mb-6">StockSight</h1>
-    <p class="text-center text-gray-600 mb-6">Sign in with your Google account to continue</p>
+  <div class="bg-[#1e293b] p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
+    <h1 class="text-3xl font-extrabold text-center mb-2 text-white tracking-tight">StockSight</h1>
+    <p class="text-center text-gray-400 mb-8">Sign in to access market analysis</p>
 
-    <!-- Google Sign-In Button -->
     <div class="flex justify-center">
       <button 
         id="googleSignInBtn"
-        class="flex items-center justify-center w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition"
+        class="flex items-center justify-center w-full bg-white text-gray-900 py-2.5 px-4 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 shadow-lg group"
       >
-        <svg class="w-6 h-6 mr-2" viewBox="0 0 533.5 544.3">
-          <path fill="#fff" d="M533.5 278.4c0-17.6-1.5-34.5-4.4-50.8H272v95.7h147c-6.3 34.3-25.2 63.3-53.8 82.7v68h86.9c50.9-46.9 81.4-116 81.4-195.6z"/>
+        <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
         </svg>
-        Sign in with Google
+        Continue with Google
       </button>
     </div>
 
-    <!-- Error messages -->
-    <p id="authMessage" class="hidden text-red-500 text-center text-sm mt-4"></p>
+    <p id="authMessage" class="hidden text-red-400 text-center text-sm mt-6 p-2 bg-red-900/20 rounded-lg border border-red-900/50"></p>
   </div>
 
-  <!-- Firebase Auth + Firestore -->
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
   
-  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
     authDomain: "stocksight-75940.firebaseapp.com",
@@ -47,7 +45,6 @@
     measurementId: "G-8JGEEE9KD1"
   };
   
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -60,37 +57,28 @@
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      console.log("User signed in:", user.email, "UID:", user.uid);
-  
+      
       const userRef = doc(db, "users", user.uid);
   
       try {
-        // Create or merge the document
         await setDoc(userRef, {
           user_email: user.email,
           subscription_status: false
         }, { merge: true });
-  
-        console.log("User document created/updated:", user.email);
-  
       } catch (firestoreErr) {
-        console.error("Error accessing Firestore:", firestoreErr);
         authMessage.textContent = `Firestore error: ${firestoreErr.message}`;
         authMessage.classList.remove("hidden");
         return;
       }
   
-      // Redirect to homepage
       window.location.href = "index.html";
   
     } catch (err) {
-      console.error("Google Sign-In error:", err);
       authMessage.textContent = `Sign-in failed: ${err.message}`;
       authMessage.classList.remove("hidden");
     }
   });
   
-  // Redirect already logged-in users
   onAuthStateChanged(auth, (user) => {
     if (user) window.location.href = "index.html";
   });
