@@ -16,23 +16,9 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #0f172a;
             min-height: 100vh;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(138, 99, 210, 0.3), transparent 50%);
-            pointer-events: none;
-            z-index: 0;
+            color: #e2e8f0;
         }
 
         .container-wrapper {
@@ -41,17 +27,17 @@
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .glass-nav {
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .nav-link {
@@ -59,15 +45,16 @@
             transition: all 0.3s ease;
             padding: 0.5rem 1rem;
             border-radius: 8px;
+            color: #cbd5e1;
         }
 
         .nav-link:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
+            background: rgba(51, 65, 85, 0.5);
+            color: #e2e8f0;
         }
 
         .nav-link.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #3b82f6;
             color: white;
             font-weight: 600;
         }
@@ -79,7 +66,7 @@
 
         .nav-link.home-link:hover {
             background: rgba(16, 185, 129, 0.1);
-            color: #059669;
+            color: #34d399;
         }
 
         .fade-in {
@@ -105,7 +92,7 @@
             transform: translateX(-50%);
             width: 60px;
             height: 3px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: #3b82f6;
             border-radius: 2px;
         }
 
@@ -116,15 +103,15 @@
         }
 
         .data-table thead tr {
-            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            background: rgba(51, 65, 85, 0.5);
         }
 
         .data-table th {
             padding: 1rem;
             text-align: left;
             font-weight: 600;
-            color: #374151;
-            border-bottom: 2px solid #e5e7eb;
+            color: #e2e8f0;
+            border-bottom: 2px solid rgba(71, 85, 105, 0.5);
         }
 
         .data-table th:first-child {
@@ -137,8 +124,8 @@
 
         .data-table td {
             padding: 0.875rem 1rem;
-            color: #6b7280;
-            border-bottom: 1px solid #f3f4f6;
+            color: #cbd5e1;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
         }
 
         .data-table tbody tr {
@@ -146,7 +133,7 @@
         }
 
         .data-table tbody tr:hover {
-            background: #f9fafb;
+            background: rgba(51, 65, 85, 0.3);
         }
 
         .data-table tbody tr:last-child td {
@@ -154,7 +141,7 @@
         }
 
         .loading-spinner {
-            border-top-color: #667eea;
+            border-top-color: #3b82f6;
         }
 
         .alert-box {
@@ -178,7 +165,7 @@
             .nav-links-container {
                 overflow-x: auto;
                 scrollbar-width: thin;
-                scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
+                scrollbar-color: rgba(59, 130, 246, 0.5) transparent;
             }
             
             .nav-links-container::-webkit-scrollbar {
@@ -190,7 +177,7 @@
             }
             
             .nav-links-container::-webkit-scrollbar-thumb {
-                background: rgba(102, 126, 234, 0.3);
+                background: rgba(59, 130, 246, 0.5);
                 border-radius: 4px;
             }
         }
@@ -216,18 +203,18 @@
     </nav>
 
     <main class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-6xl mx-auto">
+        <div class="max-w-7xl mx-auto">
 
             <!-- Header -->
             <div class="glass-card rounded-2xl p-8 mb-6 fade-in">
-                <h1 id="stockTitle" class="text-3xl md:text-4xl font-bold text-gray-900 text-center">Stock - Insider Trades</h1>
+                <h1 id="stockTitle" class="text-3xl md:text-4xl font-bold text-slate-100 text-center">Stock - Insider Trades</h1>
             </div>
 
             <!-- Loading Indicator -->
             <div id="loadingIndicator" class="hidden mb-8">
                 <div class="glass-card rounded-2xl p-12 text-center fade-in">
-                    <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-                    <p class="text-gray-700 font-medium">Loading insider trades data...</p>
+                    <div class="inline-block w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p class="text-slate-300 font-medium">Loading insider trades data...</p>
                 </div>
             </div>
 
@@ -235,12 +222,12 @@
             <div id="errorMessage" class="hidden mb-8 alert-box">
                 <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
                     <div class="flex items-start">
-                        <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-6 h-6 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
                         <div>
-                            <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
-                            <p id="errorText" class="text-red-700 text-sm"></p>
+                            <h3 class="text-red-300 font-semibold mb-1">Error Loading Data</h3>
+                            <p id="errorText" class="text-red-200 text-sm"></p>
                         </div>
                     </div>
                 </div>
@@ -250,37 +237,39 @@
             <div id="premium-message" class="hidden mb-8 alert-box">
                 <div class="glass-card rounded-2xl p-6 border-l-4 border-yellow-500">
                     <div class="flex items-start">
-                        <svg class="w-6 h-6 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-6 h-6 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                         </svg>
                         <div>
-                            <h3 class="text-yellow-900 font-semibold mb-1">Premium Feature</h3>
-                            <p class="text-yellow-800 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-900">Premium</a> to access this feature.</p>
+                            <h3 class="text-yellow-300 font-semibold mb-1">Premium Feature</h3>
+                            <p class="text-yellow-200 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-100">Premium</a> to access this feature.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Insider Trades Content -->
-            <div id="insiderTradesContent" class="hidden glass-card rounded-2xl p-8 fade-in">
-                <div class="section-header">
-                    <h2 class="text-2xl font-bold text-gray-900 text-center">Recent Insider Trades</h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Reporter</th>
-                                <th>Role</th>
-                                <th>Shares</th>
-                                <th>Transaction Type</th>
-                            </tr>
-                        </thead>
-                        <tbody id="insiderTradesTableBody">
-                            <!-- Data will be inserted here by JavaScript -->
-                        </tbody>
-                    </table>
+            <div id="insiderTradesContent" class="hidden">
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-slate-100 text-center">Recent Insider Trading Activity</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Reporter</th>
+                                    <th>Role</th>
+                                    <th>Shares</th>
+                                    <th>Transaction Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="insiderTradesTableBody">
+                                <!-- Data will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -292,7 +281,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
+    
         const firebaseConfig = {
             apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
             authDomain: "stocksight-75940.firebaseapp.com",
@@ -302,13 +291,13 @@
             appId: "1:223645254786:web:14c980e559d9090f89e09b",
             measurementId: "G-8JGEEE9KD1"
         };
-
+    
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         window.currentUserIsPremium = false;
-
+    
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = "auth.html";
@@ -327,27 +316,8 @@
                     window.currentUserIsPremium = false;
                 }
                 console.log("Current user premium status:", window.currentUserIsPremium);
-                checkPremiumAccessForPage();
-            }
-        });
-
-        window.signOutUser = async function() {
-            try {
-                await signOut(auth);
-                window.location.href = "auth.html";
-            } catch (error) {
-                console.error("Error signing out:", error);
-            }
-        };
-
-        function checkPremiumAccessForPage() {
-            if (!window.currentUserIsPremium) {
-                showPremiumMessage();
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                document.getElementById('errorMessage').classList.add('hidden');
-                document.getElementById('insiderTradesContent').classList.add('hidden');
-                document.getElementById('stockTitle').textContent = 'Premium Feature';
-            } else {
+                
+                // Load data directly without premium check
                 const urlParams = new URLSearchParams(window.location.search);
                 stockSymbol = urlParams.get('stock');
                 if (stockSymbol) {
@@ -357,7 +327,16 @@
                     showError('No stock symbol provided in the URL.');
                 }
             }
-        }
+        });
+    
+        window.signOutUser = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = "auth.html";
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        };
     </script>
 
     <!-- Main Script -->
@@ -374,7 +353,7 @@
                 { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
                 { id: 'nav-ratings', file: 'ratings.html', premium: true },
                 { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
+                { id: 'nav-insider-trades', file: 'insider_trades.html' },
                 { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
                 { id: 'nav-recent-news', file: 'recent_news.html' },
             ];
@@ -451,11 +430,11 @@
             if (!data || !Array.isArray(data) || data.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="py-8 text-center text-gray-500">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <td colspan="5" class="py-8 text-center text-slate-400">
+                            <svg class="w-16 h-16 mx-auto mb-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                             </svg>
-                            <p class="text-lg font-medium">No insider trades data available</p>
+                            <p class="text-lg font-medium text-slate-300">No insider trades data available</p>
                             <p class="text-sm mt-2">There are currently no reported insider trades for this stock.</p>
                         </td>
                     </tr>
@@ -476,11 +455,11 @@
             if (!hasValidData) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="py-8 text-center text-gray-500">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <td colspan="5" class="py-8 text-center text-slate-400">
+                            <svg class="w-16 h-16 mx-auto mb-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                             </svg>
-                            <p class="text-lg font-medium">No insider trades data available</p>
+                            <p class="text-lg font-medium text-slate-300">No insider trades data available</p>
                             <p class="text-sm mt-2">There are currently no reported insider trades for this stock.</p>
                         </td>
                     </tr>
