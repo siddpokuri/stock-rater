@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Info - Recent News</title>
+    <title>IPO Calendar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -47,41 +47,6 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .nav-link {
-            position: relative;
-            transition: all 0.3s ease;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-        }
-
-        .nav-link:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-        }
-
-        .nav-link.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: 600;
-        }
-
-        .nav-link.home-link {
-            color: #10b981;
-            font-weight: 600;
-        }
-
-        .nav-link.home-link:hover {
-            background: rgba(16, 185, 129, 0.1);
-            color: #059669;
-        }
-
         .fade-in {
             animation: fadeIn 0.6s ease-out;
         }
@@ -91,39 +56,59 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .news-card {
+        .ipo-card {
+            background: white;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .ipo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .metric-row {
+            transition: all 0.2s ease;
+        }
+
+        .metric-row:hover {
+            background: #f9fafb;
+        }
+
+        .back-button {
+            background: white;
+            color: #3951BD;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            border: 2px solid rgba(57, 81, 189, 0.2);
         }
 
-        .news-card::before {
+        .back-button::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(57, 81, 189, 0.1), transparent);
+            transition: left 0.5s ease;
         }
 
-        .news-card:hover::before {
-            transform: scaleX(1);
+        .back-button:hover::before {
+            left: 100%;
         }
 
-        .news-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(57, 81, 189, 0.4);
+            background: linear-gradient(135deg, #6C68BD 0%, #3F3AB5 100%);
+            color: white;
         }
 
-        .news-card img {
-            transition: transform 0.3s ease;
-        }
-
-        .news-card:hover img {
-            transform: scale(1.05);
+        .loading-spinner {
+            border-top-color: #667eea;
         }
 
         .alert-box {
@@ -135,114 +120,67 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .loading-spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 4px solid #667eea;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive nav adjustments */
-        @media (max-width: 1024px) {
-            .nav-link {
-                font-size: 0.875rem;
-                padding: 0.4rem 0.75rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .nav-links-container {
-                overflow-x: auto;
-                scrollbar-width: thin;
-                scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
-            }
-            
-            .nav-links-container::-webkit-scrollbar {
-                height: 4px;
-            }
-            
-            .nav-links-container::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            
-            .nav-links-container::-webkit-scrollbar-thumb {
-                background: rgba(102, 126, 234, 0.3);
-                border-radius: 4px;
-            }
-        }
-
-        .publisher-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            color: #667eea;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .date-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            color: #6b7280;
-            font-size: 0.875rem;
+        .title-text {
+            color: #3951BD;
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="glass-nav sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3">
-            <div class="nav-links-container flex justify-start items-center gap-2 overflow-x-auto whitespace-nowrap pb-2">
-                <a href="index.html" id="nav-home" class="nav-link home-link">Home</a>
-                <a href="#" id="nav-general-info" class="nav-link">General Info</a>
-                <a href="#" id="nav-income-statement" class="nav-link">Income Statement</a>
-                <a href="#" id="nav-cash-flow" class="nav-link">Cash Flow</a>
-                <a href="#" id="nav-balance-sheet" class="nav-link">Balance Sheet</a>
-                <a href="#" id="nav-ratings" class="nav-link">Ratings</a>
-                <a href="#" id="nav-earnings" class="nav-link">Earnings</a>
-                <a href="#" id="nav-insider-trades" class="nav-link">Insider Trades</a>
-                <a href="#" id="nav-analyst-targets" class="nav-link">Analyst Targets</a>
-                <a href="#" id="nav-recent-news" class="nav-link active">Recent News</a>
-            </div>
-        </div>
-    </nav>
-
     <main class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
 
             <!-- Header -->
-            <div class="glass-card rounded-2xl p-8 mb-6 fade-in">
-                <h1 id="stock-title" class="text-3xl md:text-4xl font-bold text-gray-900 text-center">Stock - Recent News</h1>
+            <div class="glass-card rounded-2xl p-8 mb-6 fade-in text-center">
+                <h1 id="pageTitle" class="text-3xl md:text-4xl font-bold title-text">IPO Calendar</h1>
             </div>
 
-            <!-- Premium Message -->
-            <div id="premium-message" class="hidden mb-8 alert-box">
-                <div class="glass-card rounded-2xl p-6 border-l-4 border-yellow-500">
+            <!-- Back Button -->
+            <div class="flex justify-center mb-8 fade-in">
+                <a href="index.html" class="back-button font-semibold py-3 px-8 rounded-xl inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Home
+                </a>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="mb-8">
+                <div class="glass-card rounded-2xl p-12 text-center fade-in">
+                    <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
+                    <p class="text-gray-700 font-medium">Loading IPO data...</p>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden mb-8 alert-box">
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
                     <div class="flex items-start">
-                        <svg class="w-6 h-6 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
                         <div>
-                            <h3 class="text-yellow-900 font-semibold mb-1">Premium Feature</h3>
-                            <p class="text-yellow-800 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-900">Premium</a> to access this feature.</p>
+                            <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
+                            <p id="errorText" class="text-red-700 text-sm"></p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- News Container -->
-            <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- News articles will be dynamically inserted here -->
+            <!-- No Data Message -->
+            <div id="noCalendarDataMessage" class="hidden mb-8">
+                <div class="glass-card rounded-2xl p-12 text-center">
+                    <svg class="w-20 h-20 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <p id="noDataText" class="text-xl text-gray-600 font-medium"></p>
+                </div>
+            </div>
+
+            <!-- Calendar Content -->
+            <div id="calendarContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
+                <!-- IPO cards will be populated here -->
             </div>
 
         </div>
@@ -250,10 +188,9 @@
 
     <!-- Firebase -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-    
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
             authDomain: "stocksight-75940.firebaseapp.com",
@@ -263,34 +200,16 @@
             appId: "1:223645254786:web:14c980e559d9090f89e09b",
             measurementId: "G-8JGEEE9KD1"
         };
-    
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        window.currentUserIsPremium = false;
-    
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, (user) => {
             if (!user) {
                 window.location.href = "auth.html";
-            } else {
-                const userDocRef = doc(db, "users", user.uid);
-                try {
-                    const userDoc = await getDoc(userDocRef);
-                    if (userDoc.exists()) {
-                        window.currentUserIsPremium = userDoc.data().isPremium || false;
-                    } else {
-                        console.warn("User document not found for UID:", user.uid);
-                        window.currentUserIsPremium = false;
-                    }
-                } catch (e) {
-                    console.error("Error fetching user premium status:", e);
-                    window.currentUserIsPremium = false;
-                }
-                console.log("Current user premium status:", window.currentUserIsPremium);
             }
         });
-    
+
         window.signOutUser = async function() {
             try {
                 await signOut(auth);
@@ -303,182 +222,120 @@
 
     <!-- Main Script -->
     <script>
-        let stockSymbol = '';
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
-        const premiumMessage = document.getElementById('premium-message');
-
-        async function fetchNews(ticker) {
-            const newsContainer = document.getElementById('news-container');
-            premiumMessage.classList.add('hidden');
-            
-            // Show loading state
-            newsContainer.innerHTML = `
-                <div class="col-span-full">
-                    <div class="glass-card rounded-2xl p-12 text-center fade-in">
-                        <div class="loading-spinner mx-auto mb-4"></div>
-                        <p class="text-gray-700 font-medium">Loading recent news...</p>
-                    </div>
-                </div>
-            `;
-
-            const apiUrl = `${backendBaseUrl}/tab8?stock=${ticker}`;
-            
-            try {
-                let response = null;
-                let delay = 1000;
-                let maxRetries = 5;
-                
-                for (let i = 0; i < maxRetries; i++) {
-                    response = await fetch(apiUrl);
-                    if (response.ok) {
-                        break;
-                    }
-                    if (response.status === 429) {
-                        console.warn('API call failed with status 429. Retrying...');
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2;
-                    } else {
-                        throw new Error(`API call failed with status ${response.status}`);
-                    }
-                }
-                
-                if (!response || !response.ok) {
-                    throw new Error('Max retries reached, failed to fetch data.');
-                }
-                
-                const newsData = await response.json();
-                renderNews(newsData);
-            } catch (error) {
-                console.error('Failed to fetch news:', error);
-                newsContainer.innerHTML = `
-                    <div class="col-span-full">
-                        <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
-                            <div class="flex items-start">
-                                <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                                </svg>
-                                <div>
-                                    <h3 class="text-red-900 font-semibold mb-1">Error Loading News</h3>
-                                    <p class="text-red-700 text-sm">Could not retrieve news for ticker "${ticker}". Please try again later.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function renderNews(newsData) {
-            const newsContainer = document.getElementById('news-container');
-            newsContainer.innerHTML = '';
-
-            if (newsData && newsData.length > 0) {
-                newsData.forEach((article, index) => {
-                    const articleCard = document.createElement('a');
-                    articleCard.href = article.URL;
-                    articleCard.target = "_blank";
-                    articleCard.className = "news-card glass-card rounded-2xl overflow-hidden block fade-in";
-                    articleCard.style.animationDelay = `${index * 0.1}s`;
-
-                    const imageUrl = article.Image || 'https://placehold.co/600x400/667eea/ffffff?text=No+Image';
-
-                    articleCard.innerHTML = `
-                        <div class="overflow-hidden h-48">
-                            <img src="${imageUrl}" 
-                                 alt="${article.Title}" 
-                                 class="w-full h-full object-cover" 
-                                 onerror="this.onerror=null; this.src='https://placehold.co/600x400/667eea/ffffff?text=No+Image';">
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-lg font-bold mb-3 text-gray-800 line-clamp-2 hover:text-purple-600 transition-colors duration-200">
-                                ${article.Title}
-                            </h3>
-                            <div class="flex items-center justify-between gap-2 mb-3">
-                                <span class="publisher-badge">${article.Publisher || 'Unknown'}</span>
-                            </div>
-                            <div class="date-badge">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                <span>${article['Date Published'] ? new Date(article['Date Published']).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date not available'}</span>
-                            </div>
-                        </div>
-                    `;
-                    newsContainer.appendChild(articleCard);
-                });
-            } else {
-                newsContainer.innerHTML = `
-                    <div class="col-span-full">
-                        <div class="glass-card rounded-2xl p-12 text-center">
-                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
-                            </svg>
-                            <p class="text-gray-600 font-medium">No recent news found for this stock.</p>
-                            <p class="text-gray-500 text-sm mt-2">Please check the ticker and try again.</p>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function showPremiumMessage() {
-            premiumMessage.classList.remove('hidden');
-            setTimeout(() => {
-                premiumMessage.classList.add('hidden');
-            }, 5000);
-        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock');
+            const selectedDate = urlParams.get('date');
 
-            const navLinks = [
-                { id: 'nav-general-info', file: 'general_info.html' },
-                { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' },
-                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
-                { id: 'nav-ratings', file: 'ratings.html', premium: true },
-                { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
-                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
-                { id: 'nav-recent-news', file: 'recent_news.html' }
-            ];
+            const pageTitle = document.getElementById('pageTitle');
+            const calendarContentDiv = document.getElementById('calendarContent');
+            const noCalendarDataMessage = document.getElementById('noCalendarDataMessage');
+            const noDataText = document.getElementById('noDataText');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const errorTextSpan = document.getElementById('errorText');
 
-            if (stockSymbol) {
-                fetchNews(stockSymbol);
-                document.getElementById('stock-title').textContent = `${stockSymbol.toUpperCase()} - Recent News`;
-                
-                navLinks.forEach(link => {
-                    const navElement = document.getElementById(link.id);
-                    if (navElement) {
-                        if (link.premium) {
-                            navElement.href = '#';
-                            navElement.addEventListener('click', (event) => {
-                                event.preventDefault();
-                                if (window.currentUserIsPremium) {
-                                    window.location.href = `${link.file}?stock=${stockSymbol}`;
-                                } else {
-                                    showPremiumMessage();
-                                }
-                            });
-                        } else {
-                            navElement.href = `${link.file}?stock=${stockSymbol}`;
-                        }
-                    }
-                });
+            if (selectedDate) {
+                pageTitle.textContent = `IPO Calendar for ${selectedDate}`;
+                fetchIPOData(selectedDate);
             } else {
-                document.getElementById('stock-title').textContent = 'No Stock Selected';
-                document.getElementById('news-container').innerHTML = `
-                    <div class="col-span-full">
-                        <div class="glass-card rounded-2xl p-12 text-center">
-                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
-                            <p class="text-gray-600 font-medium">No stock selected</p>
-                            <p class="text-gray-500 text-sm mt-2">Please return to the main page and select a stock to view its news.</p>
+                pageTitle.textContent = 'IPO Calendar';
+                noDataText.textContent = 'No date selected. Please go back to the home page and select a date.';
+                noCalendarDataMessage.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
+            }
+
+            async function fetchIPOData(date) {
+                showLoading(true);
+                hideError();
+                noCalendarDataMessage.classList.add('hidden');
+
+                try {
+                    const apiUrl = `${backendBaseUrl}/ipos?date=${date}`;
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        if (Array.isArray(data) && data.length > 0) {
+                            displayCalendarData(data);
+                        } else {
+                            noDataText.textContent = `No IPO data found for ${date}.`;
+                            noCalendarDataMessage.classList.remove('hidden');
+                        }
+                    } else {
+                        showError(data.error || 'An error occurred while fetching IPO data.');
+                    }
+                } catch (error) {
+                    console.error('Error fetching IPO calendar:', error);
+                    showError(`A network error occurred: ${error.message}. Please try again.`);
+                } finally {
+                    showLoading(false);
+                }
+            }
+
+            function displayCalendarData(data) {
+                calendarContentDiv.innerHTML = '';
+                
+                data.sort((a, b) => {
+                    const symbolA = a["symbol"] || '';
+                    const symbolB = b["symbol"] || '';
+                    return symbolA.localeCompare(symbolB);
+                });
+
+                data.forEach(entry => {
+                    const card = document.createElement('div');
+                    card.className = 'ipo-card p-6 shadow-lg';
+                    
+                    card.innerHTML = `
+                        <div class="mb-4 pb-3 border-b-2 border-gray-100">
+                            <h3 class="text-2xl font-bold title-text">${entry["symbol"] || 'N/A'}</h3>
                         </div>
-                    </div>
-                `;
+                        <div class="space-y-2">
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">Company Name</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["company_name"] || 'N/A'}</span>
+                            </div>
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">Exchange</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["exchange"] || 'N/A'}</span>
+                            </div>
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">Market Cap</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["market_cap"] || 'N/A'}</span>
+                            </div>
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">Price Range</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["price_range"] || 'N/A'}</span>
+                            </div>
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">Shares</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["shares"] || 'N/A'}</span>
+                            </div>
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">Actions</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["actions"] || 'N/A'}</span>
+                            </div>
+                        </div>
+                    `;
+                    calendarContentDiv.appendChild(card);
+                });
+            }
+
+            function showLoading(show) {
+                loadingIndicator.classList.toggle('hidden', !show);
+                calendarContentDiv.classList.toggle('hidden', show);
+            }
+
+            function showError(message) {
+                errorTextSpan.textContent = message;
+                errorMessageDiv.classList.remove('hidden');
+                calendarContentDiv.classList.add('hidden');
+                noCalendarDataMessage.classList.add('hidden');
+            }
+
+            function hideError() {
+                errorMessageDiv.classList.add('hidden');
             }
         });
     </script>
