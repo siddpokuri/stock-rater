@@ -1,99 +1,335 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StockSight – Login with Google</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earnings Calendar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 99, 210, 0.3), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .earnings-card {
+            background: white;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .earnings-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .metric-row {
+            transition: all 0.2s ease;
+        }
+
+        .metric-row:hover {
+            background: #f9fafb;
+        }
+
+        .back-button {
+            background: white;
+            color: #667eea;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .back-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .back-button:hover::before {
+            left: 100%;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #6C68BD 0%, #3F3AB5 100%);
+            color: white;
+        }
+
+        .loading-spinner {
+            border-top-color: #667eea;
+        }
+
+        .alert-box {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .title-gradient {
+            color: #3951BD;
+            font-weight: 700;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body>
+    <main class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
 
-  <!-- Card Container -->
-  <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
-    <h1 class="text-2xl font-bold text-center mb-6">StockSight</h1>
-    <p class="text-center text-gray-600 mb-6">Sign in with your Google account to continue</p>
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-8 mb-6 fade-in text-center">
+                <h1 id="pageTitle" class="text-3xl md:text-4xl font-bold title-gradient">Earnings Calendar</h1>
+            </div>
 
-    <!-- Google Sign-In Button -->
-    <div class="flex justify-center">
-      <button 
-        id="googleSignInBtn"
-        class="flex items-center justify-center w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition"
-      >
-        <svg class="w-6 h-6 mr-2" viewBox="0 0 533.5 544.3">
-          <path fill="#fff" d="M533.5 278.4c0-17.6-1.5-34.5-4.4-50.8H272v95.7h147c-6.3 34.3-25.2 63.3-53.8 82.7v68h86.9c50.9-46.9 81.4-116 81.4-195.6z"/>
-        </svg>
-        Sign in with Google
-      </button>
-    </div>
+            <!-- Back Button -->
+            <div class="flex justify-center mb-8 fade-in">
+                <a href="index.html" class="back-button font-semibold py-3 px-8 rounded-xl inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Home
+                </a>
+            </div>
 
-    <!-- Error messages -->
-    <p id="authMessage" class="hidden text-red-500 text-center text-sm mt-4"></p>
-  </div>
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="mb-8">
+                <div class="glass-card rounded-2xl p-12 text-center fade-in">
+                    <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
+                    <p class="text-gray-700 font-medium">Loading earnings data...</p>
+                </div>
+            </div>
 
-  <!-- Firebase Auth + Firestore -->
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-  
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
-    authDomain: "stocksight-75940.firebaseapp.com",
-    projectId: "stocksight-75940",
-    storageBucket: "stocksight-75940.firebasestorage.app",
-    messagingSenderId: "223645254786",
-    appId: "1:223645254786:web:14c980e559d9090f89e09b",
-    measurementId: "G-8JGEEE9KD1"
-  };
-  
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
-  
-  const googleSignInBtn = document.getElementById("googleSignInBtn");
-  const authMessage = document.getElementById("authMessage");
-  
-  googleSignInBtn.addEventListener("click", async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log("User signed in:", user.email, "UID:", user.uid);
-  
-      const userRef = doc(db, "users", user.uid);
-  
-      try {
-        // Create or merge the document
-        await setDoc(userRef, {
-          user_email: user.email,
-          subscription_status: false
-        }, { merge: true });
-  
-        console.log("User document created/updated:", user.email);
-  
-      } catch (firestoreErr) {
-        console.error("Error accessing Firestore:", firestoreErr);
-        authMessage.textContent = `Firestore error: ${firestoreErr.message}`;
-        authMessage.classList.remove("hidden");
-        return;
-      }
-  
-      // Redirect to homepage
-      window.location.href = "index.html";
-  
-    } catch (err) {
-      console.error("Google Sign-In error:", err);
-      authMessage.textContent = `Sign-in failed: ${err.message}`;
-      authMessage.classList.remove("hidden");
-    }
-  });
-  
-  // Redirect already logged-in users
-  onAuthStateChanged(auth, (user) => {
-    if (user) window.location.href = "index.html";
-  });
-  </script>
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden mb-8 alert-box">
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
+                    <div class="flex items-start">
+                        <svg class="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <h3 class="text-red-900 font-semibold mb-1">Error Loading Data</h3>
+                            <p id="errorText" class="text-red-700 text-sm"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Data Message -->
+            <div id="noCalendarDataMessage" class="hidden mb-8">
+                <div class="glass-card rounded-2xl p-12 text-center">
+                    <svg class="w-20 h-20 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <p id="noDataText" class="text-xl text-gray-600 font-medium"></p>
+                </div>
+            </div>
+
+            <!-- Calendar Content -->
+            <div id="calendarContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
+                <!-- Earnings cards will be populated here -->
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
+            authDomain: "stocksight-75940.firebaseapp.com",
+            projectId: "stocksight-75940",
+            storageBucket: "stocksight-75940.firebasestorage.app",
+            messagingSenderId: "223645254786",
+            appId: "1:223645254786:web:14c980e559d9090f89e09b",
+            measurementId: "G-8JGEEE9KD1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "auth.html";
+            }
+        });
+
+        window.signOutUser = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = "auth.html";
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        };
+    </script>
+
+    <!-- Main Script -->
+    <script>
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const selectedDate = urlParams.get('date');
+
+            const pageTitle = document.getElementById('pageTitle');
+            const calendarContentDiv = document.getElementById('calendarContent');
+            const noCalendarDataMessage = document.getElementById('noCalendarDataMessage');
+            const noDataText = document.getElementById('noDataText');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const errorTextSpan = document.getElementById('errorText');
+
+            if (selectedDate) {
+                pageTitle.textContent = `Earnings on ${selectedDate}`;
+                fetchEarningsData(selectedDate);
+            } else {
+                pageTitle.textContent = 'Earnings Calendar';
+                noDataText.textContent = 'No date selected. Please go back to the home page and select a date.';
+                noCalendarDataMessage.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
+            }
+
+            async function fetchEarningsData(date) {
+                showLoading(true);
+                hideError();
+                noCalendarDataMessage.classList.add('hidden');
+
+                try {
+                    const apiUrl = `${backendBaseUrl}/upcomingearnings?date=${date}`;
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        if (Array.isArray(data) && data.length > 0) {
+                            displayCalendarData(data);
+                        } else {
+                            noDataText.textContent = `No earnings data found for ${date}.`;
+                            noCalendarDataMessage.classList.remove('hidden');
+                        }
+                    } else {
+                        showError(data.error || 'An error occurred while fetching earnings data.');
+                    }
+                } catch (error) {
+                    console.error('Error fetching earnings calendar:', error);
+                    showError(`A network error occurred: ${error.message}. Please try again.`);
+                } finally {
+                    showLoading(false);
+                }
+            }
+
+            function displayCalendarData(data) {
+                calendarContentDiv.innerHTML = '';
+                
+                data.sort((a, b) => {
+                    const symbolA = a["Symbol"] || '';
+                    const symbolB = b["Symbol"] || '';
+                    return symbolA.localeCompare(symbolB);
+                });
+
+                data.forEach(entry => {
+                    const card = document.createElement('div');
+                    card.className = 'earnings-card p-6 shadow-lg';
+                    
+                    card.innerHTML = `
+                        <div class="mb-4 pb-3 border-b-2 border-gray-100">
+                            <h3 class="text-2xl font-bold title-gradient">${entry["Symbol"] || 'N/A'}</h3>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">EPS Actual</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["EPS Actual"] !== undefined && entry["EPS Actual"] !== null ? entry["EPS Actual"] : 'N/A'}</span>
+                            </div>
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">EPS Estimated</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["EPS Estimated"] !== undefined && entry["EPS Estimated"] !== null ? entry["EPS Estimated"] : 'N/A'}</span>
+                            </div>
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">Revenue Actual</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["Revenue Actual"] !== undefined && entry["Revenue Actual"] !== null ? entry["Revenue Actual"] : 'N/A'}</span>
+                            </div>
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">Revenue Estimated</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["Revenue Estimated"] !== undefined && entry["Revenue Estimated"] !== null ? entry["Revenue Estimated"] : 'N/A'}</span>
+                            </div>
+                        </div>
+                    `;
+                    calendarContentDiv.appendChild(card);
+                });
+            }
+
+            function showLoading(show) {
+                loadingIndicator.classList.toggle('hidden', !show);
+                calendarContentDiv.classList.toggle('hidden', show);
+            }
+
+            function showError(message) {
+                errorTextSpan.textContent = message;
+                errorMessageDiv.classList.remove('hidden');
+                calendarContentDiv.classList.add('hidden');
+                noCalendarDataMessage.classList.add('hidden');
+            }
+
+            function hideError() {
+                errorMessageDiv.classList.add('hidden');
+            }
+        });
+    </script>
 </body>
 </html>
