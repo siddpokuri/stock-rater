@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earnings Calendar</title>
+    <title>Dividend Calendar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -56,14 +56,14 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .earnings-card {
+        .dividend-card {
             background: white;
             border-radius: 16px;
             transition: all 0.3s ease;
             border: 1px solid #f0f0f0;
         }
 
-        .earnings-card:hover {
+        .dividend-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
         }
@@ -103,8 +103,8 @@
         .back-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-            background: linear-gradient(135deg, #6C68BD 0%, #3F3AB5 100%);
-            color: white;
+            background: #f3f4f6;
+            color: #667eea;
         }
 
         .loading-spinner {
@@ -132,7 +132,7 @@
 
             <!-- Header -->
             <div class="glass-card rounded-2xl p-8 mb-6 fade-in text-center">
-                <h1 id="pageTitle" class="text-3xl md:text-4xl font-bold title-gradient">Earnings Calendar</h1>
+                <h1 id="pageTitle" class="text-3xl md:text-4xl font-bold title-gradient">Dividend Calendar</h1>
             </div>
 
             <!-- Back Button -->
@@ -149,7 +149,7 @@
             <div id="loadingIndicator" class="mb-8">
                 <div class="glass-card rounded-2xl p-12 text-center fade-in">
                     <div class="inline-block w-12 h-12 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-                    <p class="text-gray-700 font-medium">Loading earnings data...</p>
+                    <p class="text-gray-700 font-medium">Loading dividend data...</p>
                 </div>
             </div>
 
@@ -180,7 +180,7 @@
 
             <!-- Calendar Content -->
             <div id="calendarContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
-                <!-- Earnings cards will be populated here -->
+                <!-- Dividend cards will be populated here -->
             </div>
 
         </div>
@@ -226,7 +226,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const selectedDate = urlParams.get('date');
+            let selectedDate = urlParams.get('date');
 
             const pageTitle = document.getElementById('pageTitle');
             const calendarContentDiv = document.getElementById('calendarContent');
@@ -236,23 +236,25 @@
             const errorMessageDiv = document.getElementById('errorMessage');
             const errorTextSpan = document.getElementById('errorText');
 
-            if (selectedDate) {
-                pageTitle.textContent = `Earnings on ${selectedDate}`;
-                fetchEarningsData(selectedDate);
-            } else {
-                pageTitle.textContent = 'Earnings Calendar';
-                noDataText.textContent = 'No date selected. Please go back to the home page and select a date.';
-                noCalendarDataMessage.classList.remove('hidden');
-                loadingIndicator.classList.add('hidden');
+            // If no date is in the URL, use today's date
+            if (!selectedDate) {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                selectedDate = `${year}-${month}-${day}`;
             }
 
-            async function fetchEarningsData(date) {
+            pageTitle.textContent = `Dividends on ${selectedDate}`;
+            fetchDividendData(selectedDate);
+            
+            async function fetchDividendData(date) {
                 showLoading(true);
                 hideError();
                 noCalendarDataMessage.classList.add('hidden');
 
                 try {
-                    const apiUrl = `${backendBaseUrl}/upcomingearnings?date=${date}`;
+                    const apiUrl = `${backendBaseUrl}/divs?date=${date}`;
                     const response = await fetch(apiUrl);
                     const data = await response.json();
 
@@ -260,14 +262,14 @@
                         if (Array.isArray(data) && data.length > 0) {
                             displayCalendarData(data);
                         } else {
-                            noDataText.textContent = `No earnings data found for ${date}.`;
+                            noDataText.textContent = `No dividend data found for ${date}.`;
                             noCalendarDataMessage.classList.remove('hidden');
                         }
                     } else {
-                        showError(data.error || 'An error occurred while fetching earnings data.');
+                        showError(data.error || 'An error occurred while fetching dividend data.');
                     }
                 } catch (error) {
-                    console.error('Error fetching earnings calendar:', error);
+                    console.error('Error fetching dividend calendar:', error);
                     showError(`A network error occurred: ${error.message}. Please try again.`);
                 } finally {
                     showLoading(false);
@@ -284,8 +286,11 @@
                 });
 
                 data.forEach(entry => {
+                    const dividendValue = typeof entry["Dividend"] === 'number' ? entry["Dividend"].toFixed(4) : 'N/A';
+                    const yieldValue = typeof entry["Yield"] === 'number' ? entry["Yield"].toFixed(2) + '%' : 'N/A';
+
                     const card = document.createElement('div');
-                    card.className = 'earnings-card p-6 shadow-lg';
+                    card.className = 'dividend-card p-6 shadow-lg';
                     
                     card.innerHTML = `
                         <div class="mb-4 pb-3 border-b-2 border-gray-100">
@@ -293,20 +298,24 @@
                         </div>
                         <div class="space-y-2">
                             <div class="metric-row flex justify-between items-center p-3 rounded-lg">
-                                <span class="text-sm text-gray-600 font-medium">EPS Actual</span>
-                                <span class="text-base font-semibold text-gray-900">${entry["EPS Actual"] !== undefined && entry["EPS Actual"] !== null ? entry["EPS Actual"] : 'N/A'}</span>
+                                <span class="text-sm text-gray-600 font-medium">Dividend</span>
+                                <span class="text-base font-semibold text-gray-900">${dividendValue}</span>
                             </div>
                             <div class="metric-row flex justify-between items-center p-3 rounded-lg">
-                                <span class="text-sm text-gray-600 font-medium">EPS Estimated</span>
-                                <span class="text-base font-semibold text-gray-900">${entry["EPS Estimated"] !== undefined && entry["EPS Estimated"] !== null ? entry["EPS Estimated"] : 'N/A'}</span>
+                                <span class="text-sm text-gray-600 font-medium">Yield</span>
+                                <span class="text-base font-semibold text-gray-900">${yieldValue}</span>
                             </div>
                             <div class="metric-row flex justify-between items-center p-3 rounded-lg">
-                                <span class="text-sm text-gray-600 font-medium">Revenue Actual</span>
-                                <span class="text-base font-semibold text-gray-900">${entry["Revenue Actual"] !== undefined && entry["Revenue Actual"] !== null ? entry["Revenue Actual"] : 'N/A'}</span>
+                                <span class="text-sm text-gray-600 font-medium">Record Date</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["Record Date"] || 'N/A'}</span>
                             </div>
                             <div class="metric-row flex justify-between items-center p-3 rounded-lg">
-                                <span class="text-sm text-gray-600 font-medium">Revenue Estimated</span>
-                                <span class="text-base font-semibold text-gray-900">${entry["Revenue Estimated"] !== undefined && entry["Revenue Estimated"] !== null ? entry["Revenue Estimated"] : 'N/A'}</span>
+                                <span class="text-sm text-gray-600 font-medium">Payment Date</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["Payment Date"] || 'N/A'}</span>
+                            </div>
+                            <div class="metric-row flex justify-between items-center p-3 rounded-lg">
+                                <span class="text-sm text-gray-600 font-medium">Frequency</span>
+                                <span class="text-base font-semibold text-gray-900">${entry["Frequency"] || 'N/A'}</span>
                             </div>
                         </div>
                     `;
