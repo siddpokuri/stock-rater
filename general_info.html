@@ -164,6 +164,10 @@
             padding: 1rem;
         }
 
+        .chart-container canvas {
+            cursor: crosshair;
+        }
+
         canvas {
             max-width: 100%;
             height: 100%;
@@ -182,6 +186,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Responsive nav adjustments */
         @media (max-width: 1024px) {
             .nav-link {
                 font-size: 0.875rem;
@@ -249,8 +254,8 @@
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
                         <div>
-                            <h3 class="text-red-300 font-semibold mb-1">Stock Not Found</h3>
-                            <p id="errorText" class="text-red-200 text-sm">We couldn't find any data for the provided symbol. Please check the ticker and try again.</p>
+                            <h3 class="text-red-300 font-semibold mb-1">Error Loading Data</h3>
+                            <p id="errorText" class="text-red-200 text-sm"></p>
                         </div>
                     </div>
                 </div>
@@ -383,11 +388,54 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- Crosshair Plugin -->
+    <script>
+        // Custom crosshair plugin for Chart.js
+        const crosshairPlugin = {
+            id: 'crosshair',
+            afterDraw: (chart) => {
+                if (chart.tooltip._active && chart.tooltip._active.length) {
+                    const ctx = chart.ctx;
+                    const activePoint = chart.tooltip._active[0];
+                    const x = activePoint.element.x;
+                    const y = activePoint.element.y;
+                    const topY = chart.scales.y.top;
+                    const bottomY = chart.scales.y.bottom;
+                    const leftX = chart.scales.x.left;
+                    const rightX = chart.scales.x.right;
+
+                    // Draw vertical line
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(x, topY);
+                    ctx.lineTo(x, bottomY);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // Draw horizontal line
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(leftX, y);
+                    ctx.lineTo(rightX, y);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        };
+    </script>
+    
     <!-- Main Script -->
     <script>
         let stockSymbol = '';
         let generalData = null;
         let priceChartInstance = null;
+        let currentChartPeriod = '1D';
         const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
 
         const loadingIndicator = document.getElementById('loadingIndicator');
@@ -402,7 +450,7 @@
             { id: 'nav-balance-sheet', file: 'balance_sheet.html', premium: false },
             { id: 'nav-ratings', file: 'ratings.html', premium: true },
             { id: 'nav-earnings', file: 'earnings.html', premium: false },
-            { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
+            { id: 'nav-insider-trades', file: 'insider_trades.html' },
             { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
             { id: 'nav-recent-news', file: 'recent_news.html', premium: false },
         ];
@@ -437,28 +485,21 @@
 
         async function fetchGeneralInfo(symbol) {
             showLoading(true);
-            errorMessageDiv.classList.add('hidden');
             try {
                 const response = await fetch(`${backendBaseUrl}/tab1?stock=${symbol}`);
                 if (!response.ok) throw new Error(`Failed to fetch general info.`);
                 generalData = await response.json();
-                
-                // Validate that we got actual profile data. If it's a completely empty object or missing profile, it's an invalid stock.
-                if (!generalData || !generalData["Profile Info"] || Object.keys(generalData["Profile Info"]).length === 0) {
-                   throw new Error("Invalid Stock Symbol");
-                }
-
                 displayGeneralInfo();
                 displayKeyRatios();
                 showLoading(false);
                 document.getElementById('generalContent').classList.remove('hidden');
             } catch (error) {
-                showError("The stock symbol provided could not be found. Please check and try again.");
+                showError(`An error occurred: ${error.message}`);
             }
         }
 
         function isValidValue(value) {
-            return value !== null && value !== undefined && value !== 'N/A' && value !== 'n/a' && value !== '' && value !== 'None' && value !== 'NaN';
+            return value !== null && value !== undefined && value !== 'N/A' && value !== '' && value !== 'None';
         }
 
         function displayGeneralInfo() {
@@ -466,12 +507,16 @@
             const companyOverviewSection = document.getElementById('companyOverviewSection');
             generalInfoDetailsDiv.innerHTML = '';
             
+            if (!generalData || Object.keys(generalData).length === 0) {
+                companyOverviewSection.classList.add('hidden');
+                return;
+            }
+
             const profileInfo = generalData["Profile Info"] || {};
             
-            if (isValidValue(profileInfo["Company Name"])) {
-                document.getElementById('chartSectionTitle').textContent = `${profileInfo["Company Name"]} (${profileInfo["Exchange"] || ''}: ${stockSymbol})`;
-            } else {
-                document.getElementById('chartSectionTitle').textContent = stockSymbol;
+            // Update title and price
+            if (isValidValue(profileInfo["Company Name"]) && isValidValue(profileInfo["Exchange"])) {
+                document.getElementById('chartSectionTitle').textContent = `${profileInfo["Company Name"]} (${profileInfo["Exchange"]}: ${stockSymbol})`;
             }
             
             if (isValidValue(profileInfo["Price"])) {
@@ -501,6 +546,7 @@
                 }
             });
             
+            // Add description if available
             if (isValidValue(profileInfo["Company Description"])) {
                 hasAnyInfo = true;
                 const descriptionDiv = document.createElement('div');
@@ -512,9 +558,13 @@
                 generalInfoDetailsDiv.appendChild(descriptionDiv);
             }
 
-            companyOverviewSection.classList.toggle('hidden', !hasAnyInfo);
+            // Show or hide section based on whether we have any data
+            if (hasAnyInfo) {
+                companyOverviewSection.classList.remove('hidden');
+            } else {
+                companyOverviewSection.classList.add('hidden');
+            }
             
-            // Initial Chart Render
             renderPriceChart('1D');
             setActiveChartButton('chartBtn1D');
         }
@@ -529,10 +579,10 @@
                 return;
             }
             
-            let hasAnyValidRatio = false;
+            let hasAnyRatio = false;
             Object.entries(generalData["Ratios"]).forEach(([label, value]) => {
                 if (isValidValue(value)) {
-                    hasAnyValidRatio = true;
+                    hasAnyRatio = true;
                     const metricDiv = document.createElement('div');
                     metricDiv.className = 'metric-card glass-card p-6 rounded-xl border border-slate-700';
                     metricDiv.innerHTML = `
@@ -543,7 +593,12 @@
                 }
             });
 
-            keyRatiosSection.classList.toggle('hidden', !hasAnyValidRatio);
+            // Show or hide section based on whether we have any ratios
+            if (hasAnyRatio) {
+                keyRatiosSection.classList.remove('hidden');
+            } else {
+                keyRatiosSection.classList.add('hidden');
+            }
         }
 
         function formatValue(value, label) {
@@ -562,69 +617,76 @@
         }
 
         function renderPriceChart(period) {
-            const noChartDataMsg = document.getElementById('noChartDataMessage');
-            const canvas = document.getElementById('priceChart');
-            
+            const noChartDataMessageElement = document.getElementById('noChartDataMessage');
             if (priceChartInstance) priceChartInstance.destroy();
             
-            const chartData = generalData[period];
-            
-            // Fix for crash: ensure chartData is an array
-            if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
-                canvas.style.display = 'none';
-                noChartDataMsg.classList.remove('hidden');
+            const priceChartCanvas = document.getElementById('priceChart');
+            priceChartCanvas.style.display = 'block';
+            noChartDataMessageElement.classList.add('hidden');
+
+            const chartDataForPeriod = generalData[period];
+            if (!chartDataForPeriod || chartDataForPeriod.length === 0) {
+                priceChartCanvas.style.display = 'none';
+                noChartDataMessageElement.classList.remove('hidden');
                 return;
             }
 
-            canvas.style.display = 'block';
-            noChartDataMsg.classList.add('hidden');
-
-            const ctx = canvas.getContext('2d');
+            const ctx = priceChartCanvas.getContext('2d');
             const dateKey = period === '1Y' ? 'date' : 'datetime';
             const priceKey = period === '1Y' ? 'price' : 'close';
-            const labels = chartData.map(d => d[dateKey]);
-            const prices = chartData.map(d => parseFloat(d[priceKey]));
+            const labels = chartDataForPeriod.map(d => d[dateKey]);
+            const prices = chartDataForPeriod.map(d => parseFloat(d[priceKey]));
             
-            const changes = generalData["Changes"] || {};
-            const percentageChange = changes[period];
-            
-            let color = 'rgb(16, 185, 129)';
-            let bg = 'rgba(16, 185, 129, 0.1)';
+            const percentageChangeValue = generalData["Changes"] ? generalData["Changes"][period] : null;
+            let chartBorderColor = 'rgb(16, 185, 129)';
+            let chartBackgroundColor = 'rgba(16, 185, 129, 0.1)';
 
-            if (isValidValue(percentageChange)) {
-                const changeText = `${percentageChange >= 0 ? '+' : ''}${percentageChange.toFixed(2)}%`;
-                const displayEl = document.getElementById('chartPercentageChange');
-                displayEl.textContent = changeText;
-                displayEl.className = `text-2xl font-bold ${percentageChange >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            if (percentageChangeValue !== null && isValidValue(percentageChangeValue)) {
+                const changeText = `${percentageChangeValue >= 0 ? '+' : ''}${percentageChangeValue.toFixed(2)}%`;
+                document.getElementById('chartPercentageChange').textContent = changeText;
+                document.getElementById('chartPercentageChange').className = `text-2xl font-bold ${percentageChangeValue >= 0 ? 'text-green-400' : 'text-red-400'}`;
                 
-                if (percentageChange < 0) {
-                    color = 'rgb(239, 68, 68)';
-                    bg = 'rgba(239, 68, 68, 0.1)';
+                if (percentageChangeValue < 0) {
+                    chartBorderColor = 'rgb(239, 68, 68)';
+                    chartBackgroundColor = 'rgba(239, 68, 68, 0.1)';
                 }
-            } else {
-                document.getElementById('chartPercentageChange').textContent = 'N/A';
             }
 
-            const volInfo = generalData["Volume (last trading day and average)"] || {};
-            const vol = volInfo["Volume"];
-            const avgVol = volInfo["Average Volume"];
-            
-            document.getElementById('volumeSection').classList.toggle('hidden', !isValidValue(vol));
-            if (isValidValue(vol)) document.getElementById('chartVolume').textContent = formatValue(vol, "Volume");
-            
-            document.getElementById('avgVolumeSection').classList.toggle('hidden', !isValidValue(avgVol));
-            if (isValidValue(avgVol)) document.getElementById('chartAvgVolume').textContent = formatValue(avgVol, "Volume");
+            const volData = generalData["Volume (last trading day and average)"];
+            if (volData) {
+                const volume = volData["Volume"];
+                const avgVolume = volData["Average Volume"];
+                
+                if (isValidValue(volume)) {
+                    document.getElementById('chartVolume').textContent = formatValue(volume, "Volume");
+                    document.getElementById('volumeSection').classList.remove('hidden');
+                } else {
+                    document.getElementById('volumeSection').classList.add('hidden');
+                }
+                
+                if (isValidValue(avgVolume)) {
+                    document.getElementById('chartAvgVolume').textContent = formatValue(avgVolume, "Volume");
+                    document.getElementById('avgVolumeSection').classList.remove('hidden');
+                } else {
+                    document.getElementById('avgVolumeSection').classList.add('hidden');
+                }
+            }
 
             priceChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
+                        label: 'Price',
                         data: prices,
-                        borderColor: color,
-                        backgroundColor: bg,
+                        borderColor: chartBorderColor,
+                        backgroundColor: chartBackgroundColor,
                         fill: true,
                         pointRadius: 0,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: chartBorderColor,
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
                         tension: 0.4,
                         borderWidth: 2
                     }]
@@ -632,30 +694,121 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { 
-                            grid: { display: false },
-                            ticks: { 
-                                maxTicksLimit: 6,
-                                color: '#94a3b8',
-                                callback: function(val, index) {
-                                    const label = this.getLabelForValue(val);
-                                    return period === '1D' ? label.substring(11, 16) : label.substring(0, 10);
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        crosshair: true,
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#cbd5e1',
+                            borderColor: chartBorderColor,
+                            borderWidth: 1,
+                            padding: 16,
+                            cornerRadius: 12,
+                            displayColors: false,
+                            titleFont: {
+                                size: 13,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                size: 14,
+                                weight: '700'
+                            },
+                            callbacks: {
+                                title: function(context) {
+                                    const datetime = context[0].label;
+                                    if (period === '1D') {
+                                        // For intraday, show time
+                                        return datetime.length >= 16 ? datetime.substring(11, 16) : datetime;
+                                    } else if (period === '5D') {
+                                        // For 5 days, show date and time
+                                        return datetime.length >= 16 ? `${datetime.substring(5, 10)} ${datetime.substring(11, 16)}` : datetime;
+                                    } else {
+                                        // For longer periods, show full date
+                                        return datetime.length >= 10 ? datetime.substring(0, 10) : datetime;
+                                    }
+                                },
+                                label: function(context) {
+                                    const price = context.parsed.y;
+                                    return `$${price.toFixed(2)}`;
+                                },
+                                afterLabel: function(context) {
+                                    // Calculate change from first price
+                                    const currentPrice = context.parsed.y;
+                                    const firstPrice = prices[0];
+                                    const change = currentPrice - firstPrice;
+                                    const changePercent = ((change / firstPrice) * 100).toFixed(2);
+                                    const sign = change >= 0 ? '+' : '';
+                                    return `${sign}${changePercent}% from start`;
                                 }
                             }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { 
+                                color: 'rgba(51, 65, 85, 0.3)',
+                                drawOnChartArea: true
+                            }, 
+                            ticks: { 
+                                maxTicksLimit: 6,
+                                maxRotation: 0, 
+                                minRotation: 0,
+                                color: '#94a3b8',
+                                font: {
+                                    size: 11
+                                },
+                                callback: function(value, index, ticks) {
+                                    const datetimeStr = this.getLabelForValue(value);
+                                    if (period === '1D') return datetimeStr.substring(11, 16);
+                                    return datetimeStr.substring(0, 10);
+                                },
+                                color: '#94a3b8',
+                                font: {
+                                    size: 11
+                                }
+                            } 
                         },
                         y: { 
-                            grid: { color: 'rgba(51, 65, 85, 0.2)' },
-                            ticks: { color: '#94a3b8', callback: v => '$' + v.toFixed(2) }
+                            grid: { 
+                                color: 'rgba(51, 65, 85, 0.3)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: {
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
                         }
                     }
                 }
             });
         }
 
-        function setActiveChartButton(id) {
-            document.querySelectorAll('.chart-period-btn').forEach(b => b.classList.toggle('active', b.id === id));
+        // Register the crosshair plugin
+        if (typeof Chart !== 'undefined') {
+            Chart.register(crosshairPlugin);
+        }
+
+        function setActiveChartButton(activeBtnId) {
+            document.querySelectorAll('.chart-period-btn').forEach(button => {
+                if (button.id === activeBtnId) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
         }
 
         function showLoading(show) {
@@ -665,7 +818,6 @@
 
         function showError(message) {
             loadingIndicator.classList.add('hidden');
-            document.getElementById('generalContent').classList.add('hidden');
             errorTextSpan.textContent = message;
             errorMessageDiv.classList.remove('hidden');
         }
