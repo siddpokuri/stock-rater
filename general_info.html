@@ -738,15 +738,6 @@
                                 label: function(context) {
                                     const price = context.parsed.y;
                                     return `$${price.toFixed(2)}`;
-                                },
-                                afterLabel: function(context) {
-                                    // Calculate change from first price
-                                    const currentPrice = context.parsed.y;
-                                    const firstPrice = prices[0];
-                                    const change = currentPrice - firstPrice;
-                                    const changePercent = ((change / firstPrice) * 100).toFixed(2);
-                                    const sign = change >= 0 ? '+' : '';
-                                    return `${sign}${changePercent}% from start`;
                                 }
                             }
                         }
