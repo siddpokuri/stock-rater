@@ -357,6 +357,18 @@
                             <span class="text-slate-400 font-medium">5-Day Average</span>
                             <span id="stdev-5d" class="text-slate-200 font-semibold">--</span>
                         </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">5-Day Average</span>
+                            <span id="stdev-20d" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">5-Day Average</span>
+                            <span id="stdev-50d" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">5-Day Average</span>
+                            <span id="stdev-200d" class="text-slate-200 font-semibold">--</span>
+                        </div>
                     </div>
                 </div>
 
@@ -517,6 +529,9 @@
             if (data.stdev) {
                 document.getElementById('stdev-current').textContent = data.stdev.stdevcurrent ? data.stdev.stdevcurrent.toFixed(2) : 'N/A';
                 document.getElementById('stdev-5d').textContent = data.stdev.stdev_5d_avg ? data.stdev.stdev_5d_avg.toFixed(2) : 'N/A';
+                document.getElementById('stdev-20d').textContent = data.stdev.stdev_5d_avg ? data.stdev.stdev_20d_avg.toFixed(2) : 'N/A';
+                document.getElementById('stdev-50d').textContent = data.stdev.stdev_5d_avg ? data.stdev.stdev_50d_avg.toFixed(2) : 'N/A';
+                document.getElementById('stdev-200d').textContent = data.stdev.stdev_5d_avg ? data.stdev.stdev_200d_avg.toFixed(2) : 'N/A';
             }
         }
 
