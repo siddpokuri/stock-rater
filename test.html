@@ -1,684 +1,409 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Info - General</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pricing Plans - StockSight</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0f172a;
-            min-height: 100vh;
-        }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      position: relative;
+    }
 
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(51, 65, 85, 0.5);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(138, 99, 210, 0.3), transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        .glass-nav {
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
+    .container-wrapper {
+      position: relative;
+      z-index: 1;
+    }
 
-        .nav-link {
-            position: relative;
-            transition: all 0.3s ease;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            color: #cbd5e1;
-        }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
 
-        .nav-link:hover {
-            background: rgba(59, 130, 246, 0.1);
-            color: #3b82f6;
-        }
+    .fade-in {
+      animation: fadeIn 0.6s ease-out;
+    }
 
-        .nav-link.active {
-            background: #3b82f6;
-            color: white;
-            font-weight: 600;
-        }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        .nav-link.home-link {
-            color: #10b981;
-            font-weight: 600;
-        }
+    .pricing-card {
+      background: white;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .nav-link.home-link:hover {
-            background: rgba(16, 185, 129, 0.1);
-            color: #059669;
-        }
+    .pricing-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
 
-        .chart-period-btn {
-            transition: all 0.3s ease;
-        }
+    .pricing-card:hover::before {
+      transform: scaleX(1);
+    }
 
-        .chart-period-btn.active {
-            background: #10b981;
-            color: white;
-            transform: translateY(-1px);
-        }
+    .pricing-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
 
-        .chart-period-btn:not(.active) {
-            background: rgba(30, 41, 59, 0.7);
-            color: #94a3b8;
-            border: 2px solid rgba(51, 65, 85, 0.5);
-        }
+    .pricing-card.premium {
+      border: 2px solid #fbbf24;
+      box-shadow: 0 12px 40px rgba(251, 191, 36, 0.2);
+    }
 
-        .chart-period-btn:not(.active):hover {
-            background: rgba(51, 65, 85, 0.7);
-            border-color: #475569;
-            transform: translateY(-1px);
-        }
+    .pricing-card.premium::before {
+      background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    }
 
-        .fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
+    .premium-badge {
+      position: absolute;
+      top: 20px;
+      right: -35px;
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      color: white;
+      padding: 6px 40px;
+      transform: rotate(45deg);
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+      letter-spacing: 0.5px;
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    .feature-item {
+      display: flex;
+      align-items: start;
+      gap: 12px;
+      padding: 12px 0;
+      transition: all 0.2s ease;
+    }
 
-        .section-header {
-            position: relative;
-            padding-bottom: 12px;
-            margin-bottom: 24px;
-        }
+    .feature-item:hover {
+      transform: translateX(4px);
+    }
 
-        .section-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: #3b82f6;
-            border-radius: 2px;
-        }
+    .checkmark {
+      color: #10b981;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
 
-        .info-row {
-            transition: all 0.2s ease;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
-        }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      padding: 14px 32px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
 
-        .info-row:last-child {
-            border-bottom: none;
-        }
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
 
-        .info-row:hover {
-            background: rgba(51, 65, 85, 0.3);
-            margin: 0 -1rem;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-        }
+    .btn-primary:hover:not(:disabled)::before {
+      left: 100%;
+    }
 
-        .metric-card {
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+    }
 
-        .metric-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 80px;
-            height: 80px;
-            background: rgba(59, 130, 246, 0.05);
-            border-radius: 50%;
-            transform: translate(30%, -30%);
-        }
+    .btn-primary:disabled {
+      background: #e5e7eb;
+      color: #9ca3af;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
 
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-        }
+    .btn-premium {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      box-shadow: 0 4px 16px rgba(251, 191, 36, 0.4);
+    }
 
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: rgba(15, 23, 42, 0.5);
-            border-radius: 12px;
-            padding: 1rem;
-        }
+    .btn-premium:hover:not(:disabled) {
+      box-shadow: 0 8px 24px rgba(251, 191, 36, 0.5);
+    }
 
-        canvas {
-            max-width: 100%;
-            height: 100%;
-        }
+    .header-nav {
+      transition: all 0.3s ease;
+      padding: 8px 20px;
+      border-radius: 8px;
+    }
 
-        .price-display {
-            color: #3b82f6;
-        }
+    .header-nav:hover {
+      background: rgba(102, 126, 234, 0.1);
+      color: #667eea;
+    }
 
-        .alert-box {
-            animation: slideDown 0.3s ease-out;
-        }
+    .price-amount {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    .price-amount.premium {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-        @media (max-width: 1024px) {
-            .nav-link {
-                font-size: 0.875rem;
-                padding: 0.4rem 0.75rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .nav-links-container {
-                overflow-x: auto;
-                scrollbar-width: thin;
-                scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
-            }
-            
-            .nav-links-container::-webkit-scrollbar {
-                height: 4px;
-            }
-            
-            .nav-links-container::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            
-            .nav-links-container::-webkit-scrollbar-thumb {
-                background: rgba(59, 130, 246, 0.3);
-                border-radius: 4px;
-            }
-        }
-    </style>
+    @media (max-width: 768px) {
+      .price-amount {
+        font-size: 2.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="glass-nav sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3">
-            <div class="nav-links-container flex justify-start items-center gap-2 overflow-x-auto whitespace-nowrap pb-2">
-                <a href="index.html" id="nav-home" class="nav-link home-link">Home</a>
-                <a href="#" id="nav-general-info" class="nav-link active">General Info</a>
-                <a href="#" id="nav-income-statement" class="nav-link">Income Statement</a>
-                <a href="#" id="nav-cash-flow" class="nav-link">Cash Flow</a>
-                <a href="#" id="nav-balance-sheet" class="nav-link">Balance Sheet</a>
-                <a href="#" id="nav-ratings" class="nav-link">Ratings</a>
-                <a href="#" id="nav-earnings" class="nav-link">Earnings</a>
-                <a href="#" id="nav-insider-trades" class="nav-link">Insider Trades</a>
-                <a href="#" id="nav-analyst-targets" class="nav-link">Analyst Targets</a>
-                <a href="#" id="nav-recent-news" class="nav-link">Recent News</a>
-            </div>
+  <div class="container-wrapper min-h-screen flex flex-col items-center p-4 sm:p-6">
+
+    <!-- Header -->
+    <header class="w-full max-w-6xl mb-8 fade-in">
+      <div class="glass-card rounded-2xl p-6 flex justify-between items-center">
+        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+          StockSight
+        </h1>
+        <nav>
+          <a href="index.html" class="header-nav text-gray-700 font-medium">
+            Home
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="text-center mb-12 fade-in max-w-3xl">
+      <h2 class="text-4xl sm:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+        Choose Your Plan
+      </h2>
+      <p class="text-lg text-white/90 max-w-2xl mx-auto drop-shadow">
+        Flexible options designed for everyone — whether you're just starting or ready to go premium.
+      </p>
+    </section>
+
+    <!-- Pricing Cards -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl mb-12">
+      
+      <!-- Free Plan -->
+      <div class="pricing-card p-8 fade-in" style="animation-delay: 0.1s;">
+        <div class="text-center mb-6">
+          <h3 class="text-3xl font-bold text-gray-800 mb-3">Free</h3>
+          <div class="price-amount">$0</div>
+          <p class="text-gray-600 text-lg mt-2">/month</p>
         </div>
-    </nav>
 
-    <main class="min-h-screen py-6 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto">
+        <ul class="space-y-1 mb-8">
+          <li class="feature-item">
+            <span class="checkmark">✓</span>
+            <span class="text-gray-700">UNLIMITED Stock Searches</span>
+          </li>
+          <li class="feature-item">
+            <span class="checkmark">✓</span>
+            <span class="text-gray-700">FULL access to Calendars (Earnings/Dividends/IPOs/Splits)</span>
+          </li>
+          <li class="feature-item">
+            <span class="checkmark">✓</span>
+            <span class="text-gray-700">General daily news</span>
+          </li>
+          <li class="feature-item">
+            <span class="checkmark">✓</span>
+            <span class="text-gray-700">Daily top gainers/losers, most active</span>
+          </li>
+        </ul>
 
-            <!-- Loading Indicator -->
-            <div id="loadingIndicator" class="mb-8">
-                <div class="glass-card rounded-2xl p-12 text-center fade-in">
-                    <div class="inline-block w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-                    <p class="text-slate-300 font-medium">Loading stock data...</p>
-                </div>
-            </div>
+        <button disabled class="btn-primary w-full">
+          Current Plan
+        </button>
+      </div>
 
-            <!-- Error Message -->
-            <div id="errorMessage" class="hidden mb-8 alert-box">
-                <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
-                    <div class="flex items-start">
-                        <svg class="w-6 h-6 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        </svg>
-                        <div>
-                            <h3 class="text-red-300 font-semibold mb-1">Stock Not Found</h3>
-                            <p id="errorText" class="text-red-200 text-sm">We couldn't find any data for the provided symbol. Please check the ticker and try again.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Premium Message -->
-            <div id="premium-message" class="hidden mb-8 alert-box">
-                <div class="glass-card rounded-2xl p-6 border-l-4 border-yellow-500">
-                    <div class="flex items-start">
-                        <svg class="w-6 h-6 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                        </svg>
-                        <div>
-                            <h3 class="text-yellow-300 font-semibold mb-1">Premium Feature</h3>
-                            <p class="text-yellow-200 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-100">Premium</a> to access this feature.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Content -->
-            <div id="generalContent" class="hidden space-y-6">
-                
-                <!-- Stock Header & Chart Section -->
-                <div class="glass-card rounded-2xl p-8 fade-in">
-                    <div class="text-center mb-6">
-                        <h1 id="chartSectionTitle" class="text-3xl md:text-4xl font-bold text-slate-100 mb-3">Loading...</h1>
-                        <div id="currentPriceDisplay" class="text-4xl md:text-5xl font-bold price-display mb-6">$---.--</div>
-                    </div>
-
-                    <!-- Chart Period Buttons -->
-                    <div class="flex flex-wrap justify-center gap-3 mb-6">
-                        <button id="chartBtn1D" class="chart-period-btn active px-6 py-2.5 rounded-lg font-semibold text-sm">1 Day</button>
-                        <button id="chartBtn5D" class="chart-period-btn px-6 py-2.5 rounded-lg font-semibold text-sm">5 Days</button>
-                        <button id="chartBtn1M" class="chart-period-btn px-6 py-2.5 rounded-lg font-semibold text-sm">1 Month</button>
-                        <button id="chartBtn1Y" class="chart-period-btn px-6 py-2.5 rounded-lg font-semibold text-sm">1 Year</button>
-                    </div>
-
-                    <!-- Chart Container -->
-                    <div class="chart-container mb-6">
-                        <canvas id="priceChart"></canvas>
-                        <p id="noChartDataMessage" class="hidden text-center text-slate-400 text-lg">No chart data available for this period.</p>
-                    </div>
-
-                    <!-- Chart Stats -->
-                    <div class="flex flex-wrap justify-center items-center gap-6">
-                        <div class="text-center">
-                            <div class="text-sm text-slate-400 mb-1">Change</div>
-                            <div id="chartPercentageChange" class="text-2xl font-bold text-slate-300">N/A</div>
-                        </div>
-                        <div id="volumeSection" class="text-center hidden">
-                            <div class="text-sm text-slate-400 mb-1">Volume</div>
-                            <div id="chartVolume" class="text-2xl font-bold text-slate-200">N/A</div>
-                        </div>
-                        <div id="avgVolumeSection" class="text-center hidden">
-                            <div class="text-sm text-slate-400 mb-1">Avg Volume</div>
-                            <div id="chartAvgVolume" class="text-2xl font-bold text-slate-300">N/A</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Company Overview & Description -->
-                <div id="companyOverviewSection" class="glass-card rounded-2xl p-8 fade-in hidden">
-                    <div class="section-header">
-                        <h2 class="text-2xl font-bold text-slate-100 text-center">Company Overview</h2>
-                    </div>
-                    <div id="generalInfoDetails" class="space-y-2"></div>
-                </div>
-
-                <!-- Key Ratios -->
-                <div id="keyRatiosSection" class="glass-card rounded-2xl p-8 fade-in hidden">
-                    <div class="section-header">
-                        <h2 class="text-2xl font-bold text-slate-100 text-center">Key Ratios</h2>
-                    </div>
-                    <div id="keyRatiosDetails" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                </div>
-
-            </div>
+      <!-- Premium Plan -->
+      <div class="pricing-card premium p-8 fade-in" style="animation-delay: 0.2s;">
+        <div class="premium-badge">POPULAR</div>
+        
+        <div class="text-center mb-6">
+          <h3 class="text-3xl font-bold text-gray-800 mb-3">Premium</h3>
+          <div class="price-amount premium">$9.99</div>
+          <p class="text-gray-600 text-lg mt-2">/month</p>
         </div>
-    </main>
 
-    <!-- Firebase -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+        <ul class="space-y-1 mb-8">
+          <li class="feature-item">
+            <span class="checkmark">✓</span>
+            <span class="text-gray-700 font-semibold">Everything in FREE</span>
+          </li>
+          <li class="feature-item">
+            <span class="checkmark">✓</span>
+            <span class="text-gray-700">COMPREHENSIVE DAILY Ratings</span>
+          </li>
+          <li class="feature-item">
+            <span class="checkmark">✓</span>
+            <span class="text-gray-700">Latest insider trades</span>
+          </li>
+          <li class="feature-item">
+            <span class="checkmark">✓</span>
+            <span class="text-gray-700">Last quarter earnings transcripts</span>
+          </li>
+        </ul>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
-            authDomain: "stocksight-75940.firebaseapp.com",
-            projectId: "stocksight-75940",
-            storageBucket: "stocksight-75940.firebasestorage.app",
-            messagingSenderId: "223645254786",
-            appId: "1:223645254786:web:14c980e559d9090f89e09b",
-            measurementId: "G-8JGEEE9KD1"
-        };
+        <button id="checkout-button" class="btn-primary btn-premium w-full">
+          Upgrade Now
+        </button>
+      </div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    </section>
 
-        window.currentUserIsPremium = false;
+  </div>
 
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = "auth.html";
-            } else {
-                const userDocRef = doc(db, "users", user.uid);
-                try {
-                    const userDoc = await getDoc(userDocRef);
-                    if (userDoc.exists()) {
-                        window.currentUserIsPremium = userDoc.data().isPremium || false;
-                    }
-                } catch (e) {
-                    console.error("Error fetching user premium status:", e);
-                }
-            }
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
+      authDomain: "stocksight-75940.firebaseapp.com",
+      projectId: "stocksight-75940",
+      storageBucket: "stocksight-75940.firebasestorage.app",
+      messagingSenderId: "223645254786",
+      appId: "1:223645254786:web:14c980e559d9090f89e09b",
+      measurementId: "G-8JGEEE9KD1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const stripe = Stripe("pk_test_51Rxdlv4KLwrGOtmyxhLfG9WwzKSNiDsswb5n7zfQpknrTw1tYrcvkYT4edmvlj9OXUENm6W7CkGZ5Ux1Xrk5z8OF000YZi22il");
+    const backendUrl = "https://stock-backend-0128.onrender.com";
+
+    const checkoutButton = document.getElementById("checkout-button");
+    const freePlanButton = document.querySelector(".pricing-card:not(.premium) .btn-primary");
+
+    let currentUser = null;
+
+    function resetButtons() {
+      checkoutButton.disabled = false;
+      checkoutButton.textContent = "Upgrade Now";
+      checkoutButton.classList.remove("bg-gray-300", "text-gray-600", "cursor-not-allowed");
+
+      freePlanButton.disabled = true;
+      freePlanButton.textContent = "Current Plan";
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      resetButtons();
+
+      if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          if (userData.isPremium === true) { 
+            checkoutButton.disabled = true;
+            checkoutButton.textContent = "Current Plan";
+
+            freePlanButton.disabled = true;
+            freePlanButton.textContent = "Premium User";
+          } 
+        } 
+      } else {
+        checkoutButton.disabled = true;
+        checkoutButton.textContent = "Sign in to Upgrade";
+      }
+    });
+
+    checkoutButton.addEventListener("click", async () => {
+      if (!currentUser) {
+        window.location.href = "auth.html";
+        return;
+      }
+
+      try {
+        const response = await fetch(`${backendUrl}/create-checkout-session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: currentUser.email,
+            uid: currentUser.uid
+          })
         });
 
-        window.signOutUser = async function() {
-            try {
-                await signOut(auth);
-                window.location.href = "auth.html";
-            } catch (error) {
-                console.error("Error signing out:", error);
-            }
-        };
-    </script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Main Script -->
-    <script>
-        let stockSymbol = '';
-        let generalData = null;
-        let priceChartInstance = null;
-        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+        const session = await response.json();
 
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const errorMessageDiv = document.getElementById('errorMessage');
-        const errorTextSpan = document.getElementById('errorText');
-        const premiumMessage = document.getElementById('premium-message');
-
-        const navLinks = [
-            { id: 'nav-general-info', file: 'general_info.html', premium: false },
-            { id: 'nav-income-statement', file: 'income_statement.html', premium: false },
-            { id: 'nav-cash-flow', file: 'cash_flow.html', premium: false },
-            { id: 'nav-balance-sheet', file: 'balance_sheet.html', premium: false },
-            { id: 'nav-ratings', file: 'ratings.html', premium: true },
-            { id: 'nav-earnings', file: 'earnings.html', premium: false },
-            { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
-            { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
-            { id: 'nav-recent-news', file: 'recent_news.html', premium: false },
-        ];
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            stockSymbol = urlParams.get('stock');
-            if (!stockSymbol) {
-                showError('No stock symbol provided in the URL.');
-                return;
-            }
-            navLinks.forEach(link => {
-                const navElement = document.getElementById(link.id);
-                if (navElement) {
-                    if (link.premium) {
-                        navElement.href = '#';
-                        navElement.addEventListener('click', (event) => {
-                            event.preventDefault();
-                            if (window.currentUserIsPremium) {
-                                window.location.href = `${link.file}?stock=${stockSymbol}`;
-                            } else {
-                                showPremiumMessage();
-                            }
-                        });
-                    } else {
-                        navElement.href = `${link.file}?stock=${stockSymbol}`;
-                    }
-                }
-            });
-            fetchGeneralInfo(stockSymbol);
-        });
-
-        async function fetchGeneralInfo(symbol) {
-            showLoading(true);
-            errorMessageDiv.classList.add('hidden');
-            try {
-                const response = await fetch(`${backendBaseUrl}/tab1?stock=${symbol}`);
-                if (!response.ok) throw new Error(`Failed to fetch general info.`);
-                generalData = await response.json();
-                
-                // Validate that we got actual profile data. If it's a completely empty object or missing profile, it's an invalid stock.
-                if (!generalData || !generalData["Profile Info"] || Object.keys(generalData["Profile Info"]).length === 0) {
-                   throw new Error("Invalid Stock Symbol");
-                }
-
-                displayGeneralInfo();
-                displayKeyRatios();
-                showLoading(false);
-                document.getElementById('generalContent').classList.remove('hidden');
-            } catch (error) {
-                showError("The stock symbol provided could not be found. Please check and try again.");
-            }
+        if (!session.id) {
+          throw new Error("Invalid session response: " + JSON.stringify(session));
         }
 
-        function isValidValue(value) {
-            return value !== null && value !== undefined && value !== 'N/A' && value !== 'n/a' && value !== '' && value !== 'None' && value !== 'NaN';
+        const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
+
+        if (error) {
+          console.error("Stripe Checkout error:", error.message);
+          alert("Stripe error: " + error.message);
         }
-
-        function displayGeneralInfo() {
-            const generalInfoDetailsDiv = document.getElementById('generalInfoDetails');
-            const companyOverviewSection = document.getElementById('companyOverviewSection');
-            generalInfoDetailsDiv.innerHTML = '';
-            
-            const profileInfo = generalData["Profile Info"] || {};
-            
-            if (isValidValue(profileInfo["Company Name"])) {
-                document.getElementById('chartSectionTitle').textContent = `${profileInfo["Company Name"]} (${profileInfo["Exchange"] || ''}: ${stockSymbol})`;
-            } else {
-                document.getElementById('chartSectionTitle').textContent = stockSymbol;
-            }
-            
-            if (isValidValue(profileInfo["Price"])) {
-                document.getElementById('currentPriceDisplay').textContent = `$${formatValue(profileInfo["Price"], "Price")}`;
-            }
-            
-            const infoItems = [
-                { label: "Market Cap", value: profileInfo["Market Cap"] },
-                { label: "EPS", value: generalData["EPS"] },
-                { label: "Beta", value: profileInfo["Beta"] },
-                { label: "Industry", value: profileInfo["Industry"] },
-                { label: "Sector", value: profileInfo["Sector"] },
-                { label: "Country", value: profileInfo["Country"] }
-            ];
-            
-            let hasAnyInfo = false;
-            infoItems.forEach(item => {
-                if (isValidValue(item.value)) {
-                    hasAnyInfo = true;
-                    const row = document.createElement('div');
-                    row.className = 'info-row flex justify-between items-center';
-                    row.innerHTML = `
-                        <strong class="text-slate-400 font-medium">${item.label}</strong>
-                        <span class="text-slate-100 font-semibold">${formatValue(item.value, item.label)}</span>
-                    `;
-                    generalInfoDetailsDiv.appendChild(row);
-                }
-            });
-            
-            if (isValidValue(profileInfo["Company Description"])) {
-                hasAnyInfo = true;
-                const descriptionDiv = document.createElement('div');
-                descriptionDiv.className = 'mt-6 pt-6 border-t border-slate-700';
-                descriptionDiv.innerHTML = `
-                    <strong class="text-slate-400 font-medium block mb-3">Company Description</strong>
-                    <p class="text-slate-300 leading-relaxed">${profileInfo["Company Description"]}</p>
-                `;
-                generalInfoDetailsDiv.appendChild(descriptionDiv);
-            }
-
-            companyOverviewSection.classList.toggle('hidden', !hasAnyInfo);
-            
-            // Initial Chart Render
-            renderPriceChart('1D');
-            setActiveChartButton('chartBtn1D');
-        }
-
-        function displayKeyRatios() {
-            const keyRatiosDetailsDiv = document.getElementById('keyRatiosDetails');
-            const keyRatiosSection = document.getElementById('keyRatiosSection');
-            keyRatiosDetailsDiv.innerHTML = '';
-            
-            if (!generalData || !generalData["Ratios"]) {
-                keyRatiosSection.classList.add('hidden');
-                return;
-            }
-            
-            let hasAnyValidRatio = false;
-            Object.entries(generalData["Ratios"]).forEach(([label, value]) => {
-                if (isValidValue(value)) {
-                    hasAnyValidRatio = true;
-                    const metricDiv = document.createElement('div');
-                    metricDiv.className = 'metric-card glass-card p-6 rounded-xl border border-slate-700';
-                    metricDiv.innerHTML = `
-                        <div class="text-sm font-medium text-slate-400 mb-2">${label}</div>
-                        <div class="text-2xl font-bold text-slate-100">${formatValue(value, label)}</div>
-                    `;
-                    keyRatiosDetailsDiv.appendChild(metricDiv);
-                }
-            });
-
-            keyRatiosSection.classList.toggle('hidden', !hasAnyValidRatio);
-        }
-
-        function formatValue(value, label) {
-            if (!isValidValue(value)) return 'N/A';
-            if (typeof value === 'number') {
-                if (label.includes("Market Cap") || label.includes("Volume")) {
-                    const absValue = Math.abs(value);
-                    if (absValue >= 1e12) return (value / 1e12).toFixed(2) + 'T';
-                    if (absValue >= 1e9) return (value / 1e9).toFixed(2) + 'B';
-                    if (absValue >= 1e6) return (value / 1e6).toFixed(2) + 'M';
-                    return value.toLocaleString();
-                }
-                return value.toFixed(2);
-            }
-            return value;
-        }
-
-        function renderPriceChart(period) {
-            const noChartDataMsg = document.getElementById('noChartDataMessage');
-            const canvas = document.getElementById('priceChart');
-            
-            if (priceChartInstance) priceChartInstance.destroy();
-            
-            const chartData = generalData[period];
-            
-            // Fix for crash: ensure chartData is an array
-            if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
-                canvas.style.display = 'none';
-                noChartDataMsg.classList.remove('hidden');
-                return;
-            }
-
-            canvas.style.display = 'block';
-            noChartDataMsg.classList.add('hidden');
-
-            const ctx = canvas.getContext('2d');
-            const dateKey = period === '1Y' ? 'date' : 'datetime';
-            const priceKey = period === '1Y' ? 'price' : 'close';
-            const labels = chartData.map(d => d[dateKey]);
-            const prices = chartData.map(d => parseFloat(d[priceKey]));
-            
-            const changes = generalData["Changes"] || {};
-            const percentageChange = changes[period];
-            
-            let color = 'rgb(16, 185, 129)';
-            let bg = 'rgba(16, 185, 129, 0.1)';
-
-            if (isValidValue(percentageChange)) {
-                const changeText = `${percentageChange >= 0 ? '+' : ''}${percentageChange.toFixed(2)}%`;
-                const displayEl = document.getElementById('chartPercentageChange');
-                displayEl.textContent = changeText;
-                displayEl.className = `text-2xl font-bold ${percentageChange >= 0 ? 'text-green-400' : 'text-red-400'}`;
-                
-                if (percentageChange < 0) {
-                    color = 'rgb(239, 68, 68)';
-                    bg = 'rgba(239, 68, 68, 0.1)';
-                }
-            } else {
-                document.getElementById('chartPercentageChange').textContent = 'N/A';
-            }
-
-            const volInfo = generalData["Volume (last trading day and average)"] || {};
-            const vol = volInfo["Volume"];
-            const avgVol = volInfo["Average Volume"];
-            
-            document.getElementById('volumeSection').classList.toggle('hidden', !isValidValue(vol));
-            if (isValidValue(vol)) document.getElementById('chartVolume').textContent = formatValue(vol, "Volume");
-            
-            document.getElementById('avgVolumeSection').classList.toggle('hidden', !isValidValue(avgVol));
-            if (isValidValue(avgVol)) document.getElementById('chartAvgVolume').textContent = formatValue(avgVol, "Volume");
-
-            priceChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: prices,
-                        borderColor: color,
-                        backgroundColor: bg,
-                        fill: true,
-                        pointRadius: 0,
-                        tension: 0.4,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { 
-                            grid: { display: false },
-                            ticks: { 
-                                maxTicksLimit: 6,
-                                color: '#94a3b8',
-                                callback: function(val, index) {
-                                    const label = this.getLabelForValue(val);
-                                    return period === '1D' ? label.substring(11, 16) : label.substring(0, 10);
-                                }
-                            }
-                        },
-                        y: { 
-                            grid: { color: 'rgba(51, 65, 85, 0.2)' },
-                            ticks: { color: '#94a3b8', callback: v => '$' + v.toFixed(2) }
-                        }
-                    }
-                }
-            });
-        }
-
-        function setActiveChartButton(id) {
-            document.querySelectorAll('.chart-period-btn').forEach(b => b.classList.toggle('active', b.id === id));
-        }
-
-        function showLoading(show) {
-            loadingIndicator.classList.toggle('hidden', !show);
-            document.getElementById('generalContent').classList.toggle('hidden', show);
-        }
-
-        function showError(message) {
-            loadingIndicator.classList.add('hidden');
-            document.getElementById('generalContent').classList.add('hidden');
-            errorTextSpan.textContent = message;
-            errorMessageDiv.classList.remove('hidden');
-        }
-
-        function showPremiumMessage() {
-            premiumMessage.classList.remove('hidden');
-            setTimeout(() => premiumMessage.classList.add('hidden'), 5000);
-        }
-
-        document.getElementById('chartBtn1D').onclick = () => { renderPriceChart('1D'); setActiveChartButton('chartBtn1D'); };
-        document.getElementById('chartBtn5D').onclick = () => { renderPriceChart('5D'); setActiveChartButton('chartBtn5D'); };
-        document.getElementById('chartBtn1M').onclick = () => { renderPriceChart('1M'); setActiveChartButton('chartBtn1M'); };
-        document.getElementById('chartBtn1Y').onclick = () => { renderPriceChart('1Y'); setActiveChartButton('chartBtn1Y'); };
-    </script>
+      } catch (err) {
+        console.error("Checkout error:", err);
+        alert("Something went wrong. Check console for details.");
+      }
+    });
+  </script>
 </body>
 </html>
