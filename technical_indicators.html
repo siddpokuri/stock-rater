@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Info - Technical Indicators</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .container-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-nav {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: #cbd5e1;
+        }
+
+        .nav-link:hover {
+            background: rgba(51, 65, 85, 0.5);
+            color: #e2e8f0;
+        }
+
+        .nav-link.active {
+            background: #3b82f6;
+            color: white;
+            font-weight: 600;
+        }
+
+        .nav-link.home-link {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .nav-link.home-link:hover {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            position: relative;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+        }
+
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: #3b82f6;
+            border-radius: 2px;
+        }
+
+        .indicator-card {
+            background: rgba(51, 65, 85, 0.5);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(71, 85, 105, 0.5);
+        }
+
+        .indicator-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .indicator-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .indicator-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .metric-row:hover {
+            background: rgba(51, 65, 85, 0.3);
+        }
+
+        .alert-box {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive nav adjustments */
+        @media (max-width: 1024px) {
+            .nav-link {
+                font-size: 0.875rem;
+                padding: 0.4rem 0.75rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links-container {
+                overflow-x: auto;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(59, 130, 246, 0.5) transparent;
+            }
+            
+            .nav-links-container::-webkit-scrollbar {
+                height: 4px;
+            }
+            
+            .nav-links-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .nav-links-container::-webkit-scrollbar-thumb {
+                background: rgba(59, 130, 246, 0.5);
+                border-radius: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="glass-nav sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="nav-links-container flex justify-start items-center gap-2 overflow-x-auto whitespace-nowrap pb-2">
+                <a href="index.html" id="nav-home" class="nav-link home-link">Home</a>
+                <a href="#" id="nav-general-info" class="nav-link">General Info</a>
+                <a href="#" id="nav-income-statement" class="nav-link">Income Statement</a>
+                <a href="#" id="nav-cash-flow" class="nav-link">Cash Flow</a>
+                <a href="#" id="nav-balance-sheet" class="nav-link">Balance Sheet</a>
+                <a href="#" id="nav-ratings" class="nav-link">Ratings</a>
+                <a href="#" id="nav-earnings" class="nav-link">Earnings</a>
+                <a href="#" id="nav-insider-trades" class="nav-link">Insider Trades</a>
+                <a href="#" id="nav-analyst-targets" class="nav-link">Analyst Targets</a>
+                <a href="#" id="nav-technical-indicators" class="nav-link active">Technical Indicators</a>
+                <a href="#" id="nav-recent-news" class="nav-link">Recent News</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-wrapper min-h-screen py-6 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+
+            <!-- Header -->
+            <div class="glass-card rounded-2xl p-8 mb-6 fade-in">
+                <h1 id="stock-title" class="text-3xl md:text-4xl font-bold text-slate-100 text-center">Stock - Technical Indicators</h1>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading-area" class="mb-8">
+                <div class="glass-card rounded-2xl p-12 text-center fade-in">
+                    <div class="inline-block w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p class="text-slate-300 font-medium">Loading technical indicators...</p>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message" class="hidden mb-8 alert-box">
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-red-500">
+                    <div class="flex items-start">
+                        <svg class="w-6 h-6 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <h3 class="text-red-300 font-semibold mb-1">Error Loading Data</h3>
+                            <p id="error-text" class="text-red-200 text-sm"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium Message -->
+            <div id="premium-message" class="hidden mb-8 alert-box">
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-yellow-500">
+                    <div class="flex items-start">
+                        <svg class="w-6 h-6 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <h3 class="text-yellow-300 font-semibold mb-1">Premium Feature</h3>
+                            <p class="text-yellow-200 text-sm">Please get <a href="pricing.html" class="underline font-semibold hover:text-yellow-100">Premium</a> to access this feature.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Data Message -->
+            <div id="no-data-message" class="hidden mb-8 alert-box">
+                <div class="glass-card rounded-2xl p-12 text-center">
+                    <svg class="w-16 h-16 text-slate-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0h2a2 2 0 012 2v0a2 2 0 01-2 2h-2a2 2 0 01-2-2zm6 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <h3 class="text-xl font-semibold text-slate-300 mb-2">No Data Available</h3>
+                    <p class="text-slate-400">Technical indicators data is not available for this stock.</p>
+                </div>
+            </div>
+
+            <!-- Indicators Content -->
+            <div id="indicators-container" class="hidden space-y-6">
+                
+                <!-- Key Indicators -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-slate-100 text-center">Key Indicators</h2>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="indicator-card text-center">
+                            <p class="indicator-label mb-2">RSI (14)</p>
+                            <p id="rsi-value" class="indicator-value">--</p>
+                        </div>
+                        <div class="indicator-card text-center">
+                            <p class="indicator-label mb-2">ADX</p>
+                            <p id="adx-value" class="indicator-value">--</p>
+                        </div>
+                        <div class="indicator-card text-center">
+                            <p class="indicator-label mb-2">Williams %R</p>
+                            <p id="williams-value" class="indicator-value">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Moving Averages - EMA -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-slate-100 text-center">Exponential Moving Averages (EMA)</h2>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">Current Price</span>
+                            <span id="ema-current" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">EMA 5</span>
+                            <span id="ema-5" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">EMA 20</span>
+                            <span id="ema-20" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">EMA 30</span>
+                            <span id="ema-30" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">EMA 50</span>
+                            <span id="ema-50" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">EMA 200</span>
+                            <span id="ema-200" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Moving Averages - SMA -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-slate-100 text-center">Simple Moving Averages (SMA)</h2>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">Current Price</span>
+                            <span id="sma-current" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">SMA 5</span>
+                            <span id="sma-5" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">SMA 20</span>
+                            <span id="sma-20" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">SMA 30</span>
+                            <span id="sma-30" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">SMA 50</span>
+                            <span id="sma-50" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">SMA 200</span>
+                            <span id="sma-200" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Standard Deviation -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <div class="section-header">
+                        <h2 class="text-2xl font-bold text-slate-100 text-center">Standard Deviation</h2>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">Current</span>
+                            <span id="stdev-current" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="text-slate-400 font-medium">5-Day Average</span>
+                            <span id="stdev-5d" class="text-slate-200 font-semibold">--</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFBOe8Op4jPw4SR6Yla3hs-y4xzqDApoY",
+            authDomain: "stocksight-75940.firebaseapp.com",
+            projectId: "stocksight-75940",
+            storageBucket: "stocksight-75940.firebasestorage.app",
+            messagingSenderId: "223645254786",
+            appId: "1:223645254786:web:14c980e559d9090f89e09b",
+            measurementId: "G-8JGEEE9KD1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.currentUserIsPremium = false;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "auth.html";
+            } else {
+                const userDocRef = doc(db, "users", user.uid);
+                try {
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
+                        window.currentUserIsPremium = userDoc.data().isPremium || false;
+                    } else {
+                        console.warn("User document not found for UID:", user.uid);
+                        window.currentUserIsPremium = false;
+                    }
+                } catch (e) {
+                    console.error("Error fetching user premium status:", e);
+                    window.currentUserIsPremium = false;
+                }
+                console.log("Current user premium status:", window.currentUserIsPremium);
+            }
+        });
+
+        window.signOutUser = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = "auth.html";
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        };
+    </script>
+
+    <!-- Main Script -->
+    <script>
+        let stockTicker = '';
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+
+        const loadingArea = document.getElementById('loading-area');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const premiumMessage = document.getElementById('premium-message');
+        const noDataMessage = document.getElementById('no-data-message');
+        const indicatorsContainer = document.getElementById('indicators-container');
+        const stockTitle = document.getElementById('stock-title');
+
+        async function fetchTechnicalIndicators(ticker) {
+            loadingArea.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            noDataMessage.classList.add('hidden');
+            indicatorsContainer.classList.add('hidden');
+
+            const apiUrl = `${backendBaseUrl}/tech?stock=${ticker}`;
+
+            try {
+                let response = null;
+                let delay = 1000;
+                let maxRetries = 5;
+
+                for (let i = 0; i < maxRetries; i++) {
+                    response = await fetch(apiUrl);
+                    if (response.ok) {
+                        break;
+                    }
+                    if (response.status === 429) {
+                        console.warn(`API call failed with status 429. Retrying in ${delay}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    } else {
+                        throw new Error(`API call failed with status ${response.status}`);
+                    }
+                }
+
+                if (!response || !response.ok) {
+                    throw new Error('Max retries reached, failed to fetch data.');
+                }
+
+                const data = await response.json();
+
+                // Check if data is empty or invalid
+                if (!data || Object.keys(data).length === 0) {
+                    noDataMessage.classList.remove('hidden');
+                    return;
+                }
+
+                displayIndicators(data);
+                indicatorsContainer.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Failed to fetch technical indicators:', error);
+                noDataMessage.classList.remove('hidden');
+            } finally {
+                loadingArea.classList.add('hidden');
+            }
+        }
+
+        function displayIndicators(data) {
+            // Key Indicators
+            if (data.rsi !== null && data.rsi !== undefined) {
+                document.getElementById('rsi-value').textContent = data.rsi.toFixed(2);
+            }
+            if (data.adx !== null && data.adx !== undefined) {
+                document.getElementById('adx-value').textContent = data.adx.toFixed(2);
+            }
+            if (data["williams (%R)"] !== null && data["williams (%R)"] !== undefined) {
+                document.getElementById('williams-value').textContent = data["williams (%R)"].toFixed(2);
+            }
+
+            // EMA
+            if (data.ema) {
+                document.getElementById('ema-current').textContent = data.ema.emacurrent ? `$${data.ema.emacurrent.toFixed(2)}` : 'N/A';
+                document.getElementById('ema-5').textContent = data.ema.ema5 ? `$${data.ema.ema5.toFixed(2)}` : 'N/A';
+                document.getElementById('ema-20').textContent = data.ema.ema20 ? `$${data.ema.ema20.toFixed(2)}` : 'N/A';
+                document.getElementById('ema-30').textContent = data.ema.ema30 ? `$${data.ema.ema30.toFixed(2)}` : 'N/A';
+                document.getElementById('ema-50').textContent = data.ema.ema50 ? `$${data.ema.ema50.toFixed(2)}` : 'N/A';
+                document.getElementById('ema-200').textContent = data.ema.ema200 ? `$${data.ema.ema200.toFixed(2)}` : 'N/A';
+            }
+
+            // SMA
+            if (data.sma) {
+                document.getElementById('sma-current').textContent = data.sma.smacurrent ? `$${data.sma.smacurrent.toFixed(2)}` : 'N/A';
+                document.getElementById('sma-5').textContent = data.sma.sma5 ? `$${data.sma.sma5.toFixed(2)}` : 'N/A';
+                document.getElementById('sma-20').textContent = data.sma.sma20 ? `$${data.sma.sma20.toFixed(2)}` : 'N/A';
+                document.getElementById('sma-30').textContent = data.sma.sma30 ? `$${data.sma.sma30.toFixed(2)}` : 'N/A';
+                document.getElementById('sma-50').textContent = data.sma.sma50 ? `$${data.sma.sma50.toFixed(2)}` : 'N/A';
+                document.getElementById('sma-200').textContent = data.sma.sma200 ? `$${data.sma.sma200.toFixed(2)}` : 'N/A';
+            }
+
+            // Standard Deviation
+            if (data.stdev) {
+                document.getElementById('stdev-current').textContent = data.stdev.stdevcurrent ? data.stdev.stdevcurrent.toFixed(2) : 'N/A';
+                document.getElementById('stdev-5d').textContent = data.stdev.stdev_5d_avg ? data.stdev.stdev_5d_avg.toFixed(2) : 'N/A';
+            }
+        }
+
+        function showPremiumMessage() {
+            premiumMessage.classList.remove('hidden');
+            setTimeout(() => {
+                premiumMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            stockTicker = urlParams.get('stock');
+
+            const navLinks = [
+                { id: 'nav-general-info', file: 'general_info.html' },
+                { id: 'nav-income-statement', file: 'income_statement.html' },
+                { id: 'nav-cash-flow', file: 'cash_flow.html' },
+                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
+                { id: 'nav-ratings', file: 'ratings.html', premium: true },
+                { id: 'nav-earnings', file: 'earnings.html' },
+                { id: 'nav-insider-trades', file: 'insider_trades.html' },
+                { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
+                { id: 'nav-technical-indicators', file: 'technical_indicators.html' },
+                { id: 'nav-recent-news', file: 'recent_news.html' }
+            ];
+
+            if (stockTicker) {
+                fetchTechnicalIndicators(stockTicker);
+                stockTitle.textContent = `${stockTicker.toUpperCase()} - Technical Indicators`;
+
+                navLinks.forEach(link => {
+                    const navElement = document.getElementById(link.id);
+                    if (navElement) {
+                        if (link.premium) {
+                            navElement.href = '#';
+                            navElement.addEventListener('click', (event) => {
+                                event.preventDefault();
+                                if (window.currentUserIsPremium) {
+                                    window.location.href = `${link.file}?stock=${stockTicker}`;
+                                } else {
+                                    showPremiumMessage();
+                                }
+                            });
+                        } else {
+                            navElement.href = `${link.file}?stock=${stockTicker}`;
+                        }
+                    }
+                });
+            } else {
+                stockTitle.textContent = 'No Stock Selected';
+                errorText.textContent = 'Please return to the main page and select a stock to view its technical indicators.';
+                errorMessage.classList.remove('hidden');
+                loadingArea.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
