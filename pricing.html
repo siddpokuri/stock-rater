@@ -16,23 +16,9 @@
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #0f172a;
       min-height: 100vh;
-      position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: 
-        radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(138, 99, 210, 0.3), transparent 50%);
-      pointer-events: none;
-      z-index: 0;
+      color: #e2e8f0;
     }
 
     .container-wrapper {
@@ -41,10 +27,10 @@
     }
 
     .glass-card {
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(30, 41, 59, 0.7);
       backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(51, 65, 85, 0.5);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .fade-in {
@@ -57,11 +43,14 @@
     }
 
     .pricing-card {
-      background: white;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(51, 65, 85, 0.5);
       border-radius: 20px;
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .pricing-card::before {
@@ -70,8 +59,8 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #667eea, #764ba2);
+      height: 3px;
+      background: #3b82f6;
       transform: scaleX(0);
       transition: transform 0.3s ease;
     }
@@ -82,16 +71,22 @@
 
     .pricing-card:hover {
       transform: translateY(-8px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      border-color: rgba(59, 130, 246, 0.3);
     }
 
     .pricing-card.premium {
-      border: 2px solid #fbbf24;
-      box-shadow: 0 12px 40px rgba(251, 191, 36, 0.2);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      box-shadow: 0 12px 40px rgba(251, 191, 36, 0.1);
     }
 
     .pricing-card.premium::before {
       background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    }
+
+    .pricing-card.premium:hover {
+      border-color: rgba(251, 191, 36, 0.5);
+      box-shadow: 0 20px 40px rgba(251, 191, 36, 0.2);
     }
 
     .premium-badge {
@@ -99,7 +94,7 @@
       top: 20px;
       right: -35px;
       background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-      color: white;
+      color: #0f172a;
       padding: 6px 40px;
       transform: rotate(45deg);
       font-size: 12px;
@@ -128,7 +123,7 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #3b82f6;
       color: white;
       font-weight: 600;
       padding: 14px 32px;
@@ -136,7 +131,7 @@
       transition: all 0.3s ease;
       border: none;
       cursor: pointer;
-      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
       position: relative;
       overflow: hidden;
     }
@@ -148,7 +143,7 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
       transition: left 0.5s ease;
     }
 
@@ -158,43 +153,45 @@
 
     .btn-primary:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+      background: #2563eb;
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
     }
 
     .btn-primary:disabled {
-      background: #e5e7eb;
-      color: #9ca3af;
+      background: rgba(51, 65, 85, 0.5);
+      color: #64748b;
       cursor: not-allowed;
       box-shadow: none;
     }
 
     .btn-premium {
       background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-      box-shadow: 0 4px 16px rgba(251, 191, 36, 0.4);
+      box-shadow: 0 4px 16px rgba(251, 191, 36, 0.3);
+      color: #0f172a;
     }
 
     .btn-premium:hover:not(:disabled) {
-      box-shadow: 0 8px 24px rgba(251, 191, 36, 0.5);
+      box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4);
+      transform: translateY(-2px);
     }
 
     .header-nav {
       transition: all 0.3s ease;
       padding: 8px 20px;
       border-radius: 8px;
+      color: #10b981;
+      font-weight: 600;
     }
 
     .header-nav:hover {
-      background: rgba(102, 126, 234, 0.1);
-      color: #667eea;
+      background: rgba(16, 185, 129, 0.1);
+      color: #34d399;
     }
 
     .price-amount {
       font-size: 3.5rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #3b82f6;
     }
 
     .price-amount.premium {
@@ -202,6 +199,10 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+    }
+
+    .divider {
+      border-color: rgba(51, 65, 85, 0.5);
     }
 
     @media (max-width: 768px) {
@@ -217,24 +218,27 @@
     <!-- Header -->
     <header class="w-full max-w-6xl mb-8 fade-in">
       <div class="glass-card rounded-2xl p-6 flex justify-between items-center">
-        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-          StockSight
-        </h1>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-blue-400">StockSight</h1>
+        </div>
         <nav>
-          <a href="index.html" class="header-nav text-gray-700 font-medium">
-            Home
-          </a>
+          <a href="index.html" class="header-nav">← Home</a>
         </nav>
       </div>
     </header>
 
     <!-- Hero Section -->
     <section class="text-center mb-12 fade-in max-w-3xl">
-      <h2 class="text-4xl sm:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+      <h2 class="text-4xl sm:text-5xl font-bold text-slate-100 mb-4">
         Choose Your Plan
       </h2>
-      <p class="text-lg text-white/90 max-w-2xl mx-auto drop-shadow">
-        Flexible options designed for everyone — whether you're just starting or ready to go premium.
+      <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+        Flexible options designed for everyone — whether you're just starting out or ready to go premium.
       </p>
     </section>
 
@@ -244,27 +248,29 @@
       <!-- Free Plan -->
       <div class="pricing-card p-8 fade-in" style="animation-delay: 0.1s;">
         <div class="text-center mb-6">
-          <h3 class="text-3xl font-bold text-gray-800 mb-3">Free</h3>
+          <h3 class="text-3xl font-bold text-slate-100 mb-3">Free</h3>
           <div class="price-amount">$0</div>
-          <p class="text-gray-600 text-lg mt-2">/month</p>
+          <p class="text-slate-400 text-lg mt-2">/month</p>
         </div>
+
+        <hr class="divider mb-6">
 
         <ul class="space-y-1 mb-8">
           <li class="feature-item">
             <span class="checkmark">✓</span>
-            <span class="text-gray-700">UNLIMITED Stock Searches</span>
+            <span class="text-slate-300">UNLIMITED Stock Searches</span>
           </li>
           <li class="feature-item">
             <span class="checkmark">✓</span>
-            <span class="text-gray-700">FULL access to Calendars (Earnings/Dividends/IPOs/Splits)</span>
+            <span class="text-slate-300">FULL access to Calendars (Earnings/Dividends/IPOs/Splits)</span>
           </li>
           <li class="feature-item">
             <span class="checkmark">✓</span>
-            <span class="text-gray-700">General daily news</span>
+            <span class="text-slate-300">General daily news</span>
           </li>
           <li class="feature-item">
             <span class="checkmark">✓</span>
-            <span class="text-gray-700">Daily top gainers/losers, most active</span>
+            <span class="text-slate-300">Daily top gainers/losers, most active</span>
           </li>
         </ul>
 
@@ -278,27 +284,29 @@
         <div class="premium-badge">POPULAR</div>
         
         <div class="text-center mb-6">
-          <h3 class="text-3xl font-bold text-gray-800 mb-3">Premium</h3>
+          <h3 class="text-3xl font-bold text-slate-100 mb-3">Premium</h3>
           <div class="price-amount premium">$9.99</div>
-          <p class="text-gray-600 text-lg mt-2">/month</p>
+          <p class="text-slate-400 text-lg mt-2">/month</p>
         </div>
+
+        <hr class="divider mb-6">
 
         <ul class="space-y-1 mb-8">
           <li class="feature-item">
             <span class="checkmark">✓</span>
-            <span class="text-gray-700 font-semibold">Everything in FREE</span>
+            <span class="text-slate-300 font-semibold">Everything in FREE</span>
           </li>
           <li class="feature-item">
             <span class="checkmark">✓</span>
-            <span class="text-gray-700">COMPREHENSIVE DAILY Ratings</span>
+            <span class="text-slate-300">COMPREHENSIVE DAILY Ratings</span>
           </li>
           <li class="feature-item">
             <span class="checkmark">✓</span>
-            <span class="text-gray-700">Latest insider trades</span>
+            <span class="text-slate-300">Latest insider trades</span>
           </li>
           <li class="feature-item">
             <span class="checkmark">✓</span>
-            <span class="text-gray-700">Last quarter earnings transcripts</span>
+            <span class="text-slate-300">Last quarter earnings transcripts</span>
           </li>
         </ul>
 
@@ -341,7 +349,6 @@
     function resetButtons() {
       checkoutButton.disabled = false;
       checkoutButton.textContent = "Upgrade Now";
-      checkoutButton.classList.remove("bg-gray-300", "text-gray-600", "cursor-not-allowed");
 
       freePlanButton.disabled = true;
       freePlanButton.textContent = "Current Plan";
