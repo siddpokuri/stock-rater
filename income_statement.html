@@ -230,14 +230,15 @@
         <div class="container mx-auto px-4 py-3">
             <div class="nav-links-container flex justify-start items-center gap-2 overflow-x-auto whitespace-nowrap pb-2">
                 <a href="index.html" id="nav-home" class="nav-link home-link">Home</a>
-                <a href="#" id="nav-general-info" class="nav-link">General Info</a>
-                <a href="#" id="nav-income-statement" class="nav-link active">Income Statement</a>
+                <a href="#" id="nav-general-info" class="nav-link active">General Info</a>
+                <a href="#" id="nav-income-statement" class="nav-link">Income Statement</a>
                 <a href="#" id="nav-cash-flow" class="nav-link">Cash Flow</a>
                 <a href="#" id="nav-balance-sheet" class="nav-link">Balance Sheet</a>
                 <a href="#" id="nav-ratings" class="nav-link">Ratings</a>
                 <a href="#" id="nav-earnings" class="nav-link">Earnings</a>
                 <a href="#" id="nav-insider-trades" class="nav-link">Insider Trades</a>
                 <a href="#" id="nav-analyst-targets" class="nav-link">Analyst Targets</a>
+                <a href="#" id="nav-technical-indicators" class="nav-link">Technical Indicators</a>
                 <a href="#" id="nav-recent-news" class="nav-link">Recent News</a>
             </div>
         </div>
@@ -755,15 +756,16 @@
             stockTicker = urlParams.get('stock');
 
             const navLinks = [
-                { id: 'nav-general-info', file: 'general_info.html' },
-                { id: 'nav-income-statement', file: 'income_statement.html' },
-                { id: 'nav-cash-flow', file: 'cash_flow.html' },
-                { id: 'nav-balance-sheet', file: 'balance_sheet.html' },
+                { id: 'nav-general-info', file: 'general_info.html', premium: false },
+                { id: 'nav-income-statement', file: 'income_statement.html', premium: false },
+                { id: 'nav-cash-flow', file: 'cash_flow.html', premium: false },
+                { id: 'nav-balance-sheet', file: 'balance_sheet.html', premium: false },
                 { id: 'nav-ratings', file: 'ratings.html', premium: true },
-                { id: 'nav-earnings', file: 'earnings.html' },
-                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: true },
+                { id: 'nav-earnings', file: 'earnings.html', premium: false },
+                { id: 'nav-insider-trades', file: 'insider_trades.html', premium: false},
                 { id: 'nav-analyst-targets', file: 'analyst_targets.html', premium: true },
-                { id: 'nav-recent-news', file: 'recent_news.html' },
+                { id: 'nav-technical-indicators', file: 'technical_indicators.html', premium: false },
+                { id: 'nav-recent-news', file: 'recent_news.html', premium: false },
             ];
 
             if (stockTicker) {
