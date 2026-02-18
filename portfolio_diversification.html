@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Diversification - StockSight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .container-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            font-weight: 600;
+            padding: 14px 32px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background: #2563eb;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: rgba(51, 65, 85, 0.5);
+            color: #64748b;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .input-field {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #e2e8f0;
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field::placeholder {
+            color: #64748b;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: rgba(15, 23, 42, 0.7);
+        }
+
+        /* Heatmap Styles */
+        .heatmap-container {
+            overflow-x: auto;
+            margin: 2rem 0;
+        }
+
+        .heatmap-table {
+            border-collapse: separate;
+            border-spacing: 4px;
+            margin: 0 auto;
+        }
+
+        .heatmap-cell {
+            width: 80px;
+            height: 80px;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .heatmap-label {
+            font-weight: 600;
+            color: #94a3b8;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .score-card {
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin: 1rem 0;
+        }
+
+        .score-excellent { color: #10b981; }
+        .score-good { color: #fbbf24; }
+        .score-poor { color: #ef4444; }
+
+        .alert-box {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-spinner {
+            border-top-color: #3b82f6;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            color: #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Back button */
+        .back-button {
+            color: #10b981;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            padding: 8px 20px;
+            border-radius: 8px;
+        }
+
+        .back-button:hover {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-wrapper min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-6xl mx-auto">
+
+            <!-- Header -->
+            <header class="glass-card rounded-2xl p-6 mb-8 fade-in">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0h2a2 2 0 012 2v0a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl sm:text-3xl font-bold text-blue-400">Portfolio Diversification</h1>
+                            <p class="text-sm text-slate-400">Analyze correlation between your stocks</p>
+                        </div>
+                    </div>
+                    <a href="index.html" class="back-button">← Home</a>
+                </div>
+            </header>
+
+            <!-- Instructions -->
+            <div class="glass-card rounded-2xl p-6 mb-8 fade-in">
+                <div class="flex items-start gap-3">
+                    <svg class="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-100 mb-2">How to Use</h3>
+                        <ul class="text-slate-300 text-sm space-y-1">
+                            <li>• Enter 2-10 stock symbols separated by commas (e.g., GOOG,AAPL,TSLA,JNJ)</li>
+                            <li>• All stocks must be valid ticker symbols</li>
+                            <li>• The tool will analyze correlation and calculate a diversification score</li>
+                            <li>• Green indicates low correlation (good diversification)</li>
+                            <li>• Red indicates high correlation (poor diversification)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="glass-card rounded-2xl p-8 mb-8 fade-in">
+                <label class="block text-slate-300 font-medium mb-3">
+                    Enter Stock Symbols (2-10 stocks, comma-separated)
+                </label>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <input 
+                        type="text" 
+                        id="stockInput" 
+                        class="input-field flex-1 text-lg"
+                        placeholder="e.g., GOOG,AAPL,TSLA,JNJ"
+                    >
+                    <button 
+                        id="checkButton" 
+                        class="btn-primary"
+                        disabled
+                    >
+                        Check Diversification
+                    </button>
+                </div>
+                
+                <!-- Stock count indicator -->
+                <p id="stockCount" class="text-sm text-slate-400 mt-3"></p>
+
+                <!-- Validation warnings -->
+                <div id="warningMessage" class="hidden mt-4 alert-box">
+                    <div class="bg-yellow-900/20 border border-yellow-800/30 rounded-lg p-4">
+                        <div class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            <p id="warningText" class="text-sm text-yellow-300"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error message -->
+                <div id="errorMessage" class="hidden mt-4 alert-box">
+                    <div class="bg-red-900/20 border border-red-800/30 rounded-lg p-4">
+                        <div class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <p id="errorText" class="text-sm text-red-300"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="hidden mb-8">
+                <div class="glass-card rounded-2xl p-12 text-center fade-in">
+                    <div class="inline-block w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p class="text-slate-300 font-medium">Analyzing portfolio diversification...</p>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="hidden space-y-8">
+                
+                <!-- Diversification Score -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <h2 class="text-2xl font-bold text-slate-100 text-center mb-6">Diversification Analysis</h2>
+                    <div class="score-card">
+                        <p class="text-slate-400 font-medium">Overall Score</p>
+                        <div id="scoreValue" class="score-value">--</div>
+                        <div id="scoreLabel" class="text-2xl font-bold">--</div>
+                        <p class="text-sm text-slate-400 mt-4">Average Correlation: <span id="avgCorrelation" class="font-semibold text-slate-300">--</span></p>
+                    </div>
+                </div>
+
+                <!-- Heatmap -->
+                <div class="glass-card rounded-2xl p-8 fade-in">
+                    <h2 class="text-2xl font-bold text-slate-100 text-center mb-6">Correlation Heatmap</h2>
+                    <div class="heatmap-container" id="heatmapContainer">
+                        <!-- Heatmap will be generated here -->
+                    </div>
+                    <div class="flex justify-center items-center gap-8 mt-6 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded" style="background: #10b981;"></div>
+                            <span class="text-slate-300">Low Correlation (Good)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded" style="background: #fbbf24;"></div>
+                            <span class="text-slate-300">Medium Correlation</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded" style="background: #ef4444;"></div>
+                            <span class="text-slate-300">High Correlation (Poor)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Tooltip element -->
+    <div id="tooltip" class="tooltip hidden"></div>
+
+    <script>
+        // ========== Constants & DOM Elements ==========
+        const stockInput = document.getElementById('stockInput');
+        const checkButton = document.getElementById('checkButton');
+        const stockCount = document.getElementById('stockCount');
+        const warningMessage = document.getElementById('warningMessage');
+        const warningText = document.getElementById('warningText');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultsSection = document.getElementById('resultsSection');
+        const heatmapContainer = document.getElementById('heatmapContainer');
+        const tooltip = document.getElementById('tooltip');
+
+        const backendBaseUrl = 'https://stock-backend-0128.onrender.com';
+
+        let validatedStocks = [];
+        let isValidating = false;
+
+        // ========== Input Validation & Stock Checking ==========
+        
+        /**
+         * Parse input and return array of stock symbols
+         */
+        function parseStockInput(input) {
+            return input
+                .toUpperCase()
+                .split(',')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+        }
+
+        /**
+         * Check if a stock symbol is valid using the backend
+         */
+        async function checkStockValid(symbol) {
+            try {
+                const response = await fetch(`${backendBaseUrl}/check?stock=${symbol}`);
+                const data = await response.json();
+                return data['valid?'] === 1;
+            } catch (error) {
+                console.error(`Error validating ${symbol}:`, error);
+                return false;
+            }
+        }
+
+        /**
+         * Validate all stocks in the input
+         */
+        async function validateAllStocks(stocks) {
+            const validationPromises = stocks.map(stock => checkStockValid(stock));
+            const results = await Promise.all(validationPromises);
+            
+            const invalidStocks = stocks.filter((stock, index) => !results[index]);
+            const validStocks = stocks.filter((stock, index) => results[index]);
+            
+            return { validStocks, invalidStocks };
+        }
+
+        /**
+         * Update button state and show warnings
+         */
+        async function updateButtonState() {
+            if (isValidating) return;
+
+            const stocks = parseStockInput(stockInput.value);
+            const count = stocks.length;
+
+            // Hide messages
+            warningMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
+            // Update count display
+            if (count === 0) {
+                stockCount.textContent = '';
+                checkButton.disabled = true;
+                return;
+            }
+
+            stockCount.textContent = `${count} stock${count !== 1 ? 's' : ''} entered`;
+
+            // Check count range
+            if (count < 2) {
+                warningText.textContent = 'Please enter at least 2 stocks for diversification analysis.';
+                warningMessage.classList.remove('hidden');
+                checkButton.disabled = true;
+                return;
+            }
+
+            if (count > 10) {
+                warningText.textContent = 'Please enter no more than 10 stocks.';
+                warningMessage.classList.remove('hidden');
+                checkButton.disabled = true;
+                return;
+            }
+
+            // Validate stocks
+            isValidating = true;
+            checkButton.disabled = true;
+            checkButton.textContent = 'Validating...';
+
+            const { validStocks, invalidStocks } = await validateAllStocks(stocks);
+
+            if (invalidStocks.length > 0) {
+                warningText.textContent = `Invalid stock symbol${invalidStocks.length > 1 ? 's' : ''}: ${invalidStocks.join(', ')}. Please check and try again.`;
+                warningMessage.classList.remove('hidden');
+                checkButton.disabled = true;
+                checkButton.textContent = 'Check Diversification';
+                isValidating = false;
+                return;
+            }
+
+            // All valid!
+            validatedStocks = validStocks;
+            checkButton.disabled = false;
+            checkButton.textContent = 'Check Diversification';
+            isValidating = false;
+        }
+
+        // ========== API Call & Results Display ==========
+
+        /**
+         * Fetch diversification data from backend
+         */
+        async function fetchDiversificationData(stocks) {
+            const stocksParam = stocks.join(',');
+            const response = await fetch(`${backendBaseUrl}/diversify?stocks=${stocksParam}`);
+            
+            if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}`);
+            }
+            
+            return await response.json();
+        }
+
+        /**
+         * Get color for correlation value
+         */
+        function getCorrelationColor(value) {
+            // High correlation (0.7-1.0) = Red
+            // Medium correlation (0.3-0.7) = Yellow
+            // Low correlation (-1.0-0.3) = Green
+            
+            const absValue = Math.abs(value);
+            
+            if (absValue >= 0.7) {
+                // Red for high correlation
+                const intensity = Math.floor((absValue - 0.7) / 0.3 * 155 + 100);
+                return `rgb(${intensity}, 68, 68)`;
+            } else if (absValue >= 0.3) {
+                // Yellow for medium correlation
+                const intensity = Math.floor((absValue - 0.3) / 0.4 * 155 + 100);
+                return `rgb(${intensity}, ${intensity}, 68)`;
+            } else {
+                // Green for low correlation
+                const intensity = Math.floor((0.3 - absValue) / 1.3 * 155 + 100);
+                return `rgb(68, ${intensity}, 68)`;
+            }
+        }
+
+        /**
+         * Generate heatmap HTML
+         */
+        function generateHeatmap(correlationMatrix, stocks) {
+            let html = '<table class="heatmap-table">';
+            
+            // Header row
+            html += '<tr><td class="heatmap-label"></td>';
+            stocks.forEach(stock => {
+                html += `<td class="heatmap-label">${stock}</td>`;
+            });
+            html += '</tr>';
+            
+            // Data rows
+            stocks.forEach(stockY => {
+                html += '<tr>';
+                html += `<td class="heatmap-label">${stockY}</td>`;
+                
+                stocks.forEach(stockX => {
+                    const value = correlationMatrix[stockY][stockX];
+                    const color = getCorrelationColor(value);
+                    const textColor = Math.abs(value) > 0.5 ? '#ffffff' : '#1e293b';
+                    
+                    html += `
+                        <td class="heatmap-cell" 
+                            style="background: ${color}; color: ${textColor};"
+                            data-x="${stockX}"
+                            data-y="${stockY}"
+                            data-value="${value.toFixed(3)}">
+                            ${value.toFixed(2)}
+                        </td>
+                    `;
+                });
+                
+                html += '</tr>';
+            });
+            
+            html += '</table>';
+            return html;
+        }
+
+        /**
+         * Display results
+         */
+        function displayResults(data) {
+            // Display score
+            const scoreValue = document.getElementById('scoreValue');
+            const scoreLabel = document.getElementById('scoreLabel');
+            const avgCorrelation = document.getElementById('avgCorrelation');
+
+            scoreValue.textContent = data.diversification_score.toFixed(1);
+            scoreLabel.textContent = data.label;
+            avgCorrelation.textContent = data.average_correlation.toFixed(3);
+
+            // Set score color based on label
+            scoreValue.className = 'score-value';
+            if (data.label === 'Excellent') {
+                scoreValue.classList.add('score-excellent');
+            } else if (data.label === 'Good') {
+                scoreValue.classList.add('score-good');
+            } else {
+                scoreValue.classList.add('score-poor');
+            }
+
+            // Generate heatmap
+            const stocks = Object.keys(data.correlation_matrix);
+            heatmapContainer.innerHTML = generateHeatmap(data.correlation_matrix, stocks);
+
+            // Add tooltip handlers
+            document.querySelectorAll('.heatmap-cell').forEach(cell => {
+                cell.addEventListener('mouseenter', showTooltip);
+                cell.addEventListener('mousemove', moveTooltip);
+                cell.addEventListener('mouseleave', hideTooltip);
+            });
+
+            // Show results
+            resultsSection.classList.remove('hidden');
+        }
+
+        // ========== Tooltip Handlers ==========
+        
+        function showTooltip(e) {
+            const x = e.target.dataset.x;
+            const y = e.target.dataset.y;
+            const value = e.target.dataset.value;
+            
+            tooltip.textContent = `${y} ↔ ${x}: ${value}`;
+            tooltip.classList.remove('hidden');
+            moveTooltip(e);
+        }
+
+        function moveTooltip(e) {
+            tooltip.style.left = (e.pageX + 15) + 'px';
+            tooltip.style.top = (e.pageY + 15) + 'px';
+        }
+
+        function hideTooltip() {
+            tooltip.classList.add('hidden');
+        }
+
+        // ========== Main Check Function ==========
+        
+        async function checkDiversification() {
+            if (validatedStocks.length < 2 || validatedStocks.length > 10) return;
+
+            // Hide previous results and errors
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            warningMessage.classList.add('hidden');
+
+            // Show loading
+            loadingSpinner.classList.remove('hidden');
+
+            try {
+                const data = await fetchDiversificationData(validatedStocks);
+                displayResults(data);
+            } catch (error) {
+                console.error('Error fetching diversification data:', error);
+                errorText.textContent = 'Failed to analyze portfolio. Please try again later or check if all stock symbols are correct.';
+                errorMessage.classList.remove('hidden');
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+
+        // ========== Event Listeners ==========
+        
+        stockInput.addEventListener('input', () => {
+            // Debounce validation
+            clearTimeout(stockInput.validationTimer);
+            stockInput.validationTimer = setTimeout(updateButtonState, 500);
+        });
+
+        checkButton.addEventListener('click', checkDiversification);
+
+        // Allow Enter key to submit
+        stockInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !checkButton.disabled) {
+                checkDiversification();
+            }
+        });
+
+    </script>
+</body>
+</html>
