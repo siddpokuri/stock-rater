@@ -217,7 +217,7 @@
                     <div>
                         <h3 class="text-lg font-semibold text-slate-100 mb-2">How to Use</h3>
                         <ul class="text-slate-300 text-sm space-y-1">
-                            <li>• Enter 2-10 stock symbols separated by commas (e.g., GOOG,AAPL,TSLA,JNJ)</li>
+                            <li>• Enter 2-20 stock symbols separated by commas (e.g., GOOG,AAPL,TSLA,JNJ)</li>
                             <li>• All stocks must be valid ticker symbols</li>
                             <li>• The tool will analyze correlation and calculate a diversification score</li>
                             <li>• Green indicates low correlation (good diversification)</li>
@@ -230,7 +230,7 @@
             <!-- Input Section -->
             <div class="glass-card rounded-2xl p-8 mb-8 fade-in">
                 <label class="block text-slate-300 font-medium mb-3">
-                    Enter Stock Symbols (2-10 stocks, comma-separated)
+                    Enter Stock Symbols (2-20 stocks, comma-separated)
                 </label>
                 <div class="flex flex-col sm:flex-row gap-4">
                     <input 
@@ -417,8 +417,8 @@
                 return;
             }
 
-            if (count > 10) {
-                warningText.textContent = 'Please enter no more than 10 stocks.';
+            if (count > 20) {
+                warningText.textContent = 'Please enter no more than 20 stocks.';
                 warningMessage.classList.remove('hidden');
                 checkButton.disabled = true;
                 return;
@@ -591,7 +591,7 @@
         // ========== Main Check Function ==========
         
         async function checkDiversification() {
-            if (validatedStocks.length < 2 || validatedStocks.length > 10) return;
+            if (validatedStocks.length < 2 || validatedStocks.length > 20) return;
 
             // Hide previous results and errors
             resultsSection.classList.add('hidden');
